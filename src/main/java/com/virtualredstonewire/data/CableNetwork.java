@@ -111,6 +111,24 @@ public class CableNetwork
         return node.hasAnyInputOnFace(toFace);
     }
 
+    public int getSignalAt(BlockPos pos, Direction direction, net.minecraft.world.level.Level level)
+    {
+        CableNode node = getNode(pos);
+        if (node == null) return 0;
+        Set<BlockPos> inputs = node.getIncomingForFace(direction);
+        if (inputs.isEmpty()) return 0;
+        int maxPower = 0;
+        for (BlockPos inPos : inputs)
+        {
+            for (Direction dir : Direction.values())
+            {
+                int p = level.getBlockState(inPos).getSignal(level, inPos, dir);
+                if (p > maxPower) maxPower = p;
+            }
+        }
+        return maxPower;
+    }
+
     public Set<BlockPos> getInputPositions()
     {
         Set<BlockPos> result = new HashSet<>();

@@ -13,41 +13,66 @@ import java.util.List;
 public class CableInfoScreen extends Screen
 {
     private final BlockPos queryPos;
-    private final List<String> outgoing;
-    private final List<String> incoming;
+    private final List<String> outgoingLines;
+    private final List<String> incomingLines;
 
     private int panelLeft;
     private int panelTop;
-    private static final int PANEL_WIDTH = 144;
+    private static final int PANEL_WIDTH = 115;
     private static final int HEADER_HEIGHT = 16;
     private static final int LINE_HEIGHT = 11;
 
     private int closeX, closeY, closeW = 12, closeH = 12;
     private double scrollOffset;
+    private int maxScroll;
 
     public CableInfoScreen(BlockPos pos)
     {
         super(Component.translatable("screen.virtual_redstone_wire.cable_info"));
         this.queryPos = pos.immutable();
 
-        List<String> out = new ArrayList<>();
-        List<String> in = new ArrayList<>();
+        int maxChars = (PANEL_WIDTH - 8) / font.width("W");
 
+        List<String> outRaw = new ArrayList<>();
+        List<String> inRaw = new ArrayList<>();
         for (CableLink link : ClientCableCache.getLinks())
         {
             if (link.getFrom().equals(pos))
             {
-                out.add("-> [" + link.getTo().getX() + "," + link.getTo().getY()
+                outRaw.add("-> [" + link.getTo().getX() + "," + link.getTo().getY()
                     + "," + link.getTo().getZ() + "] " + link.getToFace().getName());
             }
             if (link.getTo().equals(pos))
             {
-                in.add("<- [" + link.getFrom().getX() + "," + link.getFrom().getY()
+                inRaw.add("<- [" + link.getFrom().getX() + "," + link.getFrom().getY()
                     + "," + link.getFrom().getZ() + "] " + link.getToFace().getName());
             }
         }
-        this.outgoing = out;
-        this.incoming = in;
+        this.outgoingLines = wrapLines(outRaw, maxChars);
+        this.incomingLines = wrapLines(inRaw, maxChars);
+    }
+
+    private List<String> wrapLines(List<String> raw, int maxChars)
+    {
+        List<String> result = new ArrayList<>();
+        for (String line : raw)
+        {
+            if (line.length() <= maxChars)
+            {
+                result.add(line);
+            }
+            else
+            {
+                int pos = 0;
+                while (pos < line.length())
+                {
+                    int end = Math.min(pos + maxChars, line.length());
+                    result.add(line.substring(pos, end));
+                    pos = end;
+                }
+            }
+        }
+        return result;
     }
 
     @Override
@@ -66,9 +91,15 @@ public class CableInfoScreen extends Screen
         int panelBottom = panelTop + panelHeight();
         int contentTop = panelTop + HEADER_HEIGHT + 6;
         int contentBottom = panelBottom - 6;
+        int visibleHeight = contentBottom - contentTop;
+
+        int totalContentH = LINE_HEIGHT + 2
+            + LINE_HEIGHT + outgoingLines.size() * LINE_HEIGHT
+            + 4 + LINE_HEIGHT + incomingLines.size() * LINE_HEIGHT;
+        maxScroll = Math.max(0, totalContentH - visibleHeight);
+        scrollOffset = Math.max(0, Math.min(scrollOffset, maxScroll));
 
         graphics.fill(panelLeft, panelTop, panelLeft + PANEL_WIDTH, panelBottom, 0xE0101010);
-
         graphics.fill(panelLeft, panelTop, panelLeft + PANEL_WIDTH, panelTop + HEADER_HEIGHT, 0xFF2A2A2A);
         graphics.drawString(font,
             Component.translatable("screen.virtual_redstone_wire.cable_info"),
@@ -84,7 +115,7 @@ public class CableInfoScreen extends Screen
 
         graphics.enableScissor(panelLeft, contentTop, panelLeft + PANEL_WIDTH, contentBottom);
 
-        int contentLeft = panelLeft + 5;
+        int contentLeft = panelLeft + 4;
         int y = contentTop - (int) scrollOffset;
 
         graphics.drawString(font,
@@ -95,29 +126,26 @@ public class CableInfoScreen extends Screen
 
         graphics.drawString(font,
             Component.translatable("screen.virtual_redstone_wire.cable_info.outgoing",
-                outgoing.size()),
+                outgoingLines.size()),
             contentLeft, y, 0x55FFFF);
         y += LINE_HEIGHT;
-        for (String line : outgoing)
+        for (String line : outgoingLines)
         {
-            graphics.drawString(font, Component.literal(" " + line), contentLeft, y, 0xAAAAAA);
+            graphics.drawString(font, Component.literal(line), contentLeft, y, 0xAAAAAA);
             y += LINE_HEIGHT;
         }
         y += 4;
 
         graphics.drawString(font,
             Component.translatable("screen.virtual_redstone_wire.cable_info.incoming",
-                incoming.size()),
+                incomingLines.size()),
             contentLeft, y, 0xFFFF55);
         y += LINE_HEIGHT;
-        for (String line : incoming)
+        for (String line : incomingLines)
         {
-            graphics.drawString(font, Component.literal(" " + line), contentLeft, y, 0xAAAAAA);
+            graphics.drawString(font, Component.literal(line), contentLeft, y, 0xAAAAAA);
             y += LINE_HEIGHT;
         }
-
-        int totalContentH = y - contentTop;
-        scrollOffset = Math.max(0, Math.min(scrollOffset, Math.max(0, totalContentH - (contentBottom - contentTop))));
 
         graphics.disableScissor();
 
@@ -130,7 +158,7 @@ public class CableInfoScreen extends Screen
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollY)
     {
-        scrollOffset -= scrollY * LINE_HEIGHT * 2;
+        scrollOffset = Math.max(0, Math.min(scrollOffset - scrollY * LINE_HEIGHT * 2, maxScroll));
         return true;
     }
 

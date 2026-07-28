@@ -1,6 +1,5 @@
 package com.virtualredstonewire.network;
 
-import com.virtualredstonewire.block.VirtualRedstoneSourceBlock;
 import com.virtualredstonewire.config.ServerConfig;
 import com.virtualredstonewire.data.CableNetwork;
 import com.virtualredstonewire.data.CableNetworkManager;
@@ -9,8 +8,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.*;
@@ -43,7 +40,8 @@ public class CableActionPacketHandler
                 {
                     for (Map.Entry<BlockPos, Direction> edge : savedOutgoing)
                     {
-                        removeVirtualSourceIfEmpty(level, network, edge.getKey(), edge.getValue());
+                        level.updateNeighborsAt(edge.getKey(),
+                            level.getBlockState(edge.getKey()).getBlock());
                     }
                     CableNetworkManager.markDirty(level);
                     broadcastSync(level, network);
@@ -60,17 +58,10 @@ public class CableActionPacketHandler
 
                 if (level.isEmptyBlock(from)) return;
 
-                boolean created = network.toggleLink(from, to, packet.getToFace());
+                network.toggleLink(from, to, packet.getToFace());
                 CableNetworkManager.markDirty(level);
 
-                if (created)
-                {
-                    placeVirtualSource(level, to, packet.getToFace());
-                }
-                else
-                {
-                    removeVirtualSourceIfEmpty(level, network, to, packet.getToFace());
-                }
+                level.updateNeighborsAt(to, level.getBlockState(to).getBlock());
                 RedstoneCalculator.markDirtyInput(from);
 
                 broadcastSync(level, network);
@@ -83,38 +74,5 @@ public class CableActionPacketHandler
     {
         CableNetworkChannel.sendToAll(level,
             new CableSyncPacket(SyncHelper.toEntries(network.getAllLinks())));
-    }
-
-    private static void placeVirtualSource(ServerLevel level, BlockPos toPos, Direction toFace)
-    {
-        BlockPos sourcePos = toPos.relative(toFace);
-        BlockState existing = level.getBlockState(sourcePos);
-        if (!existing.isAir())
-        {
-            if (existing.getBlock() instanceof VirtualRedstoneSourceBlock)
-            {
-                return;
-            }
-            return;
-        }
-        level.setBlock(sourcePos,
-            com.virtualredstonewire.registry.ModBlocks.VIRTUAL_SOURCE.get().defaultBlockState()
-                .setValue(VirtualRedstoneSourceBlock.FACING, toFace.getOpposite())
-                .setValue(VirtualRedstoneSourceBlock.POWER, 0),
-            2);
-    }
-
-    private static void removeVirtualSourceIfEmpty(ServerLevel level, CableNetwork network,
-                                                    BlockPos toPos, Direction toFace)
-    {
-        BlockPos sourcePos = toPos.relative(toFace);
-        if (!network.hasOutputAt(toPos, toFace))
-        {
-            BlockState existing = level.getBlockState(sourcePos);
-            if (existing.getBlock() instanceof VirtualRedstoneSourceBlock)
-            {
-                level.setBlock(sourcePos, Blocks.AIR.defaultBlockState(), 2);
-            }
-        }
     }
 }

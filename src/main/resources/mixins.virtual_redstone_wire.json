@@ -1,0 +1,12 @@
+{
+    "required": true,
+    "minVersion": "0.8",
+    "package": "com.virtualredstonewire.mixin",
+    "compatibilityLevel": "JAVA_17",
+    "refmap": "mixins.virtual_redstone_wire.refmap.json",
+    "mixins": [
+        "MixinLevel"
+    ],
+    "client": [],
+    "server": []
+}
