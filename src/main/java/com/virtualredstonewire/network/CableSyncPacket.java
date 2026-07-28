@@ -10,51 +10,70 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 
 public class CableSyncPacket
 {
-    private final List<CableLink> links;
+    private final List<BlockPos> fromPositions;
+    private final List<BlockPos> toPositions;
+    private final List<Direction> toFaces;
 
-    public CableSyncPacket(Collection<CableLink> links)
+    public CableSyncPacket(List<CableSyncEntry> entries)
     {
-        this.links = new ArrayList<>(links);
+        this.fromPositions = new ArrayList<>();
+        this.toPositions = new ArrayList<>();
+        this.toFaces = new ArrayList<>();
+        for (CableSyncEntry e : entries)
+        {
+            fromPositions.add(e.from());
+            toPositions.add(e.to());
+            toFaces.add(e.face());
+        }
     }
 
     public CableSyncPacket(FriendlyByteBuf buf)
     {
         int size = buf.readVarInt();
-        this.links = new ArrayList<>(size);
+        this.fromPositions = new ArrayList<>(size);
+        this.toPositions = new ArrayList<>(size);
+        this.toFaces = new ArrayList<>(size);
         for (int i = 0; i < size; i++)
         {
-            String id = buf.readUtf();
-            BlockPos from = buf.readBlockPos();
-            BlockPos to = buf.readBlockPos();
-            Direction face = buf.readEnum(Direction.class);
-            links.add(new CableLink(id, from, to, face));
+            fromPositions.add(buf.readBlockPos());
+            toPositions.add(buf.readBlockPos());
+            toFaces.add(buf.readEnum(Direction.class));
         }
     }
 
     public void encode(FriendlyByteBuf buf)
     {
-        buf.writeVarInt(links.size());
-        for (CableLink link : links)
+        buf.writeVarInt(fromPositions.size());
+        for (int i = 0; i < fromPositions.size(); i++)
         {
-            buf.writeUtf(link.getId());
-            buf.writeBlockPos(link.getFrom());
-            buf.writeBlockPos(link.getTo());
-            buf.writeEnum(link.getToFace());
+            buf.writeBlockPos(fromPositions.get(i));
+            buf.writeBlockPos(toPositions.get(i));
+            buf.writeEnum(toFaces.get(i));
         }
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx)
     {
-        ctx.get().enqueueWork(() -> {
-            DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
-                () -> () -> ClientCableCache.setLinks(links));
+        ctx.get().enqueueWork(() ->
+        {
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
+            {
+                List<CableLink> links = new ArrayList<>();
+                for (int i = 0; i < fromPositions.size(); i++)
+                {
+                    links.add(new CableLink(
+                        fromPositions.get(i), toPositions.get(i), toFaces.get(i)));
+                }
+                ClientCableCache.setLinks(links);
+            });
         });
         ctx.get().setPacketHandled(true);
     }
+
+    public record CableSyncEntry(BlockPos from, BlockPos to, Direction face) {}
 }

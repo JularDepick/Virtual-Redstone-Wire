@@ -1,8 +1,5 @@
 package com.virtualredstonewire.item;
 
-import com.virtualredstonewire.VirtualRedstoneWire;
-import com.virtualredstonewire.network.CableNetworkChannel;
-import com.virtualredstonewire.network.CableQueryPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
@@ -28,31 +25,24 @@ public class CableMagnifierItem extends Item
     {
         Level level = context.getLevel();
         Player player = context.getPlayer();
-        if (player == null) return InteractionResult.FAIL;
-
-        BlockPos pos = context.getClickedPos();
+        if (player == null) return InteractionResult.PASS;
 
         if (level.isClientSide)
         {
-            // 在客户端打开GUI
+            BlockPos pos = context.getClickedPos();
             net.minecraft.client.Minecraft.getInstance().setScreen(
                 new com.virtualredstonewire.client.gui.CableInfoScreen(pos));
-        }
-        else
-        {
-            // 服务端发送查询响应
-            CableNetworkChannel.sendToPlayer((net.minecraft.server.level.ServerPlayer) player,
-                new CableQueryPacket(pos));
+            return InteractionResult.SUCCESS;
         }
 
-        return InteractionResult.SUCCESS;
+        return InteractionResult.PASS;
     }
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level,
                                  List<Component> tooltip, TooltipFlag flag)
     {
-        tooltip.add(Component.translatable("item.virtual-redstone-wire.cable_magnifier.desc"));
-        tooltip.add(Component.translatable("item.virtual-redstone-wire.cable_magnifier.tip"));
+        tooltip.add(Component.translatable("item.virtual_redstone_wire.cable_magnifier.desc"));
+        tooltip.add(Component.translatable("item.virtual_redstone_wire.cable_magnifier.tip"));
     }
 }

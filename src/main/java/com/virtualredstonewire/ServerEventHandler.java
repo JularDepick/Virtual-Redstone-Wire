@@ -7,11 +7,9 @@ import com.virtualredstonewire.redstone.RedstoneCalculator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.event.level.NeighborBlockUpdateEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -58,7 +56,8 @@ public class ServerEventHandler
     {
         if (event.phase == TickEvent.Phase.END)
         {
-            for (ServerLevel level : net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer().getAllLevels())
+            for (ServerLevel level :
+                net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer().getAllLevels())
             {
                 RedstoneCalculator.tick(level);
             }
@@ -66,36 +65,25 @@ public class ServerEventHandler
     }
 
     @SubscribeEvent
-    public static void onNeighborBlockUpdate(NeighborBlockUpdateEvent event)
+    public static void onNeighborBlockUpdate(BlockEvent.NeighborNotifyEvent event)
     {
         if (!(event.getLevel() instanceof ServerLevel serverLevel)) return;
 
         BlockPos pos = event.getPos();
-        Direction updateDirection = Direction.values()[(event.getPos().hashCode() & 3) % 6];
-        // 检查是否有输入方块被更新
         CableNetwork network = CableNetworkManager.get(serverLevel);
 
-        // 当pos是某个link的输入方块时，标记其所有输出
-        var outputs = network.getOutputsForInput(pos);
-        if (!outputs.isEmpty())
+        if (network.getNode(pos) != null && network.getOutputsForInput(pos).size() > 0)
         {
-            for (var output : outputs)
-            {
-                RedstoneCalculator.markDirty(output.getKey(), output.getValue());
-            }
+            RedstoneCalculator.markDirtyInput(pos);
         }
 
-        // 当pos的邻居是某个link的输入方块时，也需要触发
         for (Direction dir : Direction.values())
         {
             BlockPos neighborPos = pos.relative(dir);
-            var neighborOutputs = network.getOutputsForInput(neighborPos);
-            if (!neighborOutputs.isEmpty())
+            if (network.getNode(neighborPos) != null
+                && network.getOutputsForInput(neighborPos).size() > 0)
             {
-                for (var output : neighborOutputs)
-                {
-                    RedstoneCalculator.markDirty(output.getKey(), output.getValue());
-                }
+                RedstoneCalculator.markDirtyInput(neighborPos);
             }
         }
     }

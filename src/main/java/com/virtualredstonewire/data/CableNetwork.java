@@ -1,7 +1,5 @@
 package com.virtualredstonewire.data;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -12,188 +10,166 @@ import java.util.*;
 
 public class CableNetwork
 {
-    private final Map<String, CableLink> links = new HashMap<>();
+    private final Map<BlockPos, CableNode> nodes = new HashMap<>();
 
-    // 正向邻接表：from BlockPos -> Set<(to BlockPos, Direction)>
-    private final Map<BlockPos, Set<Map.Entry<BlockPos, Direction>>> forwardAdj = new HashMap<>();
+    public CableNode getOrCreateNode(BlockPos pos)
+    {
+        return nodes.computeIfAbsent(pos.immutable(), CableNode::new);
+    }
 
-    // 反向邻接表：(to BlockPos, Direction) -> Set<from BlockPos>
-    private final Map<Map.Entry<BlockPos, Direction>, Set<BlockPos>> reverseAdj = new HashMap<>();
+    public CableNode getNode(BlockPos pos)
+    {
+        return nodes.get(pos.immutable());
+    }
 
-    /**
-     * 添加或删除链路（开关式）
-     * @return true=新建, false=删除
-     */
+    public void removeNode(BlockPos pos)
+    {
+        nodes.remove(pos.immutable());
+    }
+
     public boolean toggleLink(BlockPos from, BlockPos to, Direction toFace)
     {
-        String id = CableLink.generateId(from, to, toFace);
+        CableNode inputNode = getOrCreateNode(from);
+        CableNode outputNode = getOrCreateNode(to);
 
-        if (links.containsKey(id))
+        if (inputNode.hasOutgoing(to) && inputNode.getOutgoingFace(to) == toFace)
         {
-            removeLink(id);
+            inputNode.removeOutgoing(to);
+            outputNode.removeIncoming(from, toFace);
+
+            if (outputNode.getIncomingCount() == 0 && inputNode.getIncomingCount() == 0)
+            {
+                removeNode(to);
+            }
+            if (inputNode.getOutgoingCount() == 0
+                && inputNode.getIncomingCount() == 0)
+            {
+                removeNode(from);
+            }
+
             return false;
         }
         else
         {
-            CableLink link = new CableLink(from, to, toFace);
-            links.put(id, link);
-
-            Map.Entry<BlockPos, Direction> target = Map.entry(to.immutable(), toFace);
-            forwardAdj.computeIfAbsent(from.immutable(), k -> new HashSet<>()).add(target);
-
-            reverseAdj.computeIfAbsent(target, k -> new HashSet<>()).add(from.immutable());
+            inputNode.addOutgoing(to, toFace);
+            outputNode.addIncoming(from, toFace);
 
             return true;
         }
     }
 
-    /**
-     * 删除指定链路
-     */
-    public void removeLink(String id)
+    public int removeLinksFrom(BlockPos from)
     {
-        CableLink link = links.remove(id);
-        if (link == null) return;
+        CableNode node = getNode(from);
+        if (node == null) return 0;
 
-        Map.Entry<BlockPos, Direction> target = Map.entry(link.getTo(), link.getToFace());
-
-        Set<Map.Entry<BlockPos, Direction>> outEdges = forwardAdj.get(link.getFrom());
-        if (outEdges != null)
-        {
-            outEdges.remove(target);
-            if (outEdges.isEmpty()) forwardAdj.remove(link.getFrom());
-        }
-
-        Set<BlockPos> inNodes = reverseAdj.get(target);
-        if (inNodes != null)
-        {
-            inNodes.remove(link.getFrom());
-            if (inNodes.isEmpty()) reverseAdj.remove(target);
-        }
-    }
-
-    /**
-     * 删除与指定坐标相连的所有链路（剪刀操作）
-     */
-    public int removeAllLinksAt(BlockPos pos)
-    {
         int count = 0;
-        BlockPos immutablePos = pos.immutable();
-
-        // 删除所有以 pos 为输入的链路
-        Set<Map.Entry<BlockPos, Direction>> outEdges = forwardAdj.get(immutablePos);
-        if (outEdges != null)
+        List<Map.Entry<BlockPos, Direction>> outgoing = new ArrayList<>(node.getOutgoing());
+        for (Map.Entry<BlockPos, Direction> edge : outgoing)
         {
-            List<Map.Entry<BlockPos, Direction>> edges = new ArrayList<>(outEdges);
-            for (Map.Entry<BlockPos, Direction> edge : edges)
+            BlockPos toPos = edge.getKey();
+            Direction toFace = edge.getValue();
+            CableNode targetNode = getNode(toPos);
+            if (targetNode != null)
             {
-                String id = CableLink.generateId(immutablePos, edge.getKey(), edge.getValue());
-                removeLink(id);
-                count++;
-            }
-        }
-
-        // 删除所有以 pos 为输出的链路
-        for (Direction face : Direction.values())
-        {
-            Map.Entry<BlockPos, Direction> key = Map.entry(immutablePos, face);
-            Set<BlockPos> inNodes = reverseAdj.get(key);
-            if (inNodes != null)
-            {
-                List<BlockPos> nodes = new ArrayList<>(inNodes);
-                for (BlockPos from : nodes)
+                targetNode.removeIncoming(from, toFace);
+                if (targetNode.getIncomingCount() == 0)
                 {
-                    String id = CableLink.generateId(from, immutablePos, face);
-                    removeLink(id);
-                    count++;
+                    removeNode(toPos);
                 }
             }
+            count++;
+        }
+        node.getOutgoing().clear();
+
+        if (node.getIncomingCount() == 0)
+        {
+            removeNode(from);
         }
 
         return count;
     }
 
-    /**
-     * 获取指定输出端的所有输入坐标
-     */
     public Set<BlockPos> getInputsForOutput(BlockPos to, Direction toFace)
     {
-        return reverseAdj.getOrDefault(Map.entry(to.immutable(), toFace), Collections.emptySet());
+        CableNode node = getNode(to);
+        if (node == null) return Collections.emptySet();
+        return node.getIncomingForFace(toFace);
     }
 
-    /**
-     * 获取指定输入端的所有输出目标
-     */
     public Set<Map.Entry<BlockPos, Direction>> getOutputsForInput(BlockPos from)
     {
-        return forwardAdj.getOrDefault(from.immutable(), Collections.emptySet());
+        CableNode node = getNode(from);
+        if (node == null) return Collections.emptySet();
+        return node.getOutgoing();
     }
 
-    /**
-     * 检查指定输出端是否有链路
-     */
     public boolean hasOutputAt(BlockPos to, Direction toFace)
     {
-        return reverseAdj.containsKey(Map.entry(to.immutable(), toFace));
+        CableNode node = getNode(to);
+        if (node == null) return false;
+        return node.hasAnyInputOnFace(toFace);
     }
 
-    /**
-     * 获取所有输入坐标集合
-     */
     public Set<BlockPos> getInputPositions()
     {
-        return forwardAdj.keySet();
-    }
-
-    /**
-     * 获取所有链路
-     */
-    public Collection<CableLink> getAllLinks()
-    {
-        return links.values();
-    }
-
-    /**
-     * 获取链路数量
-     */
-    public int getLinkCount()
-    {
-        return links.size();
-    }
-
-    /**
-     * 查询指定坐标的出边列表（GUI用）
-     */
-    public List<String> queryOutgoing(BlockPos pos)
-    {
-        List<String> result = new ArrayList<>();
-        Set<Map.Entry<BlockPos, Direction>> edges = forwardAdj.get(pos.immutable());
-        if (edges != null)
+        Set<BlockPos> result = new HashSet<>();
+        for (CableNode node : nodes.values())
         {
-            for (Map.Entry<BlockPos, Direction> edge : edges)
+            if (node.getOutgoingCount() > 0)
             {
-                BlockPos to = edge.getKey();
-                Direction face = edge.getValue();
-                result.add("-> [" + to.getX() + "," + to.getY() + "," + to.getZ()
-                    + "] " + face.getName());
+                result.add(node.getPosition());
             }
         }
         return result;
     }
 
-    /**
-     * 查询指定坐标的入边列表（GUI用）
-     */
+    public Collection<CableLink> getAllLinks()
+    {
+        List<CableLink> result = new ArrayList<>();
+        for (CableNode node : nodes.values())
+        {
+            result.addAll(node.toOutgoingCableLinks());
+        }
+        return result;
+    }
+
+    public int getLinkCount()
+    {
+        int count = 0;
+        for (CableNode node : nodes.values())
+        {
+            count += node.getOutgoingCount();
+        }
+        return count;
+    }
+
+    public List<String> queryOutgoing(BlockPos pos)
+    {
+        List<String> result = new ArrayList<>();
+        CableNode node = getNode(pos);
+        if (node != null)
+        {
+            for (Map.Entry<BlockPos, Direction> edge : node.getOutgoing())
+            {
+                BlockPos to = edge.getKey();
+                result.add("-> [" + to.getX() + "," + to.getY() + "," + to.getZ()
+                    + "] " + edge.getValue().getName());
+            }
+        }
+        return result;
+    }
+
     public List<String> queryIncoming(BlockPos pos)
     {
         List<String> result = new ArrayList<>();
-        BlockPos immutablePos = pos.immutable();
-        for (Direction face : Direction.values())
+        CableNode node = getNode(pos);
+        if (node != null)
         {
-            Set<BlockPos> froms = reverseAdj.get(Map.entry(immutablePos, face));
-            if (froms != null)
+            for (Map.Entry<BlockPos, Set<Direction>> entry : node.getAllIncomingMap().entrySet())
             {
-                for (BlockPos from : froms)
+                BlockPos from = entry.getKey();
+                for (Direction face : entry.getValue())
                 {
                     result.add("<- [" + from.getX() + "," + from.getY() + "," + from.getZ()
                         + "] " + face.getName());
@@ -203,44 +179,44 @@ public class CableNetwork
         return result;
     }
 
-    /**
-     * 序列化为JSON
-     */
     public JsonObject toJson()
     {
         JsonObject root = new JsonObject();
-        root.addProperty("version", 1);
-        JsonArray linksArray = new JsonArray();
-        for (CableLink link : links.values())
+        root.addProperty("version", 2);
+        JsonArray nodesArray = new JsonArray();
+        for (CableNode node : nodes.values())
         {
-            JsonObject obj = new JsonObject();
-            obj.addProperty("id", link.getId());
-            obj.addProperty("fromX", link.getFrom().getX());
-            obj.addProperty("fromY", link.getFrom().getY());
-            obj.addProperty("fromZ", link.getFrom().getZ());
-            obj.addProperty("toX", link.getTo().getX());
-            obj.addProperty("toY", link.getTo().getY());
-            obj.addProperty("toZ", link.getTo().getZ());
-            obj.addProperty("face", link.getToFace().getName());
-            linksArray.add(obj);
+            JsonObject nodeObj = new JsonObject();
+            node.serializeToJson(nodeObj);
+            nodesArray.add(nodeObj);
         }
-        root.add("links", linksArray);
+        root.add("nodes", nodesArray);
         return root;
     }
 
-    /**
-     * 从JSON反序列化
-     */
     public static CableNetwork fromJson(JsonObject json)
     {
         CableNetwork network = new CableNetwork();
-        JsonArray linksArray = json.getAsJsonArray("links");
-        if (linksArray != null)
+        int version = json.has("version") ? json.get("version").getAsInt() : 1;
+
+        if (version >= 2 && json.has("nodes"))
         {
+            JsonArray nodesArray = json.getAsJsonArray("nodes");
+            for (JsonElement elem : nodesArray)
+            {
+                JsonObject obj = elem.getAsJsonObject();
+                CableNode node = CableNode.deserializeFromJson(obj);
+                network.nodes.put(node.getPosition(), node);
+            }
+            return network;
+        }
+
+        if (json.has("links"))
+        {
+            JsonArray linksArray = json.getAsJsonArray("links");
             for (JsonElement elem : linksArray)
             {
                 JsonObject obj = elem.getAsJsonObject();
-                String id = obj.get("id").getAsString();
                 BlockPos from = new BlockPos(
                     obj.get("fromX").getAsInt(),
                     obj.get("fromY").getAsInt(),
@@ -252,14 +228,11 @@ public class CableNetwork
                 Direction face = Direction.byName(obj.get("face").getAsString());
                 if (face != null)
                 {
-                    CableLink link = new CableLink(id, from, to, face);
-                    network.links.put(id, link);
-                    Map.Entry<BlockPos, Direction> target = Map.entry(to.immutable(), face);
-                    network.forwardAdj.computeIfAbsent(from.immutable(), k -> new HashSet<>()).add(target);
-                    network.reverseAdj.computeIfAbsent(target, k -> new HashSet<>()).add(from.immutable());
+                    network.toggleLink(from, to, face);
                 }
             }
         }
+
         return network;
     }
 }

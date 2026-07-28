@@ -6,84 +6,64 @@ import com.virtualredstonewire.data.CableNetworkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.*;
 
 public class RedstoneCalculator
 {
-    private static final Set<Map.Entry<BlockPos, Direction>> DIRTY_OUTPUTS = new HashSet<>();
+    private static final Map<BlockPos, Integer> LAST_SIGNAL = new HashMap<>();
+    private static final Set<BlockPos> DIRTY_INPUTS = new HashSet<>();
 
-    public static void markDirty(BlockPos toPos, Direction toFace)
+    public static void markDirtyInput(BlockPos inputPos)
     {
-        DIRTY_OUTPUTS.add(Map.entry(toPos.immutable(), toFace));
+        DIRTY_INPUTS.add(inputPos.immutable());
     }
 
     public static void tick(ServerLevel level)
     {
-        if (DIRTY_OUTPUTS.isEmpty()) return;
+        if (DIRTY_INPUTS.isEmpty()) return;
 
         CableNetwork network = CableNetworkManager.get(level);
-        Set<Map.Entry<BlockPos, Direction>> toProcess = new HashSet<>(DIRTY_OUTPUTS);
-        DIRTY_OUTPUTS.clear();
+        Set<BlockPos> toProcess = new HashSet<>(DIRTY_INPUTS);
+        DIRTY_INPUTS.clear();
 
-        for (Map.Entry<BlockPos, Direction> output : toProcess)
+        for (BlockPos inputPos : toProcess)
         {
-            BlockPos toPos = output.getKey();
-            Direction toFace = output.getValue();
-
-            Set<BlockPos> inputs = network.getInputsForOutput(toPos, toFace);
-            if (inputs.isEmpty()) continue;
-
-            int maxPower = 0;
-            for (BlockPos inputPos : inputs)
+            int currentPower = level.getBestNeighborSignal(inputPos);
+            Integer lastPower = LAST_SIGNAL.get(inputPos);
+            if (lastPower != null && lastPower == currentPower)
             {
-                int power = getInputPower(level, inputPos);
-                if (power > maxPower) maxPower = power;
+                continue;
             }
+            LAST_SIGNAL.put(inputPos, currentPower);
 
-            BlockPos sourcePos = toPos.relative(toFace.getOpposite());
-            BlockState state = level.getBlockState(sourcePos);
-            if (state.getBlock() instanceof VirtualRedstoneSourceBlock)
+            Set<Map.Entry<BlockPos, Direction>> outputs = network.getOutputsForInput(inputPos);
+            for (Map.Entry<BlockPos, Direction> edge : outputs)
             {
-                int currentPower = state.getValue(VirtualRedstoneSourceBlock.POWER);
-                if (currentPower != maxPower)
+                BlockPos toPos = edge.getKey();
+                Direction toFace = edge.getValue();
+
+                Set<BlockPos> inputs = network.getInputsForOutput(toPos, toFace);
+                int maxPower = 0;
+                for (BlockPos inPos : inputs)
                 {
-                    level.setBlock(sourcePos,
-                        state.setValue(VirtualRedstoneSourceBlock.POWER, maxPower),
-                        3);
-                    level.updateNeighborsAt(sourcePos, state.getBlock());
+                    int p = level.getBestNeighborSignal(inPos);
+                    if (p > maxPower) maxPower = p;
+                }
+
+                BlockPos sourcePos = toPos.relative(toFace);
+                BlockState state = level.getBlockState(sourcePos);
+                if (state.getBlock() instanceof VirtualRedstoneSourceBlock)
+                {
+                    int oldPower = state.getValue(VirtualRedstoneSourceBlock.POWER);
+                    if (oldPower != maxPower)
+                    {
+                        level.setBlock(sourcePos,
+                            state.setValue(VirtualRedstoneSourceBlock.POWER, maxPower), 2);
+                    }
                 }
             }
         }
-    }
-
-    private static int getInputPower(Level level, BlockPos pos)
-    {
-        int maxPower = 0;
-        BlockState state = level.getBlockState(pos);
-
-        if (state.isRedstoneConductor(level, pos))
-        {
-            for (Direction dir : Direction.values())
-            {
-                int power = level.getSignal(pos, dir);
-                if (power > maxPower) maxPower = power;
-            }
-        }
-        else
-        {
-            for (Direction dir : Direction.values())
-            {
-                BlockPos neighborPos = pos.relative(dir);
-                BlockState neighborState = level.getBlockState(neighborPos);
-                int power = neighborState.getSignal(level, neighborPos, dir.getOpposite());
-                if (power > maxPower) maxPower = power;
-            }
-        }
-
-        return maxPower;
     }
 }

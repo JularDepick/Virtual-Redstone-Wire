@@ -1,7 +1,8 @@
 package com.virtualredstonewire;
 
 import com.mojang.logging.LogUtils;
-import com.virtualredstonewire.config.ModConfig;
+import com.virtualredstonewire.config.ClientConfig;
+import com.virtualredstonewire.config.ServerConfig;
 import com.virtualredstonewire.network.CableNetworkChannel;
 import com.virtualredstonewire.registry.ModBlocks;
 import com.virtualredstonewire.registry.ModItems;
@@ -17,8 +18,12 @@ import org.slf4j.Logger;
 @Mod(VirtualRedstoneWire.MOD_ID)
 public class VirtualRedstoneWire
 {
-    public static final String MOD_ID = "virtual-redstone-wire";
+    public static final String MOD_ID = "virtual_redstone_wire";
     public static final Logger LOGGER = LogUtils.getLogger();
+
+    /*
+     * 作者: JularDepick (https://github.com/JularDepick)
+     */
 
     public VirtualRedstoneWire()
     {
@@ -27,14 +32,17 @@ public class VirtualRedstoneWire
         ModItems.ITEMS.register(modEventBus);
         ModBlocks.BLOCKS.register(modEventBus);
 
-        ModLoadingContext.get().registerConfig(Type.COMMON, ModConfig.SPEC, MOD_ID + "-common.toml");
-
-        CableNetworkChannel.register();
+        ModLoadingContext.get().registerConfig(Type.SERVER, ServerConfig.SPEC,
+            MOD_ID + "-server.toml");
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
             () -> () -> {
-                modEventBus.addListener(com.virtualredstonewire.client.ClientSetup::onClientSetup);
+                ModLoadingContext.get().registerConfig(Type.CLIENT, ClientConfig.SPEC,
+                    MOD_ID + "-client.toml");
+                modEventBus.addListener(ClientSetup::onClientSetup);
             });
+
+        CableNetworkChannel.register();
 
         LOGGER.info("Virtual Redstone Wire initialized");
     }

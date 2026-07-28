@@ -2,6 +2,7 @@
 build/
 *.log
 out/
+test/
 
 # IDE files
 .idea/
@@ -26,3 +27,6 @@ gradle/
 
 # Forge runtime (Minecraft instance, worlds, logs)
 run/
+
+# Agent Tool
+temp/

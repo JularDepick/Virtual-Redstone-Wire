@@ -3,7 +3,6 @@ package com.virtualredstonewire.block;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -11,6 +10,9 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class VirtualRedstoneSourceBlock extends Block
 {
@@ -22,7 +24,6 @@ public class VirtualRedstoneSourceBlock extends Block
         super(Properties.of()
             .noCollission()
             .noOcclusion()
-            .air()
             .strength(-1.0F, 3600000.0F)
             .noLootTable()
             .pushReaction(PushReaction.BLOCK)
@@ -31,6 +32,12 @@ public class VirtualRedstoneSourceBlock extends Block
             this.stateDefinition.any()
                 .setValue(FACING, Direction.NORTH)
                 .setValue(POWER, 0));
+    }
+
+    @Override
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context)
+    {
+        return Shapes.empty();
     }
 
     @Override
@@ -48,7 +55,7 @@ public class VirtualRedstoneSourceBlock extends Block
     @Override
     public int getSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction)
     {
-        if (direction == state.getValue(FACING))
+        if (direction == state.getValue(FACING).getOpposite())
         {
             return state.getValue(POWER);
         }

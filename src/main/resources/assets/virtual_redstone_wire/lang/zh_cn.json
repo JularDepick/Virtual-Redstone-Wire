@@ -1,0 +1,32 @@
+{
+  "item.virtual_redstone_wire.virtual_cable": "线缆",
+  "item.virtual_redstone_wire.virtual_cable.desc": "不消耗, 可重复使用。右键输入端方块再右键输出端方块创建单向红石链路",
+  "item.virtual_redstone_wire.virtual_cable.tip": "最大距离 256 格, 红石信号强度沿链路传播",
+  "item.virtual_redstone_wire.cable_cutter": "线缆剪",
+  "item.virtual_redstone_wire.cable_cutter.desc": "右键方块切断以它为起点的所有线缆连接",
+  "item.virtual_redstone_wire.cable_cutter.tip": "仅作用于该方块作为输入端(起点)的链路",
+  "item.virtual_redstone_wire.cable_magnifier": "线缆放大镜",
+  "item.virtual_redstone_wire.cable_magnifier.desc": "右键方块查看链路信息, 手持时高亮显示所有连接的方块",
+  "item.virtual_redstone_wire.cable_magnifier.tip": "蓝色边框=输入端, 黄色边框=输出端, 红色线=链路路径",
+
+  "block.virtual_redstone_wire.virtual_source": "虚拟红石源",
+
+  "screen.virtual_redstone_wire.cable_info": "线缆连接信息",
+  "screen.virtual_redstone_wire.cable_info.position": "位置: [%d, %d, %d]",
+  "screen.virtual_redstone_wire.cable_info.outgoing": "输出 (%d):",
+  "screen.virtual_redstone_wire.cable_info.incoming": "输入 (%d):",
+  "screen.virtual_redstone_wire.cable_info.close": "按 ESC 关闭",
+
+  "message.virtual_redstone_wire.selected_input": "已选中输入端: [%d, %d, %d]",
+  "message.virtual_redstone_wire.cancelled": "已取消",
+  "message.virtual_redstone_wire.too_far": "目标距离太远! 最大距离: %d 格",
+  "message.virtual_redstone_wire.link_created": "链路已创建: [%d,%d,%d] -> [%d,%d,%d]",
+  "message.virtual_redstone_wire.link_removed": "链路已移除: [%d,%d,%d] -> [%d,%d,%d]",
+  "message.virtual_redstone_wire.cutter_removed": "已切断 [%d,%d,%d] 的全部输出链路",
+  "message.virtual_redstone_wire.query_header": "=== 线缆信息 [%d, %d, %d] ===",
+  "message.virtual_redstone_wire.query_outgoing": "输出 (%d):",
+  "message.virtual_redstone_wire.query_incoming": "输入 (%d):",
+
+  "config.virtual_redstone_wire.maxLinkDistance": "最大链路距离",
+  "config.virtual_redstone_wire.maxLinkDistance.tooltip": "虚拟线缆连接的最大距离 (方块单位)"
+}

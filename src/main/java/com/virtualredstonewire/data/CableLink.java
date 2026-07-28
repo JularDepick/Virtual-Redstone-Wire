@@ -3,7 +3,6 @@ package com.virtualredstonewire.data;
 import com.google.common.hash.Hashing;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Vec3i;
 
 import java.nio.charset.StandardCharsets;
 
@@ -49,53 +48,32 @@ public class CableLink
 
     public double getFaceCenterX()
     {
-        double cx = to.getX() + 0.5;
-        double cy = to.getY() + 0.5;
-        double cz = to.getZ() + 0.5;
         switch (toFace)
         {
-            case DOWN:  return cx;
-            case UP:    return cx;
-            case NORTH: return cx;
-            case SOUTH: return cx;
             case WEST:  return to.getX();
             case EAST:  return to.getX() + 1.0;
+            default:    return to.getX() + 0.5;
         }
-        return cx;
     }
 
     public double getFaceCenterY()
     {
-        double cx = to.getX() + 0.5;
-        double cy = to.getY() + 0.5;
-        double cz = to.getZ() + 0.5;
         switch (toFace)
         {
             case DOWN:  return to.getY();
             case UP:    return to.getY() + 1.0;
-            case NORTH: return cy;
-            case SOUTH: return cy;
-            case WEST:  return cy;
-            case EAST:  return cy;
+            default:    return to.getY() + 0.5;
         }
-        return cy;
     }
 
     public double getFaceCenterZ()
     {
-        double cx = to.getX() + 0.5;
-        double cy = to.getY() + 0.5;
-        double cz = to.getZ() + 0.5;
         switch (toFace)
         {
-            case DOWN:  return cz;
-            case UP:    return cz;
             case NORTH: return to.getZ();
             case SOUTH: return to.getZ() + 1.0;
-            case WEST:  return cz;
-            case EAST:  return cz;
+            default:    return to.getZ() + 0.5;
         }
-        return cz;
     }
 
     @Override

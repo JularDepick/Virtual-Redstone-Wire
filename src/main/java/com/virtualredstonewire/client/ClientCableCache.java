@@ -4,11 +4,7 @@ import com.virtualredstonewire.data.CableLink;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ClientCableCache
 {
@@ -23,7 +19,6 @@ public class ClientCableCache
     public static void addLink(BlockPos from, BlockPos to, Direction toFace)
     {
         String id = CableLink.generateId(from, to, toFace);
-        // 检查是否已存在
         for (CableLink link : cachedLinks)
         {
             if (link.getId().equals(id)) return;
@@ -35,6 +30,24 @@ public class ClientCableCache
     {
         String id = CableLink.generateId(from, to, toFace);
         cachedLinks.removeIf(link -> link.getId().equals(id));
+    }
+
+    public static boolean hasLinkFrom(BlockPos from)
+    {
+        for (CableLink link : cachedLinks)
+        {
+            if (link.getFrom().equals(from)) return true;
+        }
+        return false;
+    }
+
+    public static boolean hasLinkAt(BlockPos pos)
+    {
+        for (CableLink link : cachedLinks)
+        {
+            if (link.getFrom().equals(pos) || link.getTo().equals(pos)) return true;
+        }
+        return false;
     }
 
     public static List<CableLink> getLinks()

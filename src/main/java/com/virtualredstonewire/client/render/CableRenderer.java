@@ -4,7 +4,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.virtualredstonewire.VirtualRedstoneWire;
 import com.virtualredstonewire.client.ClientCableCache;
-import com.virtualredstonewire.config.ModConfig;
+import com.virtualredstonewire.config.ClientConfig;
+import com.virtualredstonewire.config.ServerConfig;
 import com.virtualredstonewire.data.CableLink;
 import com.virtualredstonewire.item.CableCutterItem;
 import com.virtualredstonewire.item.CableMagnifierItem;
@@ -16,38 +17,82 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
 
 @Mod.EventBusSubscriber(modid = VirtualRedstoneWire.MOD_ID, value = Dist.CLIENT)
 public class CableRenderer
 {
-    private static final float[] COLOR_INPUT_BLUE   = {0.0f, 0.59f, 1.0f, 0.5f};
-    private static final float[] COLOR_OUTPUT_YELLOW = {1.0f, 1.0f, 0.39f, 0.5f};
-    private static final float[] COLOR_LINE_RED      = {0.86f, 0.31f, 0.31f, 0.4f};
-    private static final float[] COLOR_INPUT_DIM_BLUE = {0.3f, 0.4f, 0.7f, 0.25f};
+    private static final float OUTLINE_EXPAND = 0.001f;
+
+    private static float[] getColorInput()
+    {
+        return new float[]{
+            ClientConfig.colorInputR.get().floatValue(),
+            ClientConfig.colorInputG.get().floatValue(),
+            ClientConfig.colorInputB.get().floatValue(),
+            ClientConfig.colorInputA.get().floatValue()};
+    }
+
+    private static float[] getColorOutput()
+    {
+        return new float[]{
+            ClientConfig.colorOutputR.get().floatValue(),
+            ClientConfig.colorOutputG.get().floatValue(),
+            ClientConfig.colorOutputB.get().floatValue(),
+            ClientConfig.colorOutputA.get().floatValue()};
+    }
+
+    private static float[] getColorLine()
+    {
+        return new float[]{
+            ClientConfig.colorLineR.get().floatValue(),
+            ClientConfig.colorLineG.get().floatValue(),
+            ClientConfig.colorLineB.get().floatValue(),
+            ClientConfig.colorLineA.get().floatValue()};
+    }
+
+    private static float[] getColorDim()
+    {
+        return new float[]{
+            ClientConfig.colorDimR.get().floatValue(),
+            ClientConfig.colorDimG.get().floatValue(),
+            ClientConfig.colorDimB.get().floatValue(),
+            ClientConfig.colorDimA.get().floatValue()};
+    }
+
+    private static float[] getColorSelected()
+    {
+        return new float[]{
+            ClientConfig.colorSelectedR.get().floatValue(),
+            ClientConfig.colorSelectedG.get().floatValue(),
+            ClientConfig.colorSelectedB.get().floatValue(),
+            ClientConfig.colorSelectedA.get().floatValue()};
+    }
 
     @SubscribeEvent
     @OnlyIn(Dist.CLIENT)
     public static void onRenderLevel(RenderLevelStageEvent event)
     {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRIPLANE_BLOCKS) return;
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) return;
 
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
 
         ItemStack mainHand = player.getMainHandItem();
-        boolean holdingCable = mainHand.getItem() instanceof VirtualCableItem;
+        ItemStack offHand = player.getOffhandItem();
+        boolean holdingCable = mainHand.getItem() instanceof VirtualCableItem
+            || offHand.getItem() instanceof VirtualCableItem;
         boolean holdingCutter = mainHand.getItem() instanceof CableCutterItem;
-        boolean holdingMagnifier = mainHand.getItem() instanceof CableMagnifierItem;
+        boolean holdingMagnifier = mainHand.getItem() instanceof CableMagnifierItem
+            || offHand.getItem() instanceof CableMagnifierItem;
 
         if (!holdingCable && !holdingCutter && !holdingMagnifier) return;
 
@@ -56,11 +101,17 @@ public class CableRenderer
             Minecraft.getInstance().renderBuffers().bufferSource();
         Vec3 cameraPos = event.getCamera().getPosition();
 
-        double renderDistSq = ModConfig.magnifierRenderDistance.get()
-            * (double) ModConfig.magnifierRenderDistance.get();
+        double renderDistSq = ServerConfig.magnifierRenderDistance.get()
+            * (double) ServerConfig.magnifierRenderDistance.get();
 
         poseStack.pushPose();
         poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
+
+        BlockPos selectedInput = null;
+        if (holdingCable)
+        {
+            selectedInput = VirtualCableItem.getSelectedInput(player);
+        }
 
         for (CableLink link : ClientCableCache.getLinks())
         {
@@ -68,39 +119,72 @@ public class CableRenderer
                 link.getFromCenterX(), link.getFromCenterY(), link.getFromCenterZ());
             if (fromCenter.distanceToSqr(cameraPos) > renderDistSq) continue;
 
+            boolean isFromSelected = selectedInput != null
+                && selectedInput.equals(link.getFrom());
+
             if (holdingMagnifier)
             {
-                // 输入端淡蓝色边框
-                renderBlockOutline(poseStack, bufferSource, link.getFrom(), COLOR_INPUT_BLUE);
-                // 输出端接收面淡黄色边框
+                renderBlockOutline(poseStack, bufferSource, link.getFrom(), getColorInput());
                 renderFaceOutline(poseStack, bufferSource,
-                    link.getTo(), link.getToFace(), COLOR_OUTPUT_YELLOW);
-                // 连接线
-                renderLine(poseStack, bufferSource,
+                    link.getTo(), link.getToFace(), getColorOutput());
+                renderCableQuad(poseStack, bufferSource,
                     new Vec3(link.getFromCenterX(), link.getFromCenterY(), link.getFromCenterZ()),
                     new Vec3(link.getFaceCenterX(), link.getFaceCenterY(), link.getFaceCenterZ()),
-                    COLOR_LINE_RED);
+                    getColorLine());
+            }
+            else if (holdingCable && isFromSelected)
+            {
+                renderBlockOutline(poseStack, bufferSource, link.getFrom(), getColorInput());
+                renderFaceOutline(poseStack, bufferSource,
+                    link.getTo(), link.getToFace(), getColorOutput());
+                renderCableQuad(poseStack, bufferSource,
+                    new Vec3(link.getFromCenterX(), link.getFromCenterY(), link.getFromCenterZ()),
+                    new Vec3(link.getFaceCenterX(), link.getFaceCenterY(), link.getFaceCenterZ()),
+                    getColorLine());
             }
             else if (holdingCable || holdingCutter)
             {
-                // 淡暗蓝色高亮渲染输入端
-                renderBlockOutline(poseStack, bufferSource, link.getFrom(), COLOR_INPUT_DIM_BLUE);
+                renderBlockOutline(poseStack, bufferSource, link.getFrom(), getColorDim());
             }
         }
 
-        // 如果手持线缆且已选中输入端，高亮选中的方块
-        if (holdingCable)
+        if (selectedInput != null)
         {
-            BlockPos selected = VirtualCableItem.getSelectedInput(player);
-            if (selected != null)
-            {
-                renderBlockOutline(poseStack, bufferSource, selected,
-                    new float[]{0.0f, 0.59f, 1.0f, 0.7f});
-            }
+            renderBlockOutline(poseStack, bufferSource, selectedInput, getColorSelected());
         }
+
+        bufferSource.endBatch(RenderType.LINES);
+        bufferSource.endBatch();
 
         poseStack.popPose();
-        bufferSource.endBatch();
+    }
+
+    private static boolean wasHoldingCable = false;
+
+    @SubscribeEvent
+    @OnlyIn(Dist.CLIENT)
+    public static void onClientTick(TickEvent.ClientTickEvent event)
+    {
+        if (event.phase != TickEvent.Phase.END) return;
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) return;
+        boolean holdingCable = player.getMainHandItem().getItem() instanceof VirtualCableItem
+            || player.getOffhandItem().getItem() instanceof VirtualCableItem;
+
+        if (wasHoldingCable && !holdingCable)
+        {
+            VirtualCableItem.clearSelectedInput(player);
+        }
+        wasHoldingCable = holdingCable;
+
+        if (holdingCable)
+        {
+            BlockPos sel = VirtualCableItem.getSelectedInput(player);
+            if (sel != null && player.level().isEmptyBlock(sel))
+            {
+                VirtualCableItem.clearSelectedInput(player);
+            }
+        }
     }
 
     private static void renderBlockOutline(PoseStack poseStack,
@@ -108,11 +192,18 @@ public class CableRenderer
                                             BlockPos pos, float[] color)
     {
         VertexConsumer consumer = bufferSource.getBuffer(RenderType.LINES);
-        LevelRenderer.renderLineBox(
-            poseStack, consumer,
-            pos.getX(), pos.getY(), pos.getZ(),
-            pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1,
-            color[0], color[1], color[2], color[3]);
+        float expand = OUTLINE_EXPAND;
+        for (int i = 0; i < 3; i++)
+        {
+            float dx = (i == 0) ? -expand : (i == 1) ? expand : 0;
+            float dy = (i == 0) ? 0 : (i == 1) ? -expand : expand;
+            float dz = (i == 2) ? -expand : (i == 2) ? expand : (i == 1) ? expand : -expand;
+            LevelRenderer.renderLineBox(
+                poseStack, consumer,
+                pos.getX() - expand + dx, pos.getY() - expand + dy, pos.getZ() - expand + dz,
+                pos.getX() + 1 + expand + dx, pos.getY() + 1 + expand + dy, pos.getZ() + 1 + expand + dz,
+                color[0], color[1], color[2], color[3]);
+        }
     }
 
     private static void renderFaceOutline(PoseStack poseStack,
@@ -124,34 +215,52 @@ public class CableRenderer
         double x1 = x, y1 = y, z1 = z;
         double x2 = x + 1, y2 = y + 1, z2 = z + 1;
 
+        float expand = OUTLINE_EXPAND;
         switch (face)
         {
-            case DOWN:  y1 = y; y2 = y; break;
-            case UP:    y1 = y + 1; y2 = y + 1; break;
-            case NORTH: z1 = z; z2 = z; break;
-            case SOUTH: z1 = z + 1; z2 = z + 1; break;
-            case WEST:  x1 = x; x2 = x; break;
-            case EAST:  x1 = x + 1; x2 = x + 1; break;
+            case DOWN:  y1 = y - expand; y2 = y - expand; x1 -= expand; x2 += expand; z1 -= expand; z2 += expand; break;
+            case UP:    y1 = y + 1 + expand; y2 = y + 1 + expand; x1 -= expand; x2 += expand; z1 -= expand; z2 += expand; break;
+            case NORTH: z1 = z - expand; z2 = z - expand; x1 -= expand; x2 += expand; y1 -= expand; y2 += expand; break;
+            case SOUTH: z1 = z + 1 + expand; z2 = z + 1 + expand; x1 -= expand; x2 += expand; y1 -= expand; y2 += expand; break;
+            case WEST:  x1 = x - expand; x2 = x - expand; z1 -= expand; z2 += expand; y1 -= expand; y2 += expand; break;
+            case EAST:  x1 = x + 1 + expand; x2 = x + 1 + expand; z1 -= expand; z2 += expand; y1 -= expand; y2 += expand; break;
         }
 
-        // 绘制四边形边框（4条边）
-        LevelRenderer.renderLineBox(poseStack, consumer,
-            x1, y1, z1, x2, y2, z2,
-            color[0], color[1], color[2], color[3]);
+        for (int i = 0; i < 2; i++)
+        {
+            float offset = (i == 0) ? -0.0005f : 0.0005f;
+            LevelRenderer.renderLineBox(poseStack, consumer,
+                x1 + offset, y1 + offset, z1 + offset,
+                x2 + offset, y2 + offset, z2 + offset,
+                color[0], color[1], color[2], color[3]);
+        }
     }
 
-    private static void renderLine(PoseStack poseStack,
-                                    MultiBufferSource bufferSource,
-                                    Vec3 from, Vec3 to, float[] color)
+    private static void renderCableQuad(PoseStack poseStack,
+                                         MultiBufferSource bufferSource,
+                                         Vec3 from, Vec3 to, float[] color)
     {
         VertexConsumer consumer = bufferSource.getBuffer(RenderType.LINES);
         Matrix4f matrix = poseStack.last().pose();
 
-        consumer.vertex(matrix, (float) from.x, (float) from.y, (float) from.z)
-            .color(color[0], color[1], color[2], color[3])
-            .endVertex();
-        consumer.vertex(matrix, (float) to.x, (float) to.y, (float) to.z)
-            .color(color[0], color[1], color[2], color[3])
-            .endVertex();
+        Vec3 dir = to.subtract(from).normalize();
+        Vec3 perp = new Vec3(-dir.z, 0, dir.x);
+        if (perp.lengthSqr() < 0.01)
+        {
+            perp = new Vec3(1, 0, 0);
+        }
+        perp = perp.normalize();
+
+        float halfWidth = 0.0625f;
+        float r = color[0], g = color[1], b = color[2], a = color[3];
+
+        float fx = (float) from.x, fy = (float) from.y, fz = (float) from.z;
+        float tx = (float) to.x, ty = (float) to.y, tz = (float) to.z;
+        float px = (float) perp.x * halfWidth, py = (float) perp.y * halfWidth, pz = (float) perp.z * halfWidth;
+
+        consumer.vertex(matrix, fx - px, fy - py, fz - pz).color(r, g, b, a).normal(0, 1, 0).endVertex();
+        consumer.vertex(matrix, fx + px, fy + py, fz + pz).color(r, g, b, a).normal(0, 1, 0).endVertex();
+        consumer.vertex(matrix, tx + px, ty + py, tz + pz).color(r, g, b, a).normal(0, 1, 0).endVertex();
+        consumer.vertex(matrix, tx - px, ty - py, tz - pz).color(r, g, b, a).normal(0, 1, 0).endVertex();
     }
 }

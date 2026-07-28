@@ -4,16 +4,14 @@ import com.virtualredstonewire.VirtualRedstoneWire;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
-import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public class CableNetworkChannel
 {
-    private static final String PROTOCOL_VERSION = "1";
-    private static int ID = 0;
+    private static final String PROTOCOL_VERSION = "2";
+    private static int MESSAGE_ID = 0;
 
     public static final SimpleChannel CHANNEL =
         NetworkRegistry.newSimpleChannel(
@@ -24,22 +22,22 @@ public class CableNetworkChannel
 
     public static void register()
     {
-        CHANNEL.messageBuilder(CableSyncPacket.class, ID++)
+        CHANNEL.messageBuilder(CableSyncPacket.class, MESSAGE_ID++)
             .encoder(CableSyncPacket::encode)
             .decoder(CableSyncPacket::new)
             .consumerMainThread(CableSyncPacket::handle)
             .add();
 
-        CHANNEL.messageBuilder(CableUpdatePacket.class, ID++)
-            .encoder(CableUpdatePacket::encode)
-            .decoder(CableUpdatePacket::new)
-            .consumerMainThread(CableUpdatePacket::handle)
+        CHANNEL.messageBuilder(CableActionPacket.class, MESSAGE_ID++)
+            .encoder(CableActionPacket::encode)
+            .decoder(CableActionPacket::new)
+            .consumerMainThread(CableActionPacketHandler::handle)
             .add();
 
-        CHANNEL.messageBuilder(CableQueryPacket.class, ID++)
-            .encoder(CableQueryPacket::encode)
-            .decoder(CableQueryPacket::new)
-            .consumerMainThread(CableQueryPacket::handle)
+        CHANNEL.messageBuilder(CableRequestSyncPacket.class, MESSAGE_ID++)
+            .encoder(CableRequestSyncPacket::encode)
+            .decoder(CableRequestSyncPacket::new)
+            .consumerMainThread(CableRequestSyncPacket::handle)
             .add();
     }
 
@@ -48,10 +46,9 @@ public class CableNetworkChannel
         CHANNEL.send(PacketDistributor.DIMENSION.with(level::dimension), packet);
     }
 
-    public static void sendToAllTracking(ServerLevel level, BlockPos pos, Object packet)
+    public static void sendToServer(Object packet)
     {
-        CHANNEL.send(PacketDistributor.TRACKING_CHUNK
-            .with(() -> level.getChunkAt(pos)), packet);
+        CHANNEL.sendToServer(packet);
     }
 
     public static void sendToPlayer(ServerPlayer player, Object packet)
