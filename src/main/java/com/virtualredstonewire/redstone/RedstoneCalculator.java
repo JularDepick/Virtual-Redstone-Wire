@@ -30,7 +30,7 @@ public class RedstoneCalculator
 
         for (BlockPos inputPos : toProcess)
         {
-            int currentPower = level.getBestNeighborSignal(inputPos);
+            int currentPower = getSignalFrom(inputPos, level);
             Integer lastPower = LAST_SIGNAL.get(inputPos);
             if (lastPower != null && lastPower == currentPower)
             {
@@ -48,7 +48,7 @@ public class RedstoneCalculator
                 int maxPower = 0;
                 for (BlockPos inPos : inputs)
                 {
-                    int p = level.getBestNeighborSignal(inPos);
+                    int p = getSignalFrom(inPos, level);
                     if (p > maxPower) maxPower = p;
                 }
 
@@ -65,5 +65,17 @@ public class RedstoneCalculator
                 }
             }
         }
+    }
+
+    private static int getSignalFrom(BlockPos pos, ServerLevel level)
+    {
+        int max = 0;
+        for (Direction dir : Direction.values())
+        {
+            BlockPos neighbor = pos.relative(dir);
+            int signal = level.getSignal(neighbor, dir.getOpposite());
+            if (signal > max) max = signal;
+        }
+        return max;
     }
 }

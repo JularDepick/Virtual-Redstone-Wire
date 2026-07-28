@@ -14,13 +14,14 @@ import com.virtualredstonewire.network.CableNetworkChannel;
 import com.virtualredstonewire.network.CableRequestSyncPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
@@ -32,6 +33,7 @@ import org.joml.Matrix4f;
 @Mod.EventBusSubscriber(modid = VirtualRedstoneWire.MOD_ID, value = Dist.CLIENT)
 public class CableRenderer
 {
+    private static final float BEAM_THICKNESS = 0.02f;
     private static final float OUTLINE_EXPAND = 0.001f;
 
     private static float[] getColorInput()
@@ -115,6 +117,8 @@ public class CableRenderer
             selectedInput = VirtualCableItem.getSelectedInput(player);
         }
 
+        var level = player.level();
+
         for (CableLink link : ClientCableCache.getLinks())
         {
             Vec3 fromCenter = new Vec3(
@@ -126,37 +130,37 @@ public class CableRenderer
 
             if (holdingMagnifier)
             {
-                renderBlockOutline(poseStack, bufferSource, link.getFrom(), getColorInput());
+                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), getColorInput(), level);
                 renderFaceOutline(poseStack, bufferSource,
                     link.getTo(), link.getToFace(), getColorOutput());
-                renderCableQuad(poseStack, bufferSource,
+                renderCableBeam(poseStack, bufferSource,
                     new Vec3(link.getFromCenterX(), link.getFromCenterY(), link.getFromCenterZ()),
                     new Vec3(link.getFaceCenterX(), link.getFaceCenterY(), link.getFaceCenterZ()),
                     getColorLine());
             }
             else if (holdingCable && isFromSelected)
             {
-                renderBlockOutline(poseStack, bufferSource, link.getFrom(), getColorInput());
+                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), getColorInput(), level);
                 renderFaceOutline(poseStack, bufferSource,
                     link.getTo(), link.getToFace(), getColorOutput());
-                renderCableQuad(poseStack, bufferSource,
+                renderCableBeam(poseStack, bufferSource,
                     new Vec3(link.getFromCenterX(), link.getFromCenterY(), link.getFromCenterZ()),
                     new Vec3(link.getFaceCenterX(), link.getFaceCenterY(), link.getFaceCenterZ()),
                     getColorLine());
             }
             else if (holdingCable || holdingCutter)
             {
-                renderBlockOutline(poseStack, bufferSource, link.getFrom(), getColorDim());
+                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), getColorDim(), level);
             }
         }
 
         if (selectedInput != null)
         {
-            renderBlockOutline(poseStack, bufferSource, selectedInput, getColorSelected());
+            renderBlockOutlineBeams(poseStack, bufferSource, selectedInput, getColorSelected(), level);
         }
 
-        bufferSource.endBatch(RenderType.LINES);
         bufferSource.endBatch(RenderType.debugQuads());
+        bufferSource.endBatch(RenderType.LINES);
         bufferSource.endBatch();
 
         poseStack.popPose();
@@ -207,22 +211,41 @@ public class CableRenderer
         }
     }
 
-    private static void renderBlockOutline(PoseStack poseStack,
-                                            MultiBufferSource bufferSource,
-                                            BlockPos pos, float[] color)
+    private static void renderBlockOutlineBeams(PoseStack poseStack,
+                                                 MultiBufferSource bufferSource,
+                                                 BlockPos pos, float[] color,
+                                                 net.minecraft.world.level.Level level)
     {
-        VertexConsumer consumer = bufferSource.getBuffer(RenderType.LINES);
-        float expand = OUTLINE_EXPAND;
-        for (int i = 0; i < 3; i++)
+        VoxelShape shape = level.getBlockState(pos).getShape(level, pos);
+        AABB bounds;
+        if (shape.isEmpty())
         {
-            float dx = (i == 0) ? -expand : (i == 1) ? expand : 0;
-            float dy = (i == 0) ? 0 : (i == 1) ? -expand : expand;
-            float dz = (i == 2) ? -expand : (i == 2) ? expand : (i == 1) ? expand : -expand;
-            LevelRenderer.renderLineBox(
-                poseStack, consumer,
-                pos.getX() - expand + dx, pos.getY() - expand + dy, pos.getZ() - expand + dz,
-                pos.getX() + 1 + expand + dx, pos.getY() + 1 + expand + dy, pos.getZ() + 1 + expand + dz,
-                color[0], color[1], color[2], color[3]);
+            bounds = new AABB(pos.getX(), pos.getY(), pos.getZ(),
+                pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
+        }
+        else
+        {
+            bounds = shape.bounds().move(pos.getX(), pos.getY(), pos.getZ());
+        }
+
+        double x0 = bounds.minX, y0 = bounds.minY, z0 = bounds.minZ;
+        double x1 = bounds.maxX, y1 = bounds.maxY, z1 = bounds.maxZ;
+
+        Vec3[] corners = {
+            new Vec3(x0, y0, z0), new Vec3(x1, y0, z0), new Vec3(x1, y0, z1), new Vec3(x0, y0, z1),
+            new Vec3(x0, y1, z0), new Vec3(x1, y1, z0), new Vec3(x1, y1, z1), new Vec3(x0, y1, z1)
+        };
+
+        int[][] edges = {
+            {0,1},{1,2},{2,3},{3,0},
+            {4,5},{5,6},{6,7},{7,4},
+            {0,4},{1,5},{2,6},{3,7}
+        };
+
+        for (int[] edge : edges)
+        {
+            renderBeam(poseStack, bufferSource,
+                corners[edge[0]], corners[edge[1]], color);
         }
     }
 
@@ -230,57 +253,170 @@ public class CableRenderer
                                            MultiBufferSource bufferSource,
                                            BlockPos pos, Direction face, float[] color)
     {
-        VertexConsumer consumer = bufferSource.getBuffer(RenderType.LINES);
         double x = pos.getX(), y = pos.getY(), z = pos.getZ();
-        double x1 = x, y1 = y, z1 = z;
-        double x2 = x + 1, y2 = y + 1, z2 = z + 1;
+        double expand = OUTLINE_EXPAND;
 
-        float expand = OUTLINE_EXPAND;
+        Vec3[] corners = new Vec3[4];
         switch (face)
         {
-            case DOWN:  y1 = y - expand; y2 = y - expand; x1 -= expand; x2 += expand; z1 -= expand; z2 += expand; break;
-            case UP:    y1 = y + 1 + expand; y2 = y + 1 + expand; x1 -= expand; x2 += expand; z1 -= expand; z2 += expand; break;
-            case NORTH: z1 = z - expand; z2 = z - expand; x1 -= expand; x2 += expand; y1 -= expand; y2 += expand; break;
-            case SOUTH: z1 = z + 1 + expand; z2 = z + 1 + expand; x1 -= expand; x2 += expand; y1 -= expand; y2 += expand; break;
-            case WEST:  x1 = x - expand; x2 = x - expand; z1 -= expand; z2 += expand; y1 -= expand; y2 += expand; break;
-            case EAST:  x1 = x + 1 + expand; x2 = x + 1 + expand; z1 -= expand; z2 += expand; y1 -= expand; y2 += expand; break;
+            case DOWN:
+                corners[0] = new Vec3(x - expand, y - expand, z - expand);
+                corners[1] = new Vec3(x + 1 + expand, y - expand, z - expand);
+                corners[2] = new Vec3(x + 1 + expand, y - expand, z + 1 + expand);
+                corners[3] = new Vec3(x - expand, y - expand, z + 1 + expand);
+                break;
+            case UP:
+                corners[0] = new Vec3(x - expand, y + 1 + expand, z - expand);
+                corners[1] = new Vec3(x + 1 + expand, y + 1 + expand, z - expand);
+                corners[2] = new Vec3(x + 1 + expand, y + 1 + expand, z + 1 + expand);
+                corners[3] = new Vec3(x - expand, y + 1 + expand, z + 1 + expand);
+                break;
+            case NORTH:
+                corners[0] = new Vec3(x - expand, y - expand, z - expand);
+                corners[1] = new Vec3(x + 1 + expand, y - expand, z - expand);
+                corners[2] = new Vec3(x + 1 + expand, y + 1 + expand, z - expand);
+                corners[3] = new Vec3(x - expand, y + 1 + expand, z - expand);
+                break;
+            case SOUTH:
+                corners[0] = new Vec3(x - expand, y - expand, z + 1 + expand);
+                corners[1] = new Vec3(x + 1 + expand, y - expand, z + 1 + expand);
+                corners[2] = new Vec3(x + 1 + expand, y + 1 + expand, z + 1 + expand);
+                corners[3] = new Vec3(x - expand, y + 1 + expand, z + 1 + expand);
+                break;
+            case WEST:
+                corners[0] = new Vec3(x - expand, y - expand, z - expand);
+                corners[1] = new Vec3(x - expand, y - expand, z + 1 + expand);
+                corners[2] = new Vec3(x - expand, y + 1 + expand, z + 1 + expand);
+                corners[3] = new Vec3(x - expand, y + 1 + expand, z - expand);
+                break;
+            case EAST:
+                corners[0] = new Vec3(x + 1 + expand, y - expand, z - expand);
+                corners[1] = new Vec3(x + 1 + expand, y - expand, z + 1 + expand);
+                corners[2] = new Vec3(x + 1 + expand, y + 1 + expand, z + 1 + expand);
+                corners[3] = new Vec3(x + 1 + expand, y + 1 + expand, z - expand);
+                break;
         }
 
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 4; i++)
         {
-            float offset = (i == 0) ? -0.0005f : 0.0005f;
-            LevelRenderer.renderLineBox(poseStack, consumer,
-                x1 + offset, y1 + offset, z1 + offset,
-                x2 + offset, y2 + offset, z2 + offset,
-                color[0], color[1], color[2], color[3]);
+            renderBeam(poseStack, bufferSource, corners[i], corners[(i + 1) % 4], color);
         }
+
+        Vec3 center = new Vec3(
+            (corners[0].x + corners[2].x) * 0.5,
+            (corners[0].y + corners[2].y) * 0.5,
+            (corners[0].z + corners[2].z) * 0.5
+        );
+
+        float dotRadius = BEAM_THICKNESS * 3.0f;
+        Vec3 faceNormal = new Vec3(face.getStepX(), face.getStepY(), face.getStepZ());
+        renderFaceDot(poseStack, bufferSource, center, faceNormal, dotRadius, color);
     }
 
-    private static void renderCableQuad(PoseStack poseStack,
+    private static void renderCableBeam(PoseStack poseStack,
                                          MultiBufferSource bufferSource,
                                          Vec3 from, Vec3 to, float[] color)
+    {
+        renderBeam(poseStack, bufferSource, from, to, color);
+    }
+
+    private static void renderBeam(PoseStack poseStack,
+                                    MultiBufferSource bufferSource,
+                                    Vec3 from, Vec3 to, float[] color)
     {
         VertexConsumer consumer = bufferSource.getBuffer(RenderType.debugQuads());
         Matrix4f matrix = poseStack.last().pose();
 
         Vec3 dir = to.subtract(from).normalize();
-        Vec3 perp = new Vec3(-dir.z, 0, dir.x);
-        if (perp.lengthSqr() < 0.01)
-        {
-            perp = new Vec3(1, 0, 0);
+        Vec3 perp1 = new Vec3(-dir.z, 0, dir.x);
+        if (perp1.lengthSqr() < 0.01) { perp1 = new Vec3(1, 0, 0); }
+        perp1 = perp1.normalize();
+        Vec3 perp2 = dir.cross(perp1).normalize();
+
+        float t = BEAM_THICKNESS;
+        float r = color[0], g = color[1], bl = color[2], alpha = color[3];
+
+        float ax = (float) from.x, ay = (float) from.y, az = (float) from.z;
+        float bx = (float) to.x, by = (float) to.y, bz = (float) to.z;
+        float p1x = (float) perp1.x, p1y = (float) perp1.y, p1z = (float) perp1.z;
+        float p2x = (float) perp2.x, p2y = (float) perp2.y, p2z = (float) perp2.z;
+
+        float a1x = ax + p1x * t + p2x * t;
+        float a1y = ay + p1y * t + p2y * t;
+        float a1z = az + p1z * t + p2z * t;
+
+        float a2x = ax - p1x * t + p2x * t;
+        float a2y = ay - p1y * t + p2y * t;
+        float a2z = az - p1z * t + p2z * t;
+
+        float a3x = ax - p1x * t - p2x * t;
+        float a3y = ay - p1y * t - p2y * t;
+        float a3z = az - p1z * t - p2z * t;
+
+        float a4x = ax + p1x * t - p2x * t;
+        float a4y = ay + p1y * t - p2y * t;
+        float a4z = az + p1z * t - p2z * t;
+
+        float b1x = bx + p1x * t + p2x * t;
+        float b1y = by + p1y * t + p2y * t;
+        float b1z = bz + p1z * t + p2z * t;
+
+        float b2x = bx - p1x * t + p2x * t;
+        float b2y = by - p1y * t + p2y * t;
+        float b2z = bz - p1z * t + p2z * t;
+
+        float b3x = bx - p1x * t - p2x * t;
+        float b3y = by - p1y * t - p2y * t;
+        float b3z = bz - p1z * t - p2z * t;
+
+        float b4x = bx + p1x * t - p2x * t;
+        float b4y = by + p1y * t - p2y * t;
+        float b4z = bz + p1z * t - p2z * t;
+
+        consumer.vertex(matrix, a1x, a1y, a1z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, a2x, a2y, a2z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, b2x, b2y, b2z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, b1x, b1y, b1z).color(r, g, bl, alpha).endVertex();
+
+        consumer.vertex(matrix, a2x, a2y, a2z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, a3x, a3y, a3z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, b3x, b3y, b3z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, b2x, b2y, b2z).color(r, g, bl, alpha).endVertex();
+
+        consumer.vertex(matrix, a3x, a3y, a3z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, a4x, a4y, a4z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, b4x, b4y, b4z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, b3x, b3y, b3z).color(r, g, bl, alpha).endVertex();
+
+        consumer.vertex(matrix, a4x, a4y, a4z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, a1x, a1y, a1z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, b1x, b1y, b1z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, b4x, b4y, b4z).color(r, g, bl, alpha).endVertex();
+    }
+
+    private static void renderFaceDot(PoseStack poseStack,
+                                       MultiBufferSource bufferSource,
+                                       Vec3 center, Vec3 normal, float radius, float[] color)
+    {
+        VertexConsumer consumer = bufferSource.getBuffer(RenderType.debugQuads());
+        Matrix4f matrix = poseStack.last().pose();
+
+        Vec3 u, v;
+        if (Math.abs(normal.x) < 0.9) {
+            u = new Vec3(1, 0, 0).cross(normal).normalize();
+        } else {
+            u = new Vec3(0, 1, 0).cross(normal).normalize();
         }
-        perp = perp.normalize();
+        v = normal.cross(u).normalize();
 
-        float halfWidth = 0.0625f;
         float r = color[0], g = color[1], b = color[2], a = color[3];
+        float cx = (float) center.x, cy = (float) center.y, cz = (float) center.z;
+        float ux = (float) u.x, uy = (float) u.y, uz = (float) u.z;
+        float vx = (float) v.x, vy = (float) v.y, vz = (float) v.z;
 
-        float fx = (float) from.x, fy = (float) from.y, fz = (float) from.z;
-        float tx = (float) to.x, ty = (float) to.y, tz = (float) to.z;
-        float px = (float) perp.x * halfWidth, py = (float) perp.y * halfWidth, pz = (float) perp.z * halfWidth;
-
-        consumer.vertex(matrix, fx - px, fy - py, fz - pz).color(r, g, b, a).endVertex();
-        consumer.vertex(matrix, fx + px, fy + py, fz + pz).color(r, g, b, a).endVertex();
-        consumer.vertex(matrix, tx + px, ty + py, tz + pz).color(r, g, b, a).endVertex();
-        consumer.vertex(matrix, tx - px, ty - py, tz - pz).color(r, g, b, a).endVertex();
+        consumer.vertex(matrix, cx + ux * radius + vx * radius, cy + uy * radius + vy * radius, cz + uz * radius + vz * radius).color(r, g, b, a).endVertex();
+        consumer.vertex(matrix, cx - ux * radius + vx * radius, cy - uy * radius + vy * radius, cz - uz * radius + vz * radius).color(r, g, b, a).endVertex();
+        consumer.vertex(matrix, cx - ux * radius - vx * radius, cy - uy * radius - vy * radius, cz - uz * radius - vz * radius).color(r, g, b, a).endVertex();
+        consumer.vertex(matrix, cx + ux * radius - vx * radius, cy + uy * radius - vy * radius, cz + uz * radius - vz * radius).color(r, g, b, a).endVertex();
     }
 }

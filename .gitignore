@@ -3,6 +3,7 @@ build/
 *.log
 out/
 test/
+temp/
 
 # IDE files
 .idea/
@@ -29,5 +30,4 @@ gradle/
 run/
 
 # Agent Tool
-temp/
-q
+AGENTS*.md

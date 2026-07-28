@@ -18,7 +18,7 @@ public class CableInfoScreen extends Screen
 
     private int panelLeft;
     private int panelTop;
-    private static final int PANEL_WIDTH = 290;
+    private static final int PANEL_WIDTH = 240;
     private static final int HEADER_HEIGHT = 16;
     private static final int LINE_HEIGHT = 11;
 
