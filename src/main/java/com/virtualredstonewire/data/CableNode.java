@@ -10,7 +10,7 @@ import java.util.*;
 public class CableNode
 {
     private final BlockPos position;
-    private final Map<BlockPos, Direction> toWho = new HashMap<>();
+    private final Map<BlockPos, Set<Direction>> toWho = new HashMap<>();
     private final Map<BlockPos, Set<Direction>> fromWho = new HashMap<>();
 
     public CableNode(BlockPos position)
@@ -23,44 +23,75 @@ public class CableNode
         return position;
     }
 
-    /* toWho: 本结点作为输入时，连到的(目标位, 面) */
     public boolean addOutgoing(BlockPos toPos, Direction toFace)
     {
         BlockPos key = toPos.immutable();
-        if (toWho.containsKey(key) && toWho.get(key) == toFace)
-        {
-            return false;
-        }
-        toWho.put(key, toFace);
-        return true;
+        Set<Direction> faces = toWho.computeIfAbsent(key, k -> new HashSet<>());
+        return faces.add(toFace);
     }
 
-    public boolean removeOutgoing(BlockPos toPos)
+    public boolean removeOutgoing(BlockPos toPos, Direction toFace)
     {
-        return toWho.remove(toPos.immutable()) != null;
+        BlockPos key = toPos.immutable();
+        Set<Direction> faces = toWho.get(key);
+        if (faces != null)
+        {
+            boolean removed = faces.remove(toFace);
+            if (faces.isEmpty())
+            {
+                toWho.remove(key);
+            }
+            return removed;
+        }
+        return false;
     }
 
     public boolean hasOutgoing(BlockPos toPos)
     {
-        return toWho.containsKey(toPos.immutable());
+        Set<Direction> faces = toWho.get(toPos.immutable());
+        return faces != null && !faces.isEmpty();
     }
 
-    public Direction getOutgoingFace(BlockPos toPos)
+    public boolean hasOutgoingFace(BlockPos toPos, Direction toFace)
     {
-        return toWho.get(toPos.immutable());
+        Set<Direction> faces = toWho.get(toPos.immutable());
+        return faces != null && faces.contains(toFace);
+    }
+
+    public Set<Direction> getOutgoingFaces(BlockPos toPos)
+    {
+        Set<Direction> faces = toWho.get(toPos.immutable());
+        return faces != null ? new HashSet<>(faces) : Collections.emptySet();
     }
 
     public Set<Map.Entry<BlockPos, Direction>> getOutgoing()
     {
-        return toWho.entrySet();
+        Set<Map.Entry<BlockPos, Direction>> result = new HashSet<>();
+        for (Map.Entry<BlockPos, Set<Direction>> entry : toWho.entrySet())
+        {
+            for (Direction face : entry.getValue())
+            {
+                result.add(Map.entry(entry.getKey(), face));
+            }
+        }
+        return result;
     }
 
     public int getOutgoingCount()
     {
-        return toWho.size();
+        int count = 0;
+        for (Set<Direction> faces : toWho.values())
+        {
+            count += faces.size();
+        }
+        return count;
     }
 
-    /* fromWho: 本结点作为输出时，哪些(输入位)连到哪些面 */
+    public void clearAllOutgoing()
+    {
+        toWho.clear();
+    }
+
     public void addIncoming(BlockPos fromPos, Direction toFace)
     {
         fromWho.computeIfAbsent(fromPos.immutable(), k -> new HashSet<>()).add(toFace);
@@ -124,13 +155,11 @@ public class CableNode
         return fromWho.size();
     }
 
-    /* 从fromWho清除所有以fromPos为输入源的条目，并返回受影响的面集合 */
     public Set<Direction> clearIncomingFrom(BlockPos fromPos)
     {
         return fromWho.remove(fromPos.immutable());
     }
 
-    /* 遍历 fromWho 生成 CableLink 列表 */
     public List<CableLink> toCableLinks()
     {
         List<CableLink> result = new ArrayList<>();
@@ -146,14 +175,31 @@ public class CableNode
         return result;
     }
 
-    /* 遍历 toWho 生成以本结点为from的CableLink列表 */
     public List<CableLink> toOutgoingCableLinks()
     {
         List<CableLink> result = new ArrayList<>();
         BlockPos self = this.position;
-        for (Map.Entry<BlockPos, Direction> entry : toWho.entrySet())
+        for (Map.Entry<BlockPos, Set<Direction>> entry : toWho.entrySet())
         {
-            result.add(new CableLink(self, entry.getKey(), entry.getValue()));
+            for (Direction face : entry.getValue())
+            {
+                result.add(new CableLink(self, entry.getKey(), face));
+            }
+        }
+        return result;
+    }
+
+    public List<CableLink> toOutgoingCableLinksTo(BlockPos toPos)
+    {
+        List<CableLink> result = new ArrayList<>();
+        BlockPos self = this.position;
+        Set<Direction> faces = toWho.get(toPos.immutable());
+        if (faces != null)
+        {
+            for (Direction face : faces)
+            {
+                result.add(new CableLink(self, toPos, face));
+            }
         }
         return result;
     }
@@ -165,13 +211,18 @@ public class CableNode
         obj.addProperty("z", position.getZ());
 
         JsonArray toArr = new JsonArray();
-        for (Map.Entry<BlockPos, Direction> entry : toWho.entrySet())
+        for (Map.Entry<BlockPos, Set<Direction>> entry : toWho.entrySet())
         {
             JsonObject edge = new JsonObject();
             edge.addProperty("tx", entry.getKey().getX());
             edge.addProperty("ty", entry.getKey().getY());
             edge.addProperty("tz", entry.getKey().getZ());
-            edge.addProperty("face", entry.getValue().getName());
+            JsonArray faces = new JsonArray();
+            for (Direction d : entry.getValue())
+            {
+                faces.add(d.getName());
+            }
+            edge.add("faces", faces);
             toArr.add(edge);
         }
         obj.add("toWho", toArr);
@@ -210,10 +261,17 @@ public class CableNode
                 int tx = edge.get("tx").getAsInt();
                 int ty = edge.get("ty").getAsInt();
                 int tz = edge.get("tz").getAsInt();
-                Direction face = Direction.byName(edge.get("face").getAsString());
-                if (face != null)
+
+                JsonArray faces = getFacesArray(edge);
+                Set<Direction> dirs = new HashSet<>();
+                for (int j = 0; j < faces.size(); j++)
                 {
-                    node.toWho.put(new BlockPos(tx, ty, tz), face);
+                    Direction d = Direction.byName(faces.get(j).getAsString());
+                    if (d != null) dirs.add(d);
+                }
+                if (!dirs.isEmpty())
+                {
+                    node.toWho.put(new BlockPos(tx, ty, tz), dirs);
                 }
             }
         }
@@ -227,7 +285,8 @@ public class CableNode
                 int fx = edge.get("fx").getAsInt();
                 int fy = edge.get("fy").getAsInt();
                 int fz = edge.get("fz").getAsInt();
-                JsonArray faces = edge.getAsJsonArray("faces");
+
+                JsonArray faces = getFacesArray(edge);
                 Set<Direction> dirs = new HashSet<>();
                 for (int j = 0; j < faces.size(); j++)
                 {
@@ -242,5 +301,19 @@ public class CableNode
         }
 
         return node;
+    }
+
+    private static JsonArray getFacesArray(JsonObject edge)
+    {
+        if (edge.has("faces"))
+        {
+            return edge.getAsJsonArray("faces");
+        }
+        JsonArray arr = new JsonArray();
+        if (edge.has("face"))
+        {
+            arr.add(edge.get("face").getAsString());
+        }
+        return arr;
     }
 }

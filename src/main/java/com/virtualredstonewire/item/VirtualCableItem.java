@@ -1,7 +1,9 @@
 package com.virtualredstonewire.item;
 
+import com.virtualredstonewire.client.ClientCableCache;
 import com.virtualredstonewire.config.ClientConfig;
 import com.virtualredstonewire.config.ServerConfig;
+import com.virtualredstonewire.data.CableLink;
 import com.virtualredstonewire.network.CableActionPacket;
 import com.virtualredstonewire.network.CableNetworkChannel;
 import net.minecraft.core.BlockPos;
@@ -91,22 +93,41 @@ public class VirtualCableItem extends Item
                     player.sendSystemMessage(
                         Component.translatable("message.virtual_redstone_wire.too_far", maxDist));
                 }
-                clearSelectedInput(player);
                 return InteractionResult.PASS;
             }
 
+            boolean alreadyExists = false;
+            String checkId = CableLink.generateId(sel, clickedPos, clickedFace);
+            for (CableLink link : ClientCableCache.getLinks())
+            {
+                if (link.getId().equals(checkId))
+                {
+                    alreadyExists = true;
+                    break;
+                }
+            }
+
             CableNetworkChannel.sendToServer(
-                new CableActionPacket(true, sel, clickedPos, clickedFace));
+                new CableActionPacket(!alreadyExists, sel, clickedPos, clickedFace));
 
             if (ClientConfig.enableChatFeedback.get())
             {
-                player.sendSystemMessage(
-                    Component.translatable("message.virtual_redstone_wire.link_created",
-                        sel.getX(), sel.getY(), sel.getZ(),
-                        clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
+                if (alreadyExists)
+                {
+                    player.sendSystemMessage(
+                        Component.translatable("message.virtual_redstone_wire.link_removed",
+                            sel.getX(), sel.getY(), sel.getZ(),
+                            clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
+                }
+                else
+                {
+                    player.sendSystemMessage(
+                        Component.translatable("message.virtual_redstone_wire.link_created",
+                            sel.getX(), sel.getY(), sel.getZ(),
+                            clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
+                }
             }
 
-            clearSelectedInput(player);
             return InteractionResult.SUCCESS;
         }
 

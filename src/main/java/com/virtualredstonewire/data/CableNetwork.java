@@ -32,9 +32,9 @@ public class CableNetwork
         CableNode inputNode = getOrCreateNode(from);
         CableNode outputNode = getOrCreateNode(to);
 
-        if (inputNode.hasOutgoing(to) && inputNode.getOutgoingFace(to) == toFace)
+        if (inputNode.hasOutgoingFace(to, toFace))
         {
-            inputNode.removeOutgoing(to);
+            inputNode.removeOutgoing(to, toFace);
             outputNode.removeIncoming(from, toFace);
 
             if (outputNode.getIncomingCount() == 0 && inputNode.getIncomingCount() == 0)
@@ -80,7 +80,7 @@ public class CableNetwork
             }
             count++;
         }
-        node.getOutgoing().clear();
+        node.clearAllOutgoing();
 
         if (node.getIncomingCount() == 0)
         {

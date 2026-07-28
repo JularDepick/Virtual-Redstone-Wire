@@ -154,6 +154,7 @@ public class CableRenderer
         }
 
         bufferSource.endBatch(RenderType.LINES);
+        bufferSource.endBatch(RenderType.debugQuads());
         bufferSource.endBatch();
 
         poseStack.popPose();
@@ -240,7 +241,7 @@ public class CableRenderer
                                          MultiBufferSource bufferSource,
                                          Vec3 from, Vec3 to, float[] color)
     {
-        VertexConsumer consumer = bufferSource.getBuffer(RenderType.LINES);
+        VertexConsumer consumer = bufferSource.getBuffer(RenderType.debugQuads());
         Matrix4f matrix = poseStack.last().pose();
 
         Vec3 dir = to.subtract(from).normalize();
@@ -258,9 +259,9 @@ public class CableRenderer
         float tx = (float) to.x, ty = (float) to.y, tz = (float) to.z;
         float px = (float) perp.x * halfWidth, py = (float) perp.y * halfWidth, pz = (float) perp.z * halfWidth;
 
-        consumer.vertex(matrix, fx - px, fy - py, fz - pz).color(r, g, b, a).normal(0, 1, 0).endVertex();
-        consumer.vertex(matrix, fx + px, fy + py, fz + pz).color(r, g, b, a).normal(0, 1, 0).endVertex();
-        consumer.vertex(matrix, tx + px, ty + py, tz + pz).color(r, g, b, a).normal(0, 1, 0).endVertex();
-        consumer.vertex(matrix, tx - px, ty - py, tz - pz).color(r, g, b, a).normal(0, 1, 0).endVertex();
+        consumer.vertex(matrix, fx - px, fy - py, fz - pz).color(r, g, b, a).endVertex();
+        consumer.vertex(matrix, fx + px, fy + py, fz + pz).color(r, g, b, a).endVertex();
+        consumer.vertex(matrix, tx + px, ty + py, tz + pz).color(r, g, b, a).endVertex();
+        consumer.vertex(matrix, tx - px, ty - py, tz - pz).color(r, g, b, a).endVertex();
     }
 }
