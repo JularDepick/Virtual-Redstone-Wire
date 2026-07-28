@@ -66,12 +66,12 @@ public class CableActionPacketHandler
                 if (created)
                 {
                     placeVirtualSource(level, to, packet.getToFace());
-                    RedstoneCalculator.markDirtyInput(from);
                 }
                 else
                 {
                     removeVirtualSourceIfEmpty(level, network, to, packet.getToFace());
                 }
+                RedstoneCalculator.markDirtyInput(from);
 
                 broadcastSync(level, network);
             }

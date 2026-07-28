@@ -10,6 +10,8 @@ import com.virtualredstonewire.data.CableLink;
 import com.virtualredstonewire.item.CableCutterItem;
 import com.virtualredstonewire.item.CableMagnifierItem;
 import com.virtualredstonewire.item.VirtualCableItem;
+import com.virtualredstonewire.network.CableNetworkChannel;
+import com.virtualredstonewire.network.CableRequestSyncPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -161,6 +163,7 @@ public class CableRenderer
     }
 
     private static boolean wasHoldingCable = false;
+    private static int syncCooldown = 0;
 
     @SubscribeEvent
     @OnlyIn(Dist.CLIENT)
@@ -171,12 +174,28 @@ public class CableRenderer
         if (player == null) return;
         boolean holdingCable = player.getMainHandItem().getItem() instanceof VirtualCableItem
             || player.getOffhandItem().getItem() instanceof VirtualCableItem;
+        boolean holdingMagnifier = player.getMainHandItem().getItem() instanceof CableMagnifierItem
+            || player.getOffhandItem().getItem() instanceof CableMagnifierItem;
 
         if (wasHoldingCable && !holdingCable)
         {
             VirtualCableItem.clearSelectedInput(player);
         }
         wasHoldingCable = holdingCable;
+
+        if (holdingCable || holdingMagnifier)
+        {
+            syncCooldown--;
+            if (syncCooldown <= 0)
+            {
+                CableNetworkChannel.sendToServer(new CableRequestSyncPacket());
+                syncCooldown = 20;
+            }
+        }
+        else
+        {
+            syncCooldown = 0;
+        }
 
         if (holdingCable)
         {
