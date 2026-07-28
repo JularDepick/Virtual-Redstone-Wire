@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire
 
-[![Version](https://img.shields.io/badge/Version-1.0.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v1.0.0)
+[![Version](https://img.shields.io/badge/Version-0.1.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.1.0)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
@@ -142,7 +142,7 @@ Build:
 
 ```bash
 gradle build
-# Output: build/libs/VirtualRedstoneWire-1.0.0.jar
+# Output: build/libs/VirtualRedstoneWire-0.1.0.jar
 ```
 
 # License

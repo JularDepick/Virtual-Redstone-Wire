@@ -138,7 +138,7 @@ src/main/java/com/virtualredstonewire/
 - 作者常量: `VirtualRedstoneWire.java:17-19`
 
 # 版本号索引
-- 当前版本：v1.0.0
+- 当前版本：v0.1.0
 
 # 快捷命令
 ```
