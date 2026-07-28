@@ -109,7 +109,8 @@ public class CableRenderer
             * (double) ServerConfig.magnifierRenderDistance.get();
 
         poseStack.pushPose();
-        poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
+
+        double cx = cameraPos.x, cy = cameraPos.y, cz = cameraPos.z;
 
         BlockPos selectedInput = null;
         if (holdingCable)
@@ -121,38 +122,40 @@ public class CableRenderer
 
         for (CableLink link : ClientCableCache.getLinks())
         {
-            Vec3 fromCenter = getShapeCenter(link.getFrom(), level);
-            if (fromCenter.distanceToSqr(cameraPos) > renderDistSq) continue;
+            double fromX = link.getFrom().getX(), fromY = link.getFrom().getY(), fromZ = link.getFrom().getZ();
+            double dx = fromX + 0.5 - cx, dy = fromY + 0.5 - cy, dz = fromZ + 0.5 - cz;
+            if (dx*dx + dy*dy + dz*dz > renderDistSq) continue;
 
             boolean isFromSelected = selectedInput != null
                 && selectedInput.equals(link.getFrom());
 
+            Vec3 fromCenter = getShapeCenter(link.getFrom(), level, cx, cy, cz);
             Vec3 cableEnd = new Vec3(
-                link.getFaceCenterX(), link.getFaceCenterY(), link.getFaceCenterZ());
+                link.getFaceCenterX() - cx, link.getFaceCenterY() - cy, link.getFaceCenterZ() - cz);
 
             if (holdingMagnifier)
             {
-                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), getColorInput(), level);
+                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), getColorInput(), level, cx, cy, cz);
                 renderFaceOutline(poseStack, bufferSource,
-                    link.getTo(), link.getToFace(), getColorOutput());
+                    link.getTo(), link.getToFace(), getColorOutput(), cx, cy, cz);
                 renderCableBeam(poseStack, bufferSource, fromCenter, cableEnd, getColorLine());
             }
             else if (holdingCable && isFromSelected)
             {
-                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), getColorInput(), level);
+                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), getColorInput(), level, cx, cy, cz);
                 renderFaceOutline(poseStack, bufferSource,
-                    link.getTo(), link.getToFace(), getColorOutput());
+                    link.getTo(), link.getToFace(), getColorOutput(), cx, cy, cz);
                 renderCableBeam(poseStack, bufferSource, fromCenter, cableEnd, getColorLine());
             }
             else if (holdingCable || holdingCutter)
             {
-                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), getColorDim(), level);
+                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), getColorDim(), level, cx, cy, cz);
             }
         }
 
         if (selectedInput != null)
         {
-            renderBlockOutlineBeams(poseStack, bufferSource, selectedInput, getColorSelected(), level);
+            renderBlockOutlineBeams(poseStack, bufferSource, selectedInput, getColorSelected(), level, cx, cy, cz);
         }
 
         bufferSource.endBatch(RenderType.debugQuads());
@@ -210,7 +213,8 @@ public class CableRenderer
     private static void renderBlockOutlineBeams(PoseStack poseStack,
                                                  MultiBufferSource bufferSource,
                                                  BlockPos pos, float[] color,
-                                                 net.minecraft.world.level.Level level)
+                                                 net.minecraft.world.level.Level level,
+                                                 double cx, double cy, double cz)
     {
         VoxelShape shape = level.getBlockState(pos).getShape(level, pos);
         AABB bounds;
@@ -224,8 +228,8 @@ public class CableRenderer
             bounds = shape.bounds().move(pos.getX(), pos.getY(), pos.getZ());
         }
 
-        double x0 = bounds.minX, y0 = bounds.minY, z0 = bounds.minZ;
-        double x1 = bounds.maxX, y1 = bounds.maxY, z1 = bounds.maxZ;
+        double x0 = bounds.minX - cx, y0 = bounds.minY - cy, z0 = bounds.minZ - cz;
+        double x1 = bounds.maxX - cx, y1 = bounds.maxY - cy, z1 = bounds.maxZ - cz;
 
         Vec3[] corners = {
             new Vec3(x0, y0, z0), new Vec3(x1, y0, z0), new Vec3(x1, y0, z1), new Vec3(x0, y0, z1),
@@ -247,9 +251,10 @@ public class CableRenderer
 
     private static void renderFaceOutline(PoseStack poseStack,
                                            MultiBufferSource bufferSource,
-                                           BlockPos pos, Direction face, float[] color)
+                                           BlockPos pos, Direction face, float[] color,
+                                           double cx, double cy, double cz)
     {
-        double x = pos.getX(), y = pos.getY(), z = pos.getZ();
+        double x = pos.getX() - cx, y = pos.getY() - cy, z = pos.getZ() - cz;
         double expand = OUTLINE_EXPAND;
 
         Vec3[] corners = new Vec3[4];
@@ -316,18 +321,19 @@ public class CableRenderer
         renderBeam(poseStack, bufferSource, from, to, color);
     }
 
-    private static Vec3 getShapeCenter(BlockPos pos, net.minecraft.world.level.Level level)
+    private static Vec3 getShapeCenter(BlockPos pos, net.minecraft.world.level.Level level,
+                                        double cx, double cy, double cz)
     {
         VoxelShape shape = level.getBlockState(pos).getShape(level, pos);
         if (shape.isEmpty())
         {
-            return new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+            return new Vec3(pos.getX() + 0.5 - cx, pos.getY() + 0.5 - cy, pos.getZ() + 0.5 - cz);
         }
         AABB bounds = shape.bounds();
         return new Vec3(
-            pos.getX() + (bounds.minX + bounds.maxX) * 0.5,
-            pos.getY() + (bounds.minY + bounds.maxY) * 0.5,
-            pos.getZ() + (bounds.minZ + bounds.maxZ) * 0.5);
+            pos.getX() + (bounds.minX + bounds.maxX) * 0.5 - cx,
+            pos.getY() + (bounds.minY + bounds.maxY) * 0.5 - cy,
+            pos.getZ() + (bounds.minZ + bounds.maxZ) * 0.5 - cz);
     }
 
     private static void renderBeam(PoseStack poseStack,

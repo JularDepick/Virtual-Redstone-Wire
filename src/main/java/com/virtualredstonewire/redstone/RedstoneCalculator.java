@@ -30,7 +30,8 @@ public class RedstoneCalculator
             Set<Map.Entry<BlockPos, Direction>> outputs = network.getOutputsForInput(inputPos);
             for (Map.Entry<BlockPos, Direction> edge : outputs)
             {
-                level.updateNeighborsAt(edge.getKey(), level.getBlockState(edge.getKey()).getBlock());
+                level.updateNeighborsAt(edge.getKey().relative(edge.getValue()),
+                    level.getBlockState(edge.getKey()).getBlock());
             }
         }
     }

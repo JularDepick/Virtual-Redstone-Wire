@@ -40,7 +40,7 @@ public class CableActionPacketHandler
                 {
                     for (Map.Entry<BlockPos, Direction> edge : savedOutgoing)
                     {
-                        level.updateNeighborsAt(edge.getKey(),
+                        level.updateNeighborsAt(edge.getKey().relative(edge.getValue()),
                             level.getBlockState(edge.getKey()).getBlock());
                     }
                     CableNetworkManager.markDirty(level);
@@ -61,7 +61,8 @@ public class CableActionPacketHandler
                 network.toggleLink(from, to, packet.getToFace());
                 CableNetworkManager.markDirty(level);
 
-                level.updateNeighborsAt(to, level.getBlockState(to).getBlock());
+                level.updateNeighborsAt(to.relative(packet.getToFace()),
+                    level.getBlockState(to).getBlock());
                 RedstoneCalculator.markDirtyInput(from);
 
                 broadcastSync(level, network);

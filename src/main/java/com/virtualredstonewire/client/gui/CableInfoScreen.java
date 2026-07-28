@@ -12,16 +12,16 @@ import java.util.List;
 
 public class CableInfoScreen extends Screen
 {
-    private final BlockPos queryPos;
-    private final List<String> outgoingLines;
-    private final List<String> incomingLines;
-
-    private int panelLeft;
-    private int panelTop;
-    private static final int PANEL_WIDTH = 115;
+    private static final int MIN_WIDTH = 115;
+    private static final int MAX_WIDTH = 230;
     private static final int HEADER_HEIGHT = 16;
     private static final int LINE_HEIGHT = 11;
 
+    private final BlockPos queryPos;
+    private final List<String> lines;
+    private int panelWidth;
+    private int panelLeft;
+    private int panelTop;
     private int closeX, closeY, closeW = 12, closeH = 12;
     private double scrollOffset;
     private int maxScroll;
@@ -30,58 +30,52 @@ public class CableInfoScreen extends Screen
     {
         super(Component.translatable("screen.virtual_redstone_wire.cable_info"));
         this.queryPos = pos.immutable();
+        this.lines = new ArrayList<>();
 
-        int maxChars = (PANEL_WIDTH - 8) / font.width("W");
+        lines.add("[" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + "]");
 
-        List<String> outRaw = new ArrayList<>();
-        List<String> inRaw = new ArrayList<>();
+        List<String> out = new ArrayList<>();
+        List<String> in = new ArrayList<>();
         for (CableLink link : ClientCableCache.getLinks())
         {
             if (link.getFrom().equals(pos))
             {
-                outRaw.add("-> [" + link.getTo().getX() + "," + link.getTo().getY()
+                out.add("-> [" + link.getTo().getX() + "," + link.getTo().getY()
                     + "," + link.getTo().getZ() + "] " + link.getToFace().getName());
             }
             if (link.getTo().equals(pos))
             {
-                inRaw.add("<- [" + link.getFrom().getX() + "," + link.getFrom().getY()
+                in.add("<- [" + link.getFrom().getX() + "," + link.getFrom().getY()
                     + "," + link.getFrom().getZ() + "] " + link.getToFace().getName());
             }
         }
-        this.outgoingLines = wrapLines(outRaw, maxChars);
-        this.incomingLines = wrapLines(inRaw, maxChars);
-    }
-
-    private List<String> wrapLines(List<String> raw, int maxChars)
-    {
-        List<String> result = new ArrayList<>();
-        for (String line : raw)
+        if (!out.isEmpty())
         {
-            if (line.length() <= maxChars)
-            {
-                result.add(line);
-            }
-            else
-            {
-                int pos = 0;
-                while (pos < line.length())
-                {
-                    int end = Math.min(pos + maxChars, line.length());
-                    result.add(line.substring(pos, end));
-                    pos = end;
-                }
-            }
+            lines.add("out: " + out.size());
+            lines.addAll(out);
         }
-        return result;
+        if (!in.isEmpty())
+        {
+            lines.add("in: " + in.size());
+            lines.addAll(in);
+        }
     }
 
     @Override
     protected void init()
     {
-        int panelHeight = Math.min(height - 40, Math.max(100, height / 2));
-        panelLeft = (width - PANEL_WIDTH) / 2;
+        int maxTextW = 0;
+        for (String line : lines)
+        {
+            int w = font.width(line);
+            if (w > maxTextW) maxTextW = w;
+        }
+        panelWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, maxTextW));
+
+        int panelHeight = Math.min(height - 10, Math.max(60, height / 2));
+        panelLeft = (width - panelWidth) / 2;
         panelTop = (height - panelHeight) / 2;
-        closeX = panelLeft + PANEL_WIDTH - 18;
+        closeX = panelLeft + panelWidth - 14;
         closeY = panelTop + 3;
     }
 
@@ -89,70 +83,48 @@ public class CableInfoScreen extends Screen
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta)
     {
         int panelBottom = panelTop + panelHeight();
-        int contentTop = panelTop + HEADER_HEIGHT + 6;
-        int contentBottom = panelBottom - 6;
+        int contentTop = panelTop + HEADER_HEIGHT + 4;
+        int contentBottom = panelBottom - 2;
         int visibleHeight = contentBottom - contentTop;
 
-        int totalContentH = LINE_HEIGHT + 2
-            + LINE_HEIGHT + outgoingLines.size() * LINE_HEIGHT
-            + 4 + LINE_HEIGHT + incomingLines.size() * LINE_HEIGHT;
+        int totalContentH = lines.size() * LINE_HEIGHT;
         maxScroll = Math.max(0, totalContentH - visibleHeight);
         scrollOffset = Math.max(0, Math.min(scrollOffset, maxScroll));
 
-        graphics.fill(panelLeft, panelTop, panelLeft + PANEL_WIDTH, panelBottom, 0xE0101010);
-        graphics.fill(panelLeft, panelTop, panelLeft + PANEL_WIDTH, panelTop + HEADER_HEIGHT, 0xFF2A2A2A);
+        graphics.fill(panelLeft, panelTop, panelLeft + panelWidth, panelBottom, 0xE0101010);
+        graphics.fill(panelLeft, panelTop, panelLeft + panelWidth, panelTop + HEADER_HEIGHT, 0xFF2A2A2A);
         graphics.drawString(font,
             Component.translatable("screen.virtual_redstone_wire.cable_info"),
-            panelLeft + 7, panelTop + 4, 0xCCCCCC);
+            panelLeft + 4, panelTop + 4, 0xCCCCCC);
 
         boolean hoveringClose = mouseX >= closeX && mouseX < closeX + closeW
             && mouseY >= closeY && mouseY < closeY + closeH;
         int closeColor = hoveringClose ? 0xFFFF4444 : 0xFF888888;
         graphics.drawString(font, "X", closeX, closeY, closeColor);
 
-        graphics.fill(panelLeft, panelTop + HEADER_HEIGHT, panelLeft + PANEL_WIDTH,
+        graphics.fill(panelLeft, panelTop + HEADER_HEIGHT, panelLeft + panelWidth,
             panelTop + HEADER_HEIGHT + 1, 0xFF444444);
 
-        graphics.enableScissor(panelLeft, contentTop, panelLeft + PANEL_WIDTH, contentBottom);
+        graphics.enableScissor(panelLeft, contentTop, panelLeft + panelWidth, contentBottom);
 
-        int contentLeft = panelLeft + 4;
         int y = contentTop - (int) scrollOffset;
-
-        graphics.drawString(font,
-            Component.translatable("screen.virtual_redstone_wire.cable_info.position",
-                queryPos.getX(), queryPos.getY(), queryPos.getZ()),
-            contentLeft, y, 0x55AAFF);
-        y += LINE_HEIGHT + 2;
-
-        graphics.drawString(font,
-            Component.translatable("screen.virtual_redstone_wire.cable_info.outgoing",
-                outgoingLines.size()),
-            contentLeft, y, 0x55FFFF);
-        y += LINE_HEIGHT;
-        for (String line : outgoingLines)
+        for (String line : lines)
         {
-            graphics.drawString(font, Component.literal(line), contentLeft, y, 0xAAAAAA);
-            y += LINE_HEIGHT;
-        }
-        y += 4;
-
-        graphics.drawString(font,
-            Component.translatable("screen.virtual_redstone_wire.cable_info.incoming",
-                incomingLines.size()),
-            contentLeft, y, 0xFFFF55);
-        y += LINE_HEIGHT;
-        for (String line : incomingLines)
-        {
-            graphics.drawString(font, Component.literal(line), contentLeft, y, 0xAAAAAA);
+            int color = 0xAAAAAA;
+            if (line.startsWith("[")) color = 0x55AAFF;
+            else if (line.startsWith("->")) color = 0x55FFFF;
+            else if (line.startsWith("<-")) color = 0xFFFF55;
+            else if (line.startsWith("out:") || line.startsWith("in:")) color = 0x888888;
+            graphics.drawString(font, Component.literal(line), panelLeft + 2, y, color);
             y += LINE_HEIGHT;
         }
 
         graphics.disableScissor();
 
-        graphics.fill(panelLeft, panelTop, panelLeft + PANEL_WIDTH, panelTop + 1, 0xFF666666);
-        graphics.fill(panelLeft, panelBottom - 1, panelLeft + PANEL_WIDTH, panelBottom, 0xFF666666);
+        graphics.fill(panelLeft, panelTop, panelLeft + panelWidth, panelTop + 1, 0xFF666666);
+        graphics.fill(panelLeft, panelBottom - 1, panelLeft + panelWidth, panelBottom, 0xFF666666);
         graphics.fill(panelLeft, panelTop, panelLeft + 1, panelBottom, 0xFF666666);
-        graphics.fill(panelLeft + PANEL_WIDTH - 1, panelTop, panelLeft + PANEL_WIDTH, panelBottom, 0xFF666666);
+        graphics.fill(panelLeft + panelWidth - 1, panelTop, panelLeft + panelWidth, panelBottom, 0xFF666666);
     }
 
     @Override
@@ -171,7 +143,7 @@ public class CableInfoScreen extends Screen
             this.onClose();
             return true;
         }
-        if (mouseX < panelLeft || mouseX > panelLeft + PANEL_WIDTH
+        if (mouseX < panelLeft || mouseX > panelLeft + panelWidth
             || mouseY < panelTop || mouseY > panelTop + panelHeight())
         {
             this.onClose();
@@ -182,7 +154,7 @@ public class CableInfoScreen extends Screen
 
     private int panelHeight()
     {
-        return Math.min(height - 40, Math.max(100, height / 2));
+        return Math.min(height - 10, Math.max(60, height / 2));
     }
 
     @Override

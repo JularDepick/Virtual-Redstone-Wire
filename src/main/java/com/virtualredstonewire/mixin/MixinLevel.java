@@ -14,25 +14,53 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Level.class)
 public class MixinLevel
 {
-    @Inject(method = "getSignal", at = @At("RETURN"), cancellable = true)
+    private static final ThreadLocal<Boolean> COMPUTING = ThreadLocal.withInitial(() -> false);
+
+    @Inject(method = "getSignal", at = @At("HEAD"), cancellable = true)
     public void onGetSignal(BlockPos pos, Direction direction, CallbackInfoReturnable<Integer> cir)
     {
-        if (((Level) (Object) this).isClientSide()) return;
-        int cable = CableNetworkManager.get((ServerLevel) (Object) this).getSignalAt(pos, direction, (Level) (Object) this);
-        if (cable > cir.getReturnValueI())
+        if (COMPUTING.get()) return;
+        Level self = (Level) (Object) this;
+        if (self.isClientSide()) return;
+
+        COMPUTING.set(true);
+        try
         {
-            cir.setReturnValue(cable);
+            CableNetwork network = CableNetworkManager.get((ServerLevel) self);
+            if (network.getLinkCount() == 0) return;
+            int cable = network.getSignalAt(pos, direction, self);
+            if (cable > 0)
+            {
+                cir.setReturnValue(cable);
+            }
+        }
+        finally
+        {
+            COMPUTING.set(false);
         }
     }
 
-    @Inject(method = "getDirectSignal", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "getDirectSignal", at = @At("HEAD"), cancellable = true)
     public void onGetDirectSignal(BlockPos pos, Direction direction, CallbackInfoReturnable<Integer> cir)
     {
-        if (((Level) (Object) this).isClientSide()) return;
-        int cable = CableNetworkManager.get((ServerLevel) (Object) this).getSignalAt(pos, direction, (Level) (Object) this);
-        if (cable > cir.getReturnValueI())
+        if (COMPUTING.get()) return;
+        Level self = (Level) (Object) this;
+        if (self.isClientSide()) return;
+
+        COMPUTING.set(true);
+        try
         {
-            cir.setReturnValue(cable);
+            CableNetwork network = CableNetworkManager.get((ServerLevel) self);
+            if (network.getLinkCount() == 0) return;
+            int cable = network.getSignalAt(pos, direction, self);
+            if (cable > 0)
+            {
+                cir.setReturnValue(cable);
+            }
+        }
+        finally
+        {
+            COMPUTING.set(false);
         }
     }
 }
