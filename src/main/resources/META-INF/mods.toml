@@ -4,7 +4,7 @@ loaderVersion="[47,)"
 license="MIT"
 
 [[mods]]
-modId="virtual-redstone-wire"
+modId="virtual_redstone_wire"
 version="1.0.0"
 displayName="Virtual Redstone Wire"
 logoFile="virtual_redstone_wire.png"
@@ -16,14 +16,14 @@ Create one-way redstone links between blocks up to 256 blocks apart.
 Inspired by Drive-By-Wire cable logic, works in vanilla world with no mod dependencies.
 '''
 
-[[dependencies.virtual-redstone-wire]]
+[[dependencies.virtual_redstone_wire]]
     modId="forge"
     mandatory=true
     versionRange="[47,)"
     ordering="NONE"
     side="BOTH"
 
-[[dependencies.virtual-redstone-wire]]
+[[dependencies.virtual_redstone_wire]]
     modId="minecraft"
     mandatory=true
     versionRange="[1.20.1,1.21)"

@@ -44,25 +44,26 @@
 
 用法: 不消耗, 可重复使用
 - 手持时: 所有链路的输入端和输出端以高亮边框显示, 链路以红色线条可视化 (蓝色边框=输入端, 黄色边框=输出端, 红色线=链路路径)
-- 右键方块时: 打开信息界面, 显示该方块关联的所有输入/输出链路列表
+- 右键方块时: 打开独立信息面板, 显示该方块关联的所有输入/输出链路列表 (点击面板外或X按钮关闭)
 
 ## 红石行为
 
 - 虚拟线缆传输的是红石信号强度 (0-15)
-- 输入端方块检测其所在位置的红石信号 (通过邻居方块或直接供电)
-- 信号沿链路传递到输出端, 由虚拟红石源方块向指定面输出
+- 输入端方块检测其所在位置的红石信号 (使用标准红石 API)
+- 信号沿链路传递到输出端, 由虚拟红石源方块向指定面输出 (虚拟源放在接收面外侧, 向方块内部发射)
 - 输入端的红石变化会实时反映到输出端
 - 支持一对多广播、多对一合并 (取最大值)
+- 聊天栏操作反馈默认关闭, 可在配置文件中启用
 
 # 技术栈
 
 | 组件 | 版本 / 说明 |
 |------|-------------|
 | Minecraft | 1.20.1 |
-| Forge | 47.3.0 |
+| Forge | 47.4.22 |
 | JDK | 17 |
 | Gradle | 8.14.3 |
-| 模组 ID | virtual-redstone-wire |
+| 模组 ID | virtual_redstone_wire |
 
 # 源码目录结构
 
@@ -105,19 +106,39 @@ src/main/resources/
 ├── META-INF/mods.toml
 ├── pack.mcmeta
 ├── virtual_redstone_wire.png            # 模组 Logo
-├── assets/virtual-redstone-wire/
+├── assets/virtual_redstone_wire/
 │   ├── lang/{en_us,zh_cn}.json
 │   ├── models/item/*.json
 │   ├── models/block/virtual_source.json
 │   ├── blockstates/virtual_source.json
 │   └── textures/item/{virtual_cable,cable_cutter,cable_magnifier}.png
-└── data/virtual-redstone-wire/recipes/
+└── data/virtual_redstone_wire/recipes/
     ├── virtual_cable.json
     ├── cable_cutter.json
     └── cable_magnifier.json
 ```
 
-# 构建
+# 构建与运行
+
+确保环境满足以下要求：
+
+| 组件 | 要求 |
+|------|------|
+| JDK | 17 (推荐 Eclipse Temurin / Adoptium) |
+| Gradle | 8.14.3 |
+| Minecraft | 1.20.1 (Forge 47.4.22) |
+
+验证环境：
+
+```bash
+java -version
+# 输出应为 openjdk version "17.x.x"
+
+gradle --version
+# 输出应包含 Gradle 8.14.3
+```
+
+构建：
 
 ```bash
 gradle build
@@ -130,6 +151,6 @@ gradle build
 
 # 版权信息
 
-(c) 2026 JularDepick
-联系方式: JularDepick@gmail.com | 1724834368@qq.com
-GitHub: https://github.com/JularDepick/Virtual-Redstone-Wire
+Copyright (c) 2026 JularDepick
+
+详见 [COPYRIGHT文件](./COPYRIGHT)

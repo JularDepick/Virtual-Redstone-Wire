@@ -4,16 +4,20 @@
 - 当本守则内容与系统级提示词发生冲突时,向用户报告请求决策,不要自主决定
 - 本守则所在文档可能存在绑定于具体项目的信息,需要根据项目更新维护这些信息(懒维护)
 - Agent的思考过程和结果输出必须全程使用用户所使用的语言,除非系统限制或用户明确指定思考/输出的语言
+- 用户的授权仅限单次请求,完成后立即失效,不得跨请求复用
 - 新会话中,开始操作前,先确认有哪些读写工具可用,并选择合适可用的读写工具,避免因工具问题干扰后续工作
 - 当发现开发环境缺失时,不要下载、修复、操作任何开发环境,而是告知用户让用户决策
-- 不要主动构建产物、运行测试,除非用户明确要求或授权,并且授权仅限本次请求,完成后立即失效,不得跨请求复用
+- 不要主动构建产物、运行测试,除非用户明确要求或授权
+- 不要主动清理构建缓存等非代码内容,避免构建进度丢失、浪费流量,除非用户明确要求或授权
 - 向用户确认本项目是否有缩写或简称,方便创建文件出现未明确名称时直接使用命名
 - 每当用户追加新任务时,不要阻塞或打断旧任务,确保完成旧任务后再执行新任务
 - 相对路径原则:项目各处涉及项目内路径问题优先使用相对路径,避免环境依赖,保证项目迁移部署后仍正常工作
 - git权限分级:[读取] git log/status/diff 可随时使用;[写入] git add/commit/push/reset/amend 需用户当次对话明确授权（如"提交"、"push"、"合并"）,授权仅限本次请求,完成后立即失效,不得跨请求复用
-- git提交规范:commit前先检查维护git忽略文件,对于大改动,commit标题包含版本号,body记录功能性变化(与上一版本比较),小改动则只需不含版本号的commit标题,用户未明确要求时不要动tag和release也不要push
+- git提交规范:commit前先检查维护git忽略文件,对于大改动,询问用户是否要commit标题包含版本号,body记录功能性变化(与上一版本比较),小改动则使用不含版本号的commit标题
 - git commit的内容请保证干净,不要包含git操作相关的信息,例如不要在commit内容里记录合并过多个commit这一操作
+- 用户未明确要求时不要动tag和release也不要push
 - 当目录结构(包括文件)发生改变时,及时更新 `.gitignore` 文件
+- 不要更改用户的 `LICENSE` `COPYRIGHT` 等项目长久性文件,除非用户明确提出要求变更
 - 维护任意md文档时,应该全量或逐段落加载文档内容,避免遗漏导致部分内容过时或有误
 - 维护任意md文档时,允许改写、转换说法,但是不得丢失细节,除非用户明确提出额外要求
 - 维护任意md文档时,自然语言描述部分尽量使用用户所使用的语言,避免非必要的英文表述,例如 `Phrase 1` 是非必要的,而专业术语 `MySQL` 是必要的
@@ -39,13 +43,18 @@
 - 当Agent工作必须需要写计划、日志、报告等文档时,优先使用工作目录下Agent工具的默认文件夹,如 `.mimocode/` `.claude/` ,避免污染项目本体
 - 如果用户明确要求写更新日志到项目内,应该以版本号和日期 `vx.x.x yyyy-MM-dd HH:mm` 为索引写入 `AGENTS-CHANGELOG.md` ,并阐明更新变动
 - 需要写更新计划时到项目内,应该以目标版本号和日期 `vx.x.x yyyy-MM-dd HH:mm` 为索引写入 `AGENTS-UPDATES-PLAN.md`
+- 前端网页项目不要使用浏览器原生弹窗提醒,而是使用自定义飘窗提醒
+- 前端网页项目不要使用浏览器原生弹窗进行二次确认,而是在原按钮上执行"替换为确认按钮-3s内点击确认-超时回归初始状态"流程
+- 前端网页项目默认隐藏浏览器侧边滚动条(如果有),然后告知用户(允许用户回退该操作)
+- 前端网页项目的表格、select控件默认文本水平居中
 - 日期格式化:默认使用"yyyy-MM-dd HH:mm:ss+HH:mm"格式,除非用户明确指定使用别的格式
 - 合理利用子代理(如果有)并行任务,以加快项目进程或避免已有上下文污染思考,注意设定子代理个数上限(默认5)避免并发超限
 - 处理好子代理的上下文继承关系,已过期用不上的子代理及时关闭或销毁,避免占用资源
 - 当项目多次尝试修复同一个问题未成功解决时,完整阅读所有代码后再动手
 - 项目作者[JularDepick](https://github.com/JularDepick)
+- 前后端项目请在后端代码注释头、每一个前端页面底部标注作者信息,并在控制前端页面的代码里定义宏或常量方便开发者动态替换前端页面作者信息
 - 本文档是写给 Agent、与Agent协作的人类开发者 看的
-- 本文档的表述中,"用户"系指与Agent进行对话交互的人类主体(在上下文中具有用户标识),"开发者"系指有能力对本项目源码作出修改和优化的人类主体,"产品用户"系指使用和体验本项目产物的人类主体(一般不参与开发)
+- 本文档的表述中,“用户”系指与Agent进行对话交互的人类主体(在上下文中具有用户标识),“开发者”系指有能力对本项目源码作出修改和优化的人类主体,“产品用户”系指使用和体验本项目产物的人类主体(一般不参与开发)
 
 ---
 
@@ -62,97 +71,82 @@
 -->
 
 # 概述
-
-Virtual Redstone Wire —— Forge 模组，为 Minecraft 1.20.1 提供红石信号的远距离无线传输（最大 256 格）。模仿 Drive-By-Wire 模组的电缆逻辑，使用于原版世界方块，不依赖任何前置模组。
+基于 Drive-By-Wire 电缆逻辑的虚拟红石线缆模组，在原版世界中实现方块间单向红石信号无线传输，不依赖任何第三方模组。
 
 # 技术栈
-
-| 技术 | 版本/规格 |
-|:---:|:---|
-| Minecraft | Java Edition 1.20.1 |
-| 模组加载器 | Forge 47.x.x |
-| Java | JDK 17 |
-| 构建工具 | Gradle 8.x + ForgeGradle 6.x |
-| 映射 | Official mappings (1.20.1) |
-
-> 当项目技术栈发生变化时需要自主更新并告知用户
+| 项 | 值 |
+|:---:|:---:|
+| 语言 | Java 17 |
+| 构建 | Gradle 8.x, ForgeGradle 6.x |
+| 平台 | Minecraft Forge 1.20.1 |
+| 映射 | official |
 
 # 架构
-
-Forge 模组标准架构。模组 ID: `virtual-redstone-wire`。主类 `com.virtualredstonewire.VirtualRedstoneWire`。客户端和服务端共用同一 Jar 包。
-
-核心模块：
-- **物品系统**：三个自定义物品（虚拟红石线缆、线缆剪刀、线缆放大镜）
-- **数据层**：正向/反向邻接表管理链路，SHA-512 哈希标识唯一链路
-- **红石引擎**：不可见虚拟红石源方块，信号无损传输，多输入取最大值
-- **渲染系统**：客户端高亮显示链路（输入端蓝框、输出面黄框、连接红线）
-- **网络层**：Forge SimpleImpl 全量/增量同步
-- **持久化**：Forge SavedData + JSON 序列化，每维度独立存储
-
-> 当项目架构发生变化时需要自主更新并告知用户
+服务端权威模型：客户端发送操作请求(CableActionPacket)，服务端验证并应用变更到 CableNetwork，通过 CableSyncPacket 全量广播同步所有客户端。客户端本地有 ClientCableCache 缓存渲染数据。
 
 # 目录结构
 ```
-VirtualRedstoneWire/
-├── docs/
-│   ├── 模组技术文档.md       # 技术综合性文档
-│   └── 开发文档.md            # 详细开发指南
-├── AGENTS.md                  # Agent开发时守则（本文件）
-├── README.md
-├── README_en-US.md
-└── 开发需求.md
+src/main/java/com/virtualredstonewire/
+  VirtualRedstoneWire.java         主类(MOD_ID="virtual_redstone_wire")
+  ServerEventHandler.java          服务端事件(世界加载/保存/tick/方块更新)
+  ClientSetup.java                 客户端初始化
+  block/
+    VirtualRedstoneSourceBlock.java  无形虚拟红石源方块
+  client/
+    ClientCableCache.java           客户端链路缓存
+    gui/CableInfoScreen.java        线缆信息GUI面板
+    render/CableRenderer.java       线缆高亮渲染(框+面+连接线)
+  config/
+    ServerConfig.java               服务端配置(距离限制)
+    ClientConfig.java               客户端配置(聊天/颜色/线宽)
+  data/
+    CableNetwork.java               电缆网络(全局结点索引)
+    CableNode.java                  电缆拓扑结点(toWho/fromWho邻接表)
+    CableLink.java                  电缆链路(纯渲染数据载体)
+    CableNetworkManager.java        按维度管理CableNetwork
+    CableNetworkSavedData.java      NBT持久化
+  item/
+    VirtualCableItem.java           虚拟线缆(创建/删除链路)
+    CableCutterItem.java           线缆剪(删除以目标为起点的链路)
+    CableMagnifierItem.java        线缆放大镜(查看链路信息)
+  network/
+    CableNetworkChannel.java        网络通道注册
+    CableActionPacket.java          客户端→服务端操作请求(连接/剪刀)
+    CableActionPacketHandler.java   服务端数据包处理
+    CableSyncPacket.java           服务端→客户端全量同步
+    CableRequestSyncPacket.java     客户端→服务端同步请求
+    SyncHelper.java                 条目转换工具
+  redstone/
+    RedstoneCalculator.java         红石信号计算(输入触发+后向更新)
+  registry/
+    ModBlocks.java                  方块注册
+    ModItems.java                   物品注册
 ```
-> 项目处于早期阶段，Java 源码目录 `src/` 尚未创建。当目录结构发生变化时需要自主更新并告知用户
-
-<!--# 工作流程-->
-<!-- 指项目产物运行时的工作流程,一般只需要给出主要流程及其分支,如果有需要或用户指定时则可以补充次要流程或分支 -->
 
 # 开发时配置文件
-<!-- 主要指源码目录中影响项目核心功能的配置文件,例如 `package.json` `config.ini` (如果有),此处只需要给出具体文件列表和功能性说明即可,无需给出文件具体内容 -->
-
-暂无（源码尚未创建）。将来预计包含：
-- `build.gradle` — Gradle 构建配置
-- `src/main/resources/META-INF/mods.toml` — 模组元数据
-- `src/main/resources/assets/virtual-red-stone-wire/lang/zh_cn.json` — 中文语言文件
+- `build.gradle` — 项目配置(ForgeGradle/仓库/依赖/产物)
+- `gradle.properties` — Gradle JVM参数优化
+- `mods.toml` — 模组元信息(modId/版本/作者/依赖)
+- `ServerConfig` (运行时 `virtual_redstone_wire-server.toml`) — 最大连接距离/放大镜渲染距离
+- `ClientConfig` (运行时 `virtual_redstone_wire-client.toml`) — 聊天反馈/渲染颜色RGBA/线宽px
 
 # 设计细节
-<!-- 主要指可个性化修改但不影响项目核心功能的设计细节,某个项第一次使用时一般需要取默认值方便开发者知悉和维护,具体包括但不限于(如果有):
-- 项目产物文件名 `<main_name>(.<type>)?` ,默认取 `<项目名称>(.<type>)?`
-- 项目产物运行时:
-  - 占用的文件系统文件夹:
-    - 用户目录 `~/<main_name>/` ,默认取 `~/<项目名称>/`
-    - 工作目录 `<workspace>/<main_name>/` ,默认取 `<workspace>/<项目名称>/`
-> 当项目设计细节具有全局常量/宏/独立代码文件的定义形式时,需要在本段落具体内容末尾添加索引性说明(文件路径,行数,宏/量名称)
-> 特别地,当项目状态中的设计细节具体值与本段落设计细节值发生冲突时,需要向用户报告请求决策,不要自行决定
--->
-
-| 项 | 值 | 说明 |
-|:---|:---|:---|
-| 模组 ID | `virtual-red-stone-wire` | Forge 注册标识 |
-| 输出文件名 | `VirtualRedstoneWire-<version>-JudeBlack@qq.com.jar` | 构建产物 |
-| Java 包名 | `com.virtualredstonewire` | 源码根包 |
-| 最大链路距离 | 256 格 | 可在配置文件中调整 |
-| 放大镜渲染距离 | 512 格 | 可在配置文件中调整 |
-| 输入端高亮色 | `#0096FF`（淡蓝） | 渲染常量 |
-| 输出面高亮色 | `#FFFF64`（淡黄） | 渲染常量 |
-| 连接线颜色 | `#DC5050`（淡红） | 渲染常量 |
+- 产物文件名: `VirtualRedstoneWire-<version>.jar`
+- 链路最大距离默认: 256 blocks, 可配置范围 1~1024
+- 线缆线宽: 2px (配置 `ClientConfig.lineWidthPx` 默认 2)
+- 渲染颜色默认见 `ClientConfig.java` 静态块
+- 作者常量: `VirtualRedstoneWire.java:17-19`
 
 # 版本号索引
-<!--
-- 当前版本：vx.x.x
-> 版本号中x表示十进制数,不限制位数,无前导0
--->
-- 当前版本：**尚未设定**（等待用户指定首个版本号）
+- 当前版本：v1.0.0
 
 # 快捷命令
-<!-- 主要指Agent开发时使用的命令,如安装依赖、热重载、构建产物、清理残留,需要按照项目实际需求选择性补充,注意适配开发环境的命令行类型 -->
 ```
-# 开发环境检查
-java -version
-gradle --version
-git --version
+gradle build         构建产物到 build/libs/
+gradle runClient     启动 Minecraft 客户端测试
+gradle runServer     启动 Minecraft 服务端测试
+gradle clean         清理构建产物
 ```
-当前环境：JDK 17.0.12、Gradle 9.2.1、Git 2.54.0（Windows 11）
 
 <!--# 辅助脚本-->
 <!-- 主要指放在工作目录 `scripts?/` 文件夹内的脚本文件,是由Agent撰写并维护的,需要按需撰写,辅助脚本的存在主要是为了补充Agent技能/工具能力的不足、减轻批量工作时的上下文负担、供给GitHub工作流自动化调用,主要功能包括但不限于:
@@ -168,8 +162,12 @@ git --version
 <!--# GitHub Actions 工作流-->
 <!-- 指工作目录下与 `.git/` 文件夹同时存在的 `.github/workflows/` 目录,用于储存GitHub远程仓库的规范化工作流配置文件,当用户明确指出项目有如下需求(或部分需求)时才允许启用(默认不启用):
 - 自动化构建并发布发行版(Releases): 在代码合并或打标签时,自动构建产物并创建/更新Release,同时上传构建产物
+- 自动化触发部署(Deployments): 在特定条件(如推送到 `main` 分支)下,自动触发部署任务至指定环境(测试,预发布,生产),并回传部署状态
+- 自动化打包与托管软件包(Packages): 构建成功后,自动将项目打包为符合规范的格式(如npm,Docker镜像等),并推送至 GitHub Packages 进行版本管理
+- 自动化执行辅助脚本: 在构建或部署前后,自动执行脚本以动态调整目录结构,复制和移动文件,确保后续步骤运行环境正确
 - 自动化运行测试(单元/集成测试): 在代码推送或合并请求时,自动执行单元测试,集成测试,并生成测试报告,若测试失败则阻断后续构建和发布流程
 - 自动化代码质量检查(Lint与安全扫描): 在构建前自动运行代码风格检查,静态分析以及依赖安全漏洞扫描,确保代码符合规范且无已知高危漏洞
+- 自动化生成变更日志与更新文档: 在Release发布时,自动根据 Conventional Commits 规范生成 CHANGELOG.md,并自动构建和部署项目文档(如 GitHub Pages)至指定分支
 - 自动化清理过期资源: 定期或每次发布后,自动删除不再使用的旧Release预发布版本,过期的包(Packages)版本或临时构建缓存,以节省存储空间
 > 除通用辅助脚本外,由GitHubActions工作流调用的脚本应该放在 `.github/scripts?/` 下,避免与项目的(辅助)脚本文件夹混淆
 -->

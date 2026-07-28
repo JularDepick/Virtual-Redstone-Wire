@@ -44,25 +44,26 @@ Crafting: Redstone + Glass Pane + Stick
 
 Usage: No consumption, reusable
 - When held: all links are visualized with colored highlights (blue outline=input, yellow outline=output, red line=link path)
-- When right-clicked on a block: opens an info screen showing all associated links
+- When right-clicked on a block: opens an independent info panel showing all associated links (click outside or X button to close)
 
 ## Redstone Behavior
 
 - Virtual cables transmit redstone signal strength (0-15)
-- The input block is queried for its current redstone power level
-- Signal propagates along the link and is emitted by the Virtual Redstone Source at the output
+- The input block's redstone power is queried using the standard redstone API
+- Signal propagates along the link and is emitted by the Virtual Redstone Source at the output (source placed on the outer side of the target face, emitting inward)
 - Input changes are reflected at the output in real-time
 - Supports one-to-many broadcast and many-to-one merging (max signal)
+- Chat feedback is disabled by default; can be enabled in the config file
 
 # Tech Stack
 
 | Component | Version / Notes |
 |-----------|---------|
 | Minecraft | 1.20.1 |
-| Forge | 47.3.0 |
+| Forge | 47.4.22 |
 | JDK | 17 |
 | Gradle | 8.14.3 |
-| Mod ID | virtual-redstone-wire |
+| Mod ID | virtual_redstone_wire |
 
 # Source Directory Structure
 
@@ -105,19 +106,39 @@ src/main/resources/
 ├── META-INF/mods.toml
 ├── pack.mcmeta
 ├── virtual_redstone_wire.png            # Mod Logo
-├── assets/virtual-redstone-wire/
+├── assets/virtual_redstone_wire/
 │   ├── lang/{en_us,zh_cn}.json
 │   ├── models/item/*.json
 │   ├── models/block/virtual_source.json
 │   ├── blockstates/virtual_source.json
 │   └── textures/item/{virtual_cable,cable_cutter,cable_magnifier}.png
-└── data/virtual-redstone-wire/recipes/
+└── data/virtual_redstone_wire/recipes/
     ├── virtual_cable.json
     ├── cable_cutter.json
     └── cable_magnifier.json
 ```
 
-# Build
+# Build & Run
+
+Make sure the environment meets these requirements:
+
+| Component | Requirement |
+|:---:|:---|
+| JDK | 17 (Eclipse Temurin / Adoptium recommended) |
+| Gradle | 8.14.3 |
+| Minecraft | 1.20.1 (Forge 47.4.22) |
+
+Verify the environment:
+
+```bash
+java -version
+# Should show openjdk version "17.x.x"
+
+gradle --version
+# Should show Gradle 8.14.3
+```
+
+Build:
 
 ```bash
 gradle build
