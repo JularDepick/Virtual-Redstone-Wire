@@ -1,0 +1,28 @@
+# Build outputs
+build/
+*.log
+out/
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+.vscode/
+*.class
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Gradle cache
+.gradle/
+gradle/
+
+# Forge runtime (Minecraft instance, worlds, logs)
+run/

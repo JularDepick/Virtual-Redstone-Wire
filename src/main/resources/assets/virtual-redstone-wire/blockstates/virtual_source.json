@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "virtual-redstone-wire:block/virtual_source"
+    }
+  }
+}

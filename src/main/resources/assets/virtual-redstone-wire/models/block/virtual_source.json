@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "virtual-redstone-wire:block/virtual_source"
+  },
+  "elements": []
+}

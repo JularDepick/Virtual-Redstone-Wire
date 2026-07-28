@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:shaped",
+  "pattern": [
+    " I ",
+    " S ",
+    " S "
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "S": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "item": "virtual-redstone-wire:cable_cutter"
+  }
+}
