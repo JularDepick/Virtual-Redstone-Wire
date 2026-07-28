@@ -18,11 +18,12 @@ public class CableInfoScreen extends Screen
 
     private int panelLeft;
     private int panelTop;
-    private static final int PANEL_WIDTH = 240;
+    private static final int PANEL_WIDTH = 144;
     private static final int HEADER_HEIGHT = 16;
     private static final int LINE_HEIGHT = 11;
 
     private int closeX, closeY, closeW = 12, closeH = 12;
+    private double scrollOffset;
 
     public CableInfoScreen(BlockPos pos)
     {
@@ -52,16 +53,9 @@ public class CableInfoScreen extends Screen
     @Override
     protected void init()
     {
-        int contentLines = 1
-            + 1 + outgoing.size()
-            + 1 + incoming.size();
-        int panelHeight = HEADER_HEIGHT + 8 + contentLines * LINE_HEIGHT + 12;
-        panelHeight = Math.max(panelHeight, 100);
-        panelHeight = Math.min(panelHeight, height - 40);
-
+        int panelHeight = Math.min(height - 40, Math.max(100, height / 2));
         panelLeft = (width - PANEL_WIDTH) / 2;
         panelTop = (height - panelHeight) / 2;
-
         closeX = panelLeft + PANEL_WIDTH - 18;
         closeY = panelTop + 3;
     }
@@ -70,6 +64,8 @@ public class CableInfoScreen extends Screen
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta)
     {
         int panelBottom = panelTop + panelHeight();
+        int contentTop = panelTop + HEADER_HEIGHT + 6;
+        int contentBottom = panelBottom - 6;
 
         graphics.fill(panelLeft, panelTop, panelLeft + PANEL_WIDTH, panelBottom, 0xE0101010);
 
@@ -86,8 +82,10 @@ public class CableInfoScreen extends Screen
         graphics.fill(panelLeft, panelTop + HEADER_HEIGHT, panelLeft + PANEL_WIDTH,
             panelTop + HEADER_HEIGHT + 1, 0xFF444444);
 
-        int y = panelTop + HEADER_HEIGHT + 6;
-        int contentLeft = panelLeft + 8;
+        graphics.enableScissor(panelLeft, contentTop, panelLeft + PANEL_WIDTH, contentBottom);
+
+        int contentLeft = panelLeft + 5;
+        int y = contentTop - (int) scrollOffset;
 
         graphics.drawString(font,
             Component.translatable("screen.virtual_redstone_wire.cable_info.position",
@@ -102,8 +100,7 @@ public class CableInfoScreen extends Screen
         y += LINE_HEIGHT;
         for (String line : outgoing)
         {
-            if (y > panelBottom - 16) break;
-            graphics.drawString(font, Component.literal("  " + line), contentLeft, y, 0xAAAAAA);
+            graphics.drawString(font, Component.literal(" " + line), contentLeft, y, 0xAAAAAA);
             y += LINE_HEIGHT;
         }
         y += 4;
@@ -115,15 +112,26 @@ public class CableInfoScreen extends Screen
         y += LINE_HEIGHT;
         for (String line : incoming)
         {
-            if (y > panelBottom - 16) break;
-            graphics.drawString(font, Component.literal("  " + line), contentLeft, y, 0xAAAAAA);
+            graphics.drawString(font, Component.literal(" " + line), contentLeft, y, 0xAAAAAA);
             y += LINE_HEIGHT;
         }
+
+        int totalContentH = y - contentTop;
+        scrollOffset = Math.max(0, Math.min(scrollOffset, Math.max(0, totalContentH - (contentBottom - contentTop))));
+
+        graphics.disableScissor();
 
         graphics.fill(panelLeft, panelTop, panelLeft + PANEL_WIDTH, panelTop + 1, 0xFF666666);
         graphics.fill(panelLeft, panelBottom - 1, panelLeft + PANEL_WIDTH, panelBottom, 0xFF666666);
         graphics.fill(panelLeft, panelTop, panelLeft + 1, panelBottom, 0xFF666666);
         graphics.fill(panelLeft + PANEL_WIDTH - 1, panelTop, panelLeft + PANEL_WIDTH, panelBottom, 0xFF666666);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollY)
+    {
+        scrollOffset -= scrollY * LINE_HEIGHT * 2;
+        return true;
     }
 
     @Override
@@ -146,11 +154,7 @@ public class CableInfoScreen extends Screen
 
     private int panelHeight()
     {
-        int contentLines = 1 + 1 + outgoing.size() + 1 + incoming.size();
-        int h = HEADER_HEIGHT + 8 + contentLines * LINE_HEIGHT + 12;
-        h = Math.max(h, 100);
-        h = Math.min(h, height - 40);
-        return h;
+        return Math.min(height - 40, Math.max(100, height / 2));
     }
 
     @Override

@@ -27,7 +27,7 @@ public class CableMagnifierItem extends Item
         Player player = context.getPlayer();
         if (player == null) return InteractionResult.PASS;
 
-        if (level.isClientSide)
+        if (level.isClientSide && player.isShiftKeyDown())
         {
             BlockPos pos = context.getClickedPos();
             net.minecraft.client.Minecraft.getInstance().setScreen(

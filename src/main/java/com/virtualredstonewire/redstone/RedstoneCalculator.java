@@ -72,8 +72,7 @@ public class RedstoneCalculator
         int max = 0;
         for (Direction dir : Direction.values())
         {
-            BlockPos neighbor = pos.relative(dir);
-            int signal = level.getSignal(neighbor, dir.getOpposite());
+            int signal = level.getSignal(pos, dir);
             if (signal > max) max = signal;
         }
         return max;

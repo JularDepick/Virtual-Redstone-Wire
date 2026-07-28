@@ -121,32 +121,28 @@ public class CableRenderer
 
         for (CableLink link : ClientCableCache.getLinks())
         {
-            Vec3 fromCenter = new Vec3(
-                link.getFromCenterX(), link.getFromCenterY(), link.getFromCenterZ());
+            Vec3 fromCenter = getShapeCenter(link.getFrom(), level);
             if (fromCenter.distanceToSqr(cameraPos) > renderDistSq) continue;
 
             boolean isFromSelected = selectedInput != null
                 && selectedInput.equals(link.getFrom());
+
+            Vec3 cableEnd = new Vec3(
+                link.getFaceCenterX(), link.getFaceCenterY(), link.getFaceCenterZ());
 
             if (holdingMagnifier)
             {
                 renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), getColorInput(), level);
                 renderFaceOutline(poseStack, bufferSource,
                     link.getTo(), link.getToFace(), getColorOutput());
-                renderCableBeam(poseStack, bufferSource,
-                    new Vec3(link.getFromCenterX(), link.getFromCenterY(), link.getFromCenterZ()),
-                    new Vec3(link.getFaceCenterX(), link.getFaceCenterY(), link.getFaceCenterZ()),
-                    getColorLine());
+                renderCableBeam(poseStack, bufferSource, fromCenter, cableEnd, getColorLine());
             }
             else if (holdingCable && isFromSelected)
             {
                 renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), getColorInput(), level);
                 renderFaceOutline(poseStack, bufferSource,
                     link.getTo(), link.getToFace(), getColorOutput());
-                renderCableBeam(poseStack, bufferSource,
-                    new Vec3(link.getFromCenterX(), link.getFromCenterY(), link.getFromCenterZ()),
-                    new Vec3(link.getFaceCenterX(), link.getFaceCenterY(), link.getFaceCenterZ()),
-                    getColorLine());
+                renderCableBeam(poseStack, bufferSource, fromCenter, cableEnd, getColorLine());
             }
             else if (holdingCable || holdingCutter)
             {
@@ -320,6 +316,20 @@ public class CableRenderer
         renderBeam(poseStack, bufferSource, from, to, color);
     }
 
+    private static Vec3 getShapeCenter(BlockPos pos, net.minecraft.world.level.Level level)
+    {
+        VoxelShape shape = level.getBlockState(pos).getShape(level, pos);
+        if (shape.isEmpty())
+        {
+            return new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+        }
+        AABB bounds = shape.bounds();
+        return new Vec3(
+            pos.getX() + (bounds.minX + bounds.maxX) * 0.5,
+            pos.getY() + (bounds.minY + bounds.maxY) * 0.5,
+            pos.getZ() + (bounds.minZ + bounds.maxZ) * 0.5);
+    }
+
     private static void renderBeam(PoseStack poseStack,
                                     MultiBufferSource bufferSource,
                                     Vec3 from, Vec3 to, float[] color)
@@ -327,51 +337,58 @@ public class CableRenderer
         VertexConsumer consumer = bufferSource.getBuffer(RenderType.debugQuads());
         Matrix4f matrix = poseStack.last().pose();
 
-        Vec3 dir = to.subtract(from).normalize();
+        Vec3 dir = to.subtract(from);
+        double length = dir.length();
+        if (length < 0.0001) return;
+        dir = dir.scale(1.0 / length);
+
         Vec3 perp1 = new Vec3(-dir.z, 0, dir.x);
         if (perp1.lengthSqr() < 0.01) { perp1 = new Vec3(1, 0, 0); }
         perp1 = perp1.normalize();
         Vec3 perp2 = dir.cross(perp1).normalize();
 
         float t = BEAM_THICKNESS;
+        Vec3 ext = dir.scale(t);
+        Vec3 fromExt = from.subtract(ext);
+        Vec3 toExt = to.add(ext);
         float r = color[0], g = color[1], bl = color[2], alpha = color[3];
 
-        float ax = (float) from.x, ay = (float) from.y, az = (float) from.z;
-        float bx = (float) to.x, by = (float) to.y, bz = (float) to.z;
+        float fx = (float) fromExt.x, fy = (float) fromExt.y, fz = (float) fromExt.z;
+        float tx = (float) toExt.x, ty = (float) toExt.y, tz = (float) toExt.z;
         float p1x = (float) perp1.x, p1y = (float) perp1.y, p1z = (float) perp1.z;
         float p2x = (float) perp2.x, p2y = (float) perp2.y, p2z = (float) perp2.z;
 
-        float a1x = ax + p1x * t + p2x * t;
-        float a1y = ay + p1y * t + p2y * t;
-        float a1z = az + p1z * t + p2z * t;
+        float a1x = fx + p1x * t + p2x * t;
+        float a1y = fy + p1y * t + p2y * t;
+        float a1z = fz + p1z * t + p2z * t;
 
-        float a2x = ax - p1x * t + p2x * t;
-        float a2y = ay - p1y * t + p2y * t;
-        float a2z = az - p1z * t + p2z * t;
+        float a2x = fx - p1x * t + p2x * t;
+        float a2y = fy - p1y * t + p2y * t;
+        float a2z = fz - p1z * t + p2z * t;
 
-        float a3x = ax - p1x * t - p2x * t;
-        float a3y = ay - p1y * t - p2y * t;
-        float a3z = az - p1z * t - p2z * t;
+        float a3x = fx - p1x * t - p2x * t;
+        float a3y = fy - p1y * t - p2y * t;
+        float a3z = fz - p1z * t - p2z * t;
 
-        float a4x = ax + p1x * t - p2x * t;
-        float a4y = ay + p1y * t - p2y * t;
-        float a4z = az + p1z * t - p2z * t;
+        float a4x = fx + p1x * t - p2x * t;
+        float a4y = fy + p1y * t - p2y * t;
+        float a4z = fz + p1z * t - p2z * t;
 
-        float b1x = bx + p1x * t + p2x * t;
-        float b1y = by + p1y * t + p2y * t;
-        float b1z = bz + p1z * t + p2z * t;
+        float b1x = tx + p1x * t + p2x * t;
+        float b1y = ty + p1y * t + p2y * t;
+        float b1z = tz + p1z * t + p2z * t;
 
-        float b2x = bx - p1x * t + p2x * t;
-        float b2y = by - p1y * t + p2y * t;
-        float b2z = bz - p1z * t + p2z * t;
+        float b2x = tx - p1x * t + p2x * t;
+        float b2y = ty - p1y * t + p2y * t;
+        float b2z = tz - p1z * t + p2z * t;
 
-        float b3x = bx - p1x * t - p2x * t;
-        float b3y = by - p1y * t - p2y * t;
-        float b3z = bz - p1z * t - p2z * t;
+        float b3x = tx - p1x * t - p2x * t;
+        float b3y = ty - p1y * t - p2y * t;
+        float b3z = tz - p1z * t - p2z * t;
 
-        float b4x = bx + p1x * t - p2x * t;
-        float b4y = by + p1y * t - p2y * t;
-        float b4z = bz + p1z * t - p2z * t;
+        float b4x = tx + p1x * t - p2x * t;
+        float b4y = ty + p1y * t - p2y * t;
+        float b4z = tz + p1z * t - p2z * t;
 
         consumer.vertex(matrix, a1x, a1y, a1z).color(r, g, bl, alpha).endVertex();
         consumer.vertex(matrix, a2x, a2y, a2z).color(r, g, bl, alpha).endVertex();
@@ -391,6 +408,16 @@ public class CableRenderer
         consumer.vertex(matrix, a4x, a4y, a4z).color(r, g, bl, alpha).endVertex();
         consumer.vertex(matrix, a1x, a1y, a1z).color(r, g, bl, alpha).endVertex();
         consumer.vertex(matrix, b1x, b1y, b1z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, b4x, b4y, b4z).color(r, g, bl, alpha).endVertex();
+
+        consumer.vertex(matrix, a1x, a1y, a1z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, a4x, a4y, a4z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, a3x, a3y, a3z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, a2x, a2y, a2z).color(r, g, bl, alpha).endVertex();
+
+        consumer.vertex(matrix, b1x, b1y, b1z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, b2x, b2y, b2z).color(r, g, bl, alpha).endVertex();
+        consumer.vertex(matrix, b3x, b3y, b3z).color(r, g, bl, alpha).endVertex();
         consumer.vertex(matrix, b4x, b4y, b4z).color(r, g, bl, alpha).endVertex();
     }
 
