@@ -9,8 +9,6 @@
   "item.virtual_redstone_wire.cable_magnifier.desc": "Right-click a block to inspect cable links. Highlighted when held",
   "item.virtual_redstone_wire.cable_magnifier.tip": "Blue outline=input, yellow outline=output, red line=link path",
 
-  "block.virtual_redstone_wire.virtual_source": "Virtual Redstone Source",
-
   "screen.virtual_redstone_wire.cable_info": "Cable Connection Info",
   "screen.virtual_redstone_wire.cable_info.position": "Position: [%d, %d, %d]",
   "screen.virtual_redstone_wire.cable_info.outgoing": "Outgoing (%d):",

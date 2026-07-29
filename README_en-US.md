@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire
 
-[![Version](https://img.shields.io/badge/Version-0.1.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.1.0)
+[![Version](https://img.shields.io/badge/Version-0.2.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.2.0)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
@@ -26,9 +26,8 @@ Crafting: Redstone + Iron Ingot
 Usage: No consumption, reusable
 1. Hold the Virtual Cable and right-click a block to set it as input (chat confirms selection)
 2. Right-click another block to set it as output -- the link is created
-3. An invisible Virtual Redstone Source block appears at the output face, emitting redstone signal
-4. To cancel selection, right-click the same block again
-5. One input can connect to multiple outputs (broadcast); multiple inputs can connect to the same output (max signal strength wins)
+3. To cancel selection, right-click the same block again
+4. One input can connect to multiple outputs (broadcast); multiple inputs can connect to the same output (max signal strength wins)
 
 ## Cable Cutter
 
@@ -50,7 +49,7 @@ Usage: No consumption, reusable
 
 - Virtual cables transmit redstone signal strength (0-15)
 - The input block's redstone power is queried using the standard redstone API
-- Signal propagates along the link and is emitted by the Virtual Redstone Source at the output (source placed on the outer side of the target face, emitting inward)
+- Signal propagates along the link to the output, queried through the in-memory network graph (zero space occupation)
 - Input changes are reflected at the output in real-time
 - Supports one-to-many broadcast and many-to-one merging (max signal)
 - Chat feedback is disabled by default; can be enabled in the config file
@@ -79,8 +78,8 @@ src/main/java/com/virtualredstonewire/
 │   ├── VirtualCableItem.java       # Virtual Cable item
 │   ├── CableCutterItem.java        # Cable Cutter item
 │   └── CableMagnifierItem.java     # Cable Magnifier item
-├── block/
-│   └── VirtualRedstoneSourceBlock.java  # Virtual Redstone Source block
+├── blockentity/
+│   └── CableSignalBlockEntity.java # Signal broadcast BlockEntity
 ├── data/
 │   ├── CableLink.java              # Link data model
 │   ├── CableNetwork.java           # Network graph (adjacency lists)
@@ -109,8 +108,6 @@ src/main/resources/
 ├── assets/virtual_redstone_wire/
 │   ├── lang/{en_us,zh_cn}.json
 │   ├── models/item/*.json
-│   ├── models/block/virtual_source.json
-│   ├── blockstates/virtual_source.json
 │   └── textures/item/{virtual_cable,cable_cutter,cable_magnifier}.png
 └── data/virtual_redstone_wire/recipes/
     ├── virtual_cable.json
@@ -142,7 +139,7 @@ Build:
 
 ```bash
 gradle build
-# Output: build/libs/VirtualRedstoneWire-0.1.0.jar
+# Output: build/libs/VirtualRedstoneWire-0.2.0.jar
 ```
 
 # License

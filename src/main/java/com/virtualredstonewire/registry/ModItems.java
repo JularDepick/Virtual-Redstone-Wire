@@ -4,9 +4,6 @@ import com.virtualredstonewire.VirtualRedstoneWire;
 import com.virtualredstonewire.item.CableCutterItem;
 import com.virtualredstonewire.item.CableMagnifierItem;
 import com.virtualredstonewire.item.VirtualCableItem;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -29,17 +26,13 @@ public class ModItems
     public static final RegistryObject<Item> CABLE_MAGNIFIER = ITEMS.register("cable_magnifier",
         () -> new CableMagnifierItem(new Item.Properties().stacksTo(1)));
 
-    public static final RegistryObject<Item> VIRTUAL_SOURCE_ITEM = ITEMS.register("virtual_source",
-        () -> new BlockItem(ModBlocks.VIRTUAL_SOURCE.get(),
-            new Item.Properties().stacksTo(0)));
-
     @Mod.EventBusSubscriber(modid = VirtualRedstoneWire.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
     public static class TabRegistration
     {
         @SubscribeEvent
         public static void buildContents(BuildCreativeModeTabContentsEvent event)
         {
-            if (event.getTabKey() == CreativeModeTabs.REDSTONE_BLOCKS)
+            if (event.getTabKey() == net.minecraft.world.item.CreativeModeTabs.REDSTONE_BLOCKS)
             {
                 event.accept(VIRTUAL_CABLE);
                 event.accept(CABLE_CUTTER);

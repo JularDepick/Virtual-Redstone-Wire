@@ -3,6 +3,7 @@ package com.virtualredstonewire;
 import com.mojang.logging.LogUtils;
 import com.virtualredstonewire.config.ClientConfig;
 import com.virtualredstonewire.config.ServerConfig;
+import com.virtualredstonewire.blockentity.ModBlockEntities;
 import com.virtualredstonewire.network.CableNetworkChannel;
 import com.virtualredstonewire.registry.ModBlocks;
 import com.virtualredstonewire.registry.ModItems;
@@ -31,6 +32,7 @@ public class VirtualRedstoneWire
 
         ModItems.ITEMS.register(modEventBus);
         ModBlocks.BLOCKS.register(modEventBus);
+        ModBlockEntities.BLOCK_ENTITIES.register(modEventBus);
 
         ModLoadingContext.get().registerConfig(Type.SERVER, ServerConfig.SPEC,
             MOD_ID + "-server.toml");

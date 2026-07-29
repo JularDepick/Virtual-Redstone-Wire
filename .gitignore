@@ -25,9 +25,12 @@ Thumbs.db
 # Gradle cache
 .gradle/
 gradle/
+!gradle/wrapper/
 
 # Forge runtime (Minecraft instance, worlds, logs)
 run/
 
 # Agent Tool
 AGENTS*.md
+v*版本审计.md
+v*更新计划.md

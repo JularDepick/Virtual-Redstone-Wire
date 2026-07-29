@@ -16,7 +16,7 @@ public class MixinLevel
 {
     private static final ThreadLocal<Boolean> COMPUTING = ThreadLocal.withInitial(() -> false);
 
-    @Inject(method = "getSignal", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getSignal", at = @At("HEAD"), cancellable = true, remap = false)
     public void onGetSignal(BlockPos pos, Direction direction, CallbackInfoReturnable<Integer> cir)
     {
         if (COMPUTING.get()) return;
@@ -40,7 +40,7 @@ public class MixinLevel
         }
     }
 
-    @Inject(method = "getDirectSignal", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getDirectSignal", at = @At("HEAD"), cancellable = true, remap = false)
     public void onGetDirectSignal(BlockPos pos, Direction direction, CallbackInfoReturnable<Integer> cir)
     {
         if (COMPUTING.get()) return;

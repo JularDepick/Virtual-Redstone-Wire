@@ -1,5 +1,6 @@
 package com.virtualredstonewire.network;
 
+import com.virtualredstonewire.VirtualRedstoneWire;
 import com.virtualredstonewire.config.ServerConfig;
 import com.virtualredstonewire.data.CableNetwork;
 import com.virtualredstonewire.data.CableNetworkManager;
@@ -34,14 +35,15 @@ public class CableActionPacketHandler
                     savedOutgoing.addAll(node.getOutgoing());
                 }
 
-                int removed = network.removeLinksFrom(pos);
+                int removed = network.removeLinksFrom(pos, level);
 
                 if (removed > 0)
                 {
                     for (Map.Entry<BlockPos, Direction> edge : savedOutgoing)
                     {
-                        level.updateNeighborsAt(edge.getKey().relative(edge.getValue()),
-                            level.getBlockState(edge.getKey()).getBlock());
+                        BlockPos outputPos = edge.getKey();
+                        level.neighborChanged(outputPos, level.getBlockState(outputPos).getBlock(), outputPos);
+                        level.neighborChanged(outputPos.relative(edge.getValue()), level.getBlockState(outputPos.relative(edge.getValue())).getBlock(), outputPos);
                     }
                     CableNetworkManager.markDirty(level);
                     broadcastSync(level, network);
@@ -51,19 +53,36 @@ public class CableActionPacketHandler
             {
                 BlockPos from = packet.getFrom();
                 BlockPos to = packet.getTo();
-                if (from.equals(to)) return;
 
-                double distance = Math.sqrt(from.distSqr(to));
-                if (distance > ServerConfig.maxLinkDistance.get()) return;
+                if (from.equals(to))
+                {
+                    VirtualRedstoneWire.LOGGER.debug("Player {} attempted to link same position {}",
+                        player.getName().getString(), from);
+                    return;
+                }
+
+                double maxDist = ServerConfig.maxLinkDistance.get();
+                if (from.distSqr(to) > maxDist * maxDist)
+                {
+                    VirtualRedstoneWire.LOGGER.debug("Player {} attempted link from {} to {} exceeding max distance {}",
+                        player.getName().getString(), from, to, maxDist);
+                    return;
+                }
+
+                double playerDistFrom = player.blockPosition().distSqr(from);
+                if (playerDistFrom > maxDist * maxDist)
+                {
+                    VirtualRedstoneWire.LOGGER.debug("Player {} too far from link origin {} (dist squared: {})",
+                        player.getName().getString(), from, playerDistFrom);
+                    return;
+                }
 
                 if (level.isEmptyBlock(from)) return;
 
-                network.toggleLink(from, to, packet.getToFace());
+                network.toggleLink(from, to, packet.getToFace(), level);
                 CableNetworkManager.markDirty(level);
 
-                level.updateNeighborsAt(to.relative(packet.getToFace()),
-                    level.getBlockState(to).getBlock());
-                RedstoneCalculator.markDirtyInput(from);
+                RedstoneCalculator.markDirtyInput(level, from);
 
                 broadcastSync(level, network);
             }

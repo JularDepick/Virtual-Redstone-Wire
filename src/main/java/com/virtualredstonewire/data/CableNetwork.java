@@ -3,8 +3,11 @@ package com.virtualredstonewire.data;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.virtualredstonewire.VirtualRedstoneWire;
+import com.virtualredstonewire.blockentity.CableSignalBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
 
 import java.util.*;
 
@@ -27,7 +30,7 @@ public class CableNetwork
         nodes.remove(pos.immutable());
     }
 
-    public boolean toggleLink(BlockPos from, BlockPos to, Direction toFace)
+    public boolean toggleLink(BlockPos from, BlockPos to, Direction toFace, Level level)
     {
         CableNode inputNode = getOrCreateNode(from);
         CableNode outputNode = getOrCreateNode(to);
@@ -40,6 +43,10 @@ public class CableNetwork
             if (outputNode.getIncomingCount() == 0 && inputNode.getIncomingCount() == 0)
             {
                 removeNode(to);
+                if (level != null && !level.isClientSide())
+                {
+                    removeSignalBlockEntity(level, to);
+                }
             }
             if (inputNode.getOutgoingCount() == 0
                 && inputNode.getIncomingCount() == 0)
@@ -54,11 +61,21 @@ public class CableNetwork
             inputNode.addOutgoing(to, toFace);
             outputNode.addIncoming(from, toFace);
 
+            if (level != null && !level.isClientSide())
+            {
+                createSignalBlockEntity(level, to);
+            }
+
             return true;
         }
     }
 
-    public int removeLinksFrom(BlockPos from)
+    public boolean toggleLink(BlockPos from, BlockPos to, Direction toFace)
+    {
+        return toggleLink(from, to, toFace, null);
+    }
+
+    public int removeLinksFrom(BlockPos from, Level level)
     {
         CableNode node = getNode(from);
         if (node == null) return 0;
@@ -76,6 +93,10 @@ public class CableNetwork
                 if (targetNode.getIncomingCount() == 0)
                 {
                     removeNode(toPos);
+                    if (level != null && !level.isClientSide())
+                    {
+                        removeSignalBlockEntity(level, toPos);
+                    }
                 }
             }
             count++;
@@ -88,6 +109,27 @@ public class CableNetwork
         }
 
         return count;
+    }
+
+    public int removeLinksFrom(BlockPos from)
+    {
+        return removeLinksFrom(from, null);
+    }
+
+    private void createSignalBlockEntity(Level level, BlockPos pos)
+    {
+        if (level.getBlockEntity(pos) == null)
+        {
+            level.setBlockEntity(new CableSignalBlockEntity(pos, level.getBlockState(pos)));
+        }
+    }
+
+    private void removeSignalBlockEntity(Level level, BlockPos pos)
+    {
+        if (level.getBlockEntity(pos) instanceof CableSignalBlockEntity)
+        {
+            level.removeBlockEntity(pos);
+        }
     }
 
     public Set<BlockPos> getInputsForOutput(BlockPos to, Direction toFace)
@@ -135,6 +177,19 @@ public class CableNetwork
         for (CableNode node : nodes.values())
         {
             if (node.getOutgoingCount() > 0)
+            {
+                result.add(node.getPosition());
+            }
+        }
+        return result;
+    }
+
+    public Set<BlockPos> getAllOutputPositions()
+    {
+        Set<BlockPos> result = new HashSet<>();
+        for (CableNode node : nodes.values())
+        {
+            if (node.getIncomingCount() > 0)
             {
                 result.add(node.getPosition());
             }
@@ -217,36 +272,68 @@ public class CableNetwork
         CableNetwork network = new CableNetwork();
         int version = json.has("version") ? json.get("version").getAsInt() : 1;
 
+        if (version < 1)
+        {
+            VirtualRedstoneWire.LOGGER.warn("Unknown network data version {}, returning empty network", version);
+            return network;
+        }
+
         if (version >= 2 && json.has("nodes"))
         {
             JsonArray nodesArray = json.getAsJsonArray("nodes");
+            int skippedCount = 0;
             for (JsonElement elem : nodesArray)
             {
+                if (!elem.isJsonObject())
+                {
+                    skippedCount++;
+                    continue;
+                }
                 JsonObject obj = elem.getAsJsonObject();
                 CableNode node = CableNode.deserializeFromJson(obj);
-                network.nodes.put(node.getPosition(), node);
+                if (node != null)
+                {
+                    network.nodes.put(node.getPosition(), node);
+                }
+                else
+                {
+                    skippedCount++;
+                }
+            }
+            if (skippedCount > 0)
+            {
+                VirtualRedstoneWire.LOGGER.warn("Skipped {} invalid nodes during deserialization", skippedCount);
             }
             return network;
         }
 
-        if (json.has("links"))
+        if (version == 1 && json.has("links"))
         {
+            VirtualRedstoneWire.LOGGER.info("Loading v1 format network data");
             JsonArray linksArray = json.getAsJsonArray("links");
             for (JsonElement elem : linksArray)
             {
+                if (!elem.isJsonObject()) continue;
                 JsonObject obj = elem.getAsJsonObject();
-                BlockPos from = new BlockPos(
-                    obj.get("fromX").getAsInt(),
-                    obj.get("fromY").getAsInt(),
-                    obj.get("fromZ").getAsInt());
-                BlockPos to = new BlockPos(
-                    obj.get("toX").getAsInt(),
-                    obj.get("toY").getAsInt(),
-                    obj.get("toZ").getAsInt());
-                Direction face = Direction.byName(obj.get("face").getAsString());
-                if (face != null)
+                try
                 {
-                    network.toggleLink(from, to, face);
+                    BlockPos from = new BlockPos(
+                        obj.get("fromX").getAsInt(),
+                        obj.get("fromY").getAsInt(),
+                        obj.get("fromZ").getAsInt());
+                    BlockPos to = new BlockPos(
+                        obj.get("toX").getAsInt(),
+                        obj.get("toY").getAsInt(),
+                        obj.get("toZ").getAsInt());
+                    Direction face = obj.has("face") ? Direction.byName(obj.get("face").getAsString()) : null;
+                    if (face != null)
+                    {
+                        network.toggleLink(from, to, face);
+                    }
+                }
+                catch (Exception e)
+                {
+                    VirtualRedstoneWire.LOGGER.warn("Failed to parse v1 link entry: {}", e.getMessage());
                 }
             }
         }

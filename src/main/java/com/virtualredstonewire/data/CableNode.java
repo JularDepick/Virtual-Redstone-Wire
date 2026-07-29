@@ -247,72 +247,109 @@ public class CableNode
 
     public static CableNode deserializeFromJson(JsonObject obj)
     {
-        int x = obj.get("x").getAsInt();
-        int y = obj.get("y").getAsInt();
-        int z = obj.get("z").getAsInt();
-        CableNode node = new CableNode(new BlockPos(x, y, z));
-
-        if (obj.has("toWho"))
+        if (!obj.has("x") || !obj.has("y") || !obj.has("z"))
         {
-            JsonArray toArr = obj.getAsJsonArray("toWho");
-            for (int i = 0; i < toArr.size(); i++)
-            {
-                JsonObject edge = toArr.get(i).getAsJsonObject();
-                int tx = edge.get("tx").getAsInt();
-                int ty = edge.get("ty").getAsInt();
-                int tz = edge.get("tz").getAsInt();
+            com.virtualredstonewire.VirtualRedstoneWire.LOGGER.warn(
+                "Skipping node: missing required coordinates (x/y/z)");
+            return null;
+        }
+        try
+        {
+            int x = obj.get("x").getAsInt();
+            int y = obj.get("y").getAsInt();
+            int z = obj.get("z").getAsInt();
+            CableNode node = new CableNode(new BlockPos(x, y, z));
 
-                JsonArray faces = getFacesArray(edge);
-                Set<Direction> dirs = new HashSet<>();
-                for (int j = 0; j < faces.size(); j++)
+            if (obj.has("toWho"))
+            {
+                JsonArray toArr = obj.getAsJsonArray("toWho");
+                for (int i = 0; i < toArr.size(); i++)
                 {
-                    Direction d = Direction.byName(faces.get(j).getAsString());
-                    if (d != null) dirs.add(d);
-                }
-                if (!dirs.isEmpty())
-                {
-                    node.toWho.put(new BlockPos(tx, ty, tz), dirs);
+                    JsonObject edge = toArr.get(i).getAsJsonObject();
+                    if (!edge.has("tx") || !edge.has("ty") || !edge.has("tz"))
+                    {
+                        com.virtualredstonewire.VirtualRedstoneWire.LOGGER.warn(
+                            "Skipping toWho edge at index {} for node [{},{},{}]: missing target coordinates",
+                            i, x, y, z);
+                        continue;
+                    }
+                    int tx = edge.get("tx").getAsInt();
+                    int ty = edge.get("ty").getAsInt();
+                    int tz = edge.get("tz").getAsInt();
+
+                    JsonArray faces = getFacesArray(edge);
+                    Set<Direction> dirs = new HashSet<>();
+                    for (int j = 0; j < faces.size(); j++)
+                    {
+                        Direction d = Direction.byName(faces.get(j).getAsString());
+                        if (d != null) dirs.add(d);
+                    }
+                    if (!dirs.isEmpty())
+                    {
+                        node.toWho.put(new BlockPos(tx, ty, tz), dirs);
+                    }
                 }
             }
-        }
 
-        if (obj.has("fromWho"))
-        {
-            JsonArray fromArr = obj.getAsJsonArray("fromWho");
-            for (int i = 0; i < fromArr.size(); i++)
+            if (obj.has("fromWho"))
             {
-                JsonObject edge = fromArr.get(i).getAsJsonObject();
-                int fx = edge.get("fx").getAsInt();
-                int fy = edge.get("fy").getAsInt();
-                int fz = edge.get("fz").getAsInt();
+                JsonArray fromArr = obj.getAsJsonArray("fromWho");
+                for (int i = 0; i < fromArr.size(); i++)
+                {
+                    JsonObject edge = fromArr.get(i).getAsJsonObject();
+                    if (!edge.has("fx") || !edge.has("fy") || !edge.has("fz"))
+                    {
+                        com.virtualredstonewire.VirtualRedstoneWire.LOGGER.warn(
+                            "Skipping fromWho edge at index {} for node [{},{},{}]: missing source coordinates",
+                            i, x, y, z);
+                        continue;
+                    }
+                    int fx = edge.get("fx").getAsInt();
+                    int fy = edge.get("fy").getAsInt();
+                    int fz = edge.get("fz").getAsInt();
 
-                JsonArray faces = getFacesArray(edge);
-                Set<Direction> dirs = new HashSet<>();
-                for (int j = 0; j < faces.size(); j++)
-                {
-                    Direction d = Direction.byName(faces.get(j).getAsString());
-                    if (d != null) dirs.add(d);
-                }
-                if (!dirs.isEmpty())
-                {
-                    node.fromWho.put(new BlockPos(fx, fy, fz), dirs);
+                    JsonArray faces = getFacesArray(edge);
+                    Set<Direction> dirs = new HashSet<>();
+                    for (int j = 0; j < faces.size(); j++)
+                    {
+                        Direction d = Direction.byName(faces.get(j).getAsString());
+                        if (d != null) dirs.add(d);
+                    }
+                    if (!dirs.isEmpty())
+                    {
+                        node.fromWho.put(new BlockPos(fx, fy, fz), dirs);
+                    }
                 }
             }
-        }
 
-        return node;
+            return node;
+        }
+        catch (Exception e)
+        {
+            com.virtualredstonewire.VirtualRedstoneWire.LOGGER.warn(
+                "Failed to deserialize node: {}", e.getMessage());
+            return null;
+        }
     }
 
     private static JsonArray getFacesArray(JsonObject edge)
     {
-        if (edge.has("faces"))
+        if (edge.has("faces") && edge.get("faces").isJsonArray())
         {
             return edge.getAsJsonArray("faces");
         }
         JsonArray arr = new JsonArray();
-        if (edge.has("face"))
+        if (edge.has("face") && !edge.get("face").isJsonNull())
         {
-            arr.add(edge.get("face").getAsString());
+            try
+            {
+                arr.add(edge.get("face").getAsString());
+            }
+            catch (Exception e)
+            {
+                com.virtualredstonewire.VirtualRedstoneWire.LOGGER.warn(
+                    "Failed to parse face field: {}", e.getMessage());
+            }
         }
         return arr;
     }

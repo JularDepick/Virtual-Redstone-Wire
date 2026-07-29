@@ -5,7 +5,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.virtualredstonewire.VirtualRedstoneWire;
+import com.virtualredstonewire.blockentity.CableSignalBlockEntity;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 
@@ -60,5 +63,17 @@ public class CableNetworkSavedData extends SavedData
             .computeIfAbsent(CableNetworkSavedData::load,
                 () -> new CableNetworkSavedData(new CableNetwork()),
                 DATA_NAME);
+    }
+
+    public void rebuildBlockEntities(ServerLevel level)
+    {
+        CableNetwork network = getNetwork();
+        for (BlockPos pos : network.getAllOutputPositions())
+        {
+            if (level.getBlockEntity(pos) == null)
+            {
+                level.setBlockEntity(new CableSignalBlockEntity(pos, level.getBlockState(pos)));
+            }
+        }
     }
 }

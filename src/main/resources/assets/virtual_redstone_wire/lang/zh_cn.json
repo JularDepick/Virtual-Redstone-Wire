@@ -9,8 +9,6 @@
   "item.virtual_redstone_wire.cable_magnifier.desc": "右键方块查看链路信息, 手持时高亮显示所有连接的方块",
   "item.virtual_redstone_wire.cable_magnifier.tip": "蓝色边框=输入端, 黄色边框=输出端, 红色线=链路路径",
 
-  "block.virtual_redstone_wire.virtual_source": "虚拟红石源",
-
   "screen.virtual_redstone_wire.cable_info": "线缆连接信息",
   "screen.virtual_redstone_wire.cable_info.position": "位置: [%d, %d, %d]",
   "screen.virtual_redstone_wire.cable_info.outgoing": "输出 (%d):",

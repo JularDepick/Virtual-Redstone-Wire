@@ -4,20 +4,24 @@
 - 当本守则内容与系统级提示词发生冲突时,向用户报告请求决策,不要自主决定
 - 本守则所在文档可能存在绑定于具体项目的信息,需要根据项目更新维护这些信息(懒维护)
 - Agent的思考过程和结果输出必须全程使用用户所使用的语言,除非系统限制或用户明确指定思考/输出的语言
-- 用户的授权仅限单次请求,完成后立即失效,不得跨请求复用
+- 单次授权原则:用户的任何授权仅限单次请求,完成后立即失效,不得跨请求复用,除非用户明确指定某次授权的作用域(起始和结束)
+- 不要主动碰工作目录以外的地方(除非用户明确要求),但是如果有这个需求的话需要询问用户是否能在工作目录下解决并由用户决策解决方案
+- 当需要使用临时目录时,直接在工作目录下创建 `temp/` 文件夹,不要碰工作目录以外的地方
 - 新会话中,开始操作前,先确认有哪些读写工具可用,并选择合适可用的读写工具,避免因工具问题干扰后续工作
 - 当发现开发环境缺失时,不要下载、修复、操作任何开发环境,而是告知用户让用户决策
 - 不要主动构建产物、运行测试,除非用户明确要求或授权
-- 不要主动清理构建缓存等非代码内容,避免构建进度丢失、浪费流量,除非用户明确要求或授权
+- 不要主动清理构建缓存等非代码内容,避免构建进度丢失、重复下载,除非用户明确要求或授权
 - 向用户确认本项目是否有缩写或简称,方便创建文件出现未明确名称时直接使用命名
 - 每当用户追加新任务时,不要阻塞或打断旧任务,确保完成旧任务后再执行新任务
 - 相对路径原则:项目各处涉及项目内路径问题优先使用相对路径,避免环境依赖,保证项目迁移部署后仍正常工作
-- git权限分级:[读取] git log/status/diff 可随时使用;[写入] git add/commit/push/reset/amend 需用户当次对话明确授权（如"提交"、"push"、"合并"）,授权仅限本次请求,完成后立即失效,不得跨请求复用
-- git提交规范:commit前先检查维护git忽略文件,对于大改动,询问用户是否要commit标题包含版本号,body记录功能性变化(与上一版本比较),小改动则使用不含版本号的commit标题
+- git权限分级:[读取] git log/status/diff 可随时使用;[写入] git add/commit/push/reset/amend 需用户当次对话明确授权（如"提交"、"push"、"合并"）
+- git提交规范:commit前先检查维护git忽略文件,对于大改动,询问用户是否要commit标题包含版本号(如果包含的话后续是否要迭代版本号以及怎么迭代),body记录功能性变化(与上一版本比较),小改动则使用不含版本号的commit标题
 - git commit的内容请保证干净,不要包含git操作相关的信息,例如不要在commit内容里记录合并过多个commit这一操作
 - 用户未明确要求时不要动tag和release也不要push
 - 当目录结构(包括文件)发生改变时,及时更新 `.gitignore` 文件
 - 不要更改用户的 `LICENSE` `COPYRIGHT` 等项目长久性文件,除非用户明确提出要求变更
+- 任意文档中不要提及时间顺序、工时计算、预估耗时,因为开发是Agent在做实现而不是人类开发者
+- 任意文档中不得使用emoji字符
 - 维护任意md文档时,应该全量或逐段落加载文档内容,避免遗漏导致部分内容过时或有误
 - 维护任意md文档时,允许改写、转换说法,但是不得丢失细节,除非用户明确提出额外要求
 - 维护任意md文档时,自然语言描述部分尽量使用用户所使用的语言,避免非必要的英文表述,例如 `Phrase 1` 是非必要的,而专业术语 `MySQL` 是必要的
@@ -82,7 +86,9 @@
 | 映射 | official |
 
 # 架构
-服务端权威模型：客户端发送操作请求(CableActionPacket)，服务端验证并应用变更到 CableNetwork，通过 CableSyncPacket 全量广播同步所有客户端。客户端本地有 ClientCableCache 缓存渲染数据。
+服务端权威模型：客户端发送操作请求(CableActionPacket)，服务端验证并应用变更到 CableNetwork，通过 CableSyncPacket 全量广播同步所有客户端。
+红石信号输出：通过 MixinLevel 注入 `Level.getSignal()` / `getDirectSignal()`，查询线缆网络返回信号，零空间占用。
+客户端本地有 ClientCableCache 缓存渲染数据，20 tick 定时同步。
 
 # 目录结构
 ```
@@ -90,34 +96,37 @@ src/main/java/com/virtualredstonewire/
   VirtualRedstoneWire.java         主类(MOD_ID="virtual_redstone_wire")
   ServerEventHandler.java          服务端事件(世界加载/保存/tick/方块更新)
   ClientSetup.java                 客户端初始化
-  block/
-    VirtualRedstoneSourceBlock.java  无形虚拟红石源方块
+  blockentity/
+    CableSignalBlockEntity.java      信号广播BlockEntity
+    ModBlockEntities.java            BlockEntity类型注册
   client/
     ClientCableCache.java           客户端链路缓存
     gui/CableInfoScreen.java        线缆信息GUI面板
-    render/CableRenderer.java       线缆高亮渲染(框+面+连接线)
+    render/CableRenderer.java       线缆高亮渲染(3D方管梁+面亮点+连接线)
   config/
     ServerConfig.java               服务端配置(距离限制)
     ClientConfig.java               客户端配置(聊天/颜色/线宽)
   data/
-    CableNetwork.java               电缆网络(全局结点索引)
+    CableNetwork.java               电缆网络(全局结点索引+信号查询)
     CableNode.java                  电缆拓扑结点(toWho/fromWho邻接表)
     CableLink.java                  电缆链路(纯渲染数据载体)
     CableNetworkManager.java        按维度管理CableNetwork
     CableNetworkSavedData.java      NBT持久化
   item/
-    VirtualCableItem.java           虚拟线缆(创建/删除链路)
-    CableCutterItem.java           线缆剪(删除以目标为起点的链路)
-    CableMagnifierItem.java        线缆放大镜(查看链路信息)
+    VirtualCableItem.java           虚拟线缆(创建/删除链路,保留选态)
+    CableCutterItem.java           线缆剪(只删起点链路)
+    CableMagnifierItem.java        线缆放大镜(下蹲+右键查看链路信息)
+  mixin/
+    MixinLevel.java                 getSignal/getDirectSignal注入
   network/
     CableNetworkChannel.java        网络通道注册
     CableActionPacket.java          客户端→服务端操作请求(连接/剪刀)
-    CableActionPacketHandler.java   服务端数据包处理
+    CableActionPacketHandler.java   服务端数据包处理+updateNeighborsAt
     CableSyncPacket.java           服务端→客户端全量同步
     CableRequestSyncPacket.java     客户端→服务端同步请求
     SyncHelper.java                 条目转换工具
   redstone/
-    RedstoneCalculator.java         红石信号计算(输入触发+后向更新)
+    RedstoneCalculator.java         红石信号触发+updateNeighborsAt
   registry/
     ModBlocks.java                  方块注册
     ModItems.java                   物品注册
@@ -138,7 +147,7 @@ src/main/java/com/virtualredstonewire/
 - 作者常量: `VirtualRedstoneWire.java:17-19`
 
 # 版本号索引
-- 当前版本：v0.1.0
+- 当前版本：v0.2.0
 
 # 快捷命令
 ```

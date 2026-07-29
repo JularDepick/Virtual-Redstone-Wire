@@ -1,8 +1,8 @@
 <div align="center">
 
-# Virtual Redstone Wire (虚拟红石缆线)
+# Virtual Redstone Wire (虚拟红石线缆)
 
-[![Version](https://img.shields.io/badge/Version-0.1.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.1.0)
+[![Version](https://img.shields.io/badge/Version-0.2.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.2.0)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
@@ -26,9 +26,8 @@
 用法: 不消耗, 可重复使用
 1. 手持线缆, 右键点击一个方块, 将其设为输入端 (聊天栏提示已选中)
 2. 再右键点击另一个方块, 将其设为输出端, 链路即建立
-3. 在输出端会自动生成一个不可见的虚拟红石源方块, 其朝向输出面输出红石信号
-4. 如需取消选中, 再次右键同一方块即可
-5. 同一输入端可连接多个输出端 (一对多), 同一输出端也可接收多个输入端 (多对一, 取最大信号强度)
+3. 如需取消选中, 再次右键同一方块即可
+4. 同一输入端可连接多个输出端 (一对多), 同一输出端也可接收多个输入端 (多对一, 取最大信号强度)
 
 ## 线缆剪
 
@@ -50,7 +49,7 @@
 
 - 虚拟线缆传输的是红石信号强度 (0-15)
 - 输入端方块检测其所在位置的红石信号 (使用标准红石 API)
-- 信号沿链路传递到输出端, 由虚拟红石源方块向指定面输出 (虚拟源放在接收面外侧, 向方块内部发射)
+- 信号沿链路传递到输出端, 通过内存网络图查询返回信号强度（无方块占用）
 - 输入端的红石变化会实时反映到输出端
 - 支持一对多广播、多对一合并 (取最大值)
 - 聊天栏操作反馈默认关闭, 可在配置文件中启用
@@ -79,8 +78,8 @@ src/main/java/com/virtualredstonewire/
 │   ├── VirtualCableItem.java       # 线缆物品
 │   ├── CableCutterItem.java        # 线缆剪物品
 │   └── CableMagnifierItem.java     # 线缆放大镜物品
-├── block/
-│   └── VirtualRedstoneSourceBlock.java  # 虚拟红石源方块
+├── blockentity/
+│   └── CableSignalBlockEntity.java # 信号广播 BlockEntity
 ├── data/
 │   ├── CableLink.java              # 链路数据模型
 │   ├── CableNetwork.java           # 网络图 (邻接表)
@@ -109,8 +108,6 @@ src/main/resources/
 ├── assets/virtual_redstone_wire/
 │   ├── lang/{en_us,zh_cn}.json
 │   ├── models/item/*.json
-│   ├── models/block/virtual_source.json
-│   ├── blockstates/virtual_source.json
 │   └── textures/item/{virtual_cable,cable_cutter,cable_magnifier}.png
 └── data/virtual_redstone_wire/recipes/
     ├── virtual_cable.json
@@ -142,7 +139,7 @@ gradle --version
 
 ```bash
 gradle build
-# 输出在 build/libs/VirtualRedstoneWire-0.1.0.jar
+# 输出在 build/libs/VirtualRedstoneWire-0.2.0.jar
 ```
 
 # 许可证

@@ -3,15 +3,21 @@ package com.virtualredstonewire;
 import com.virtualredstonewire.data.CableNetwork;
 import com.virtualredstonewire.data.CableNetworkManager;
 import com.virtualredstonewire.data.CableNetworkSavedData;
+import com.virtualredstonewire.item.VirtualCableItem;
 import com.virtualredstonewire.redstone.RedstoneCalculator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 @Mod.EventBusSubscriber(modid = VirtualRedstoneWire.MOD_ID)
 public class ServerEventHandler
@@ -23,6 +29,7 @@ public class ServerEventHandler
         {
             CableNetworkSavedData savedData = CableNetworkSavedData.get(serverLevel);
             CableNetworkManager.load(serverLevel.dimension(), savedData.getNetwork());
+            savedData.rebuildBlockEntities(serverLevel);
             VirtualRedstoneWire.LOGGER.info("Cable network loaded for dimension: {}",
                 serverLevel.dimension().location());
         }
@@ -45,9 +52,11 @@ public class ServerEventHandler
     {
         if (event.getLevel() instanceof ServerLevel serverLevel)
         {
-            CableNetworkManager.onDimensionUnload(serverLevel.dimension());
+            ResourceKey<Level> dimension = serverLevel.dimension();
+            CableNetworkManager.onDimensionUnload(dimension);
+            RedstoneCalculator.onDimensionUnload(dimension);
             VirtualRedstoneWire.LOGGER.info("Cable network unloaded for dimension: {}",
-                serverLevel.dimension().location());
+                dimension.location());
         }
     }
 
@@ -56,8 +65,9 @@ public class ServerEventHandler
     {
         if (event.phase == TickEvent.Phase.END)
         {
-            for (ServerLevel level :
-                net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer().getAllLevels())
+            MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+            if (server == null) return;
+            for (ServerLevel level : server.getAllLevels())
             {
                 RedstoneCalculator.tick(level);
             }
@@ -74,7 +84,7 @@ public class ServerEventHandler
 
         if (network.getNode(pos) != null && network.getOutputsForInput(pos).size() > 0)
         {
-            RedstoneCalculator.markDirtyInput(pos);
+            RedstoneCalculator.markDirtyInput(serverLevel, pos);
         }
 
         for (Direction dir : Direction.values())
@@ -83,8 +93,14 @@ public class ServerEventHandler
             if (network.getNode(neighborPos) != null
                 && network.getOutputsForInput(neighborPos).size() > 0)
             {
-                RedstoneCalculator.markDirtyInput(neighborPos);
+                RedstoneCalculator.markDirtyInput(serverLevel, neighborPos);
             }
         }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLogOut(PlayerEvent.PlayerLoggedOutEvent event)
+    {
+        VirtualCableItem.clearSelectedInput((net.minecraft.world.entity.player.Player) event.getEntity());
     }
 }
