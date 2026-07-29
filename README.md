@@ -57,52 +57,61 @@
 # 技术栈
 
 | 组件 | 版本 / 说明 |
-|------|-------------|
+|:---:|:---:|
 | Minecraft | 1.20.1 |
-| Forge | 47.4.22 |
+| Forge | 1.20.1-47.3.0 |
 | JDK | 17 |
-| Gradle | 8.14.3 |
+| Gradle | 8.x, ForgeGradle 6.x |
+| 映射 | official |
 | 模组 ID | virtual_redstone_wire |
 
 # 源码目录结构
 
 ```
 src/main/java/com/virtualredstonewire/
-├── VirtualRedstoneWire.java        # 模组主入口
-├── ClientSetup.java                # 客户端初始化
-├── ServerEventHandler.java         # 世界加载/保存/红石事件
-├── registry/
-│   ├── ModItems.java               # 物品注册
-│   └── ModBlocks.java              # 方块注册
-├── item/
-│   ├── VirtualCableItem.java       # 线缆物品
-│   ├── CableCutterItem.java        # 线缆剪物品
-│   └── CableMagnifierItem.java     # 线缆放大镜物品
+├── VirtualRedstoneWire.java          # 模组主入口
+├── ClientSetup.java                  # 客户端初始化
+├── ServerEventHandler.java           # 服务端事件(世界加载/保存/tick/方块更新)
 ├── blockentity/
-│   └── CableSignalBlockEntity.java # 信号广播 BlockEntity
-├── data/
-│   ├── CableLink.java              # 链路数据模型
-│   ├── CableNetwork.java           # 网络图 (邻接表)
-│   ├── CableNetworkManager.java    # 内存管理器
-│   └── CableNetworkSavedData.java  # 持久化
-├── redstone/
-│   └── RedstoneCalculator.java     # 红石信号计算
-├── network/
-│   ├── CableNetworkChannel.java    # 网络通道
-│   ├── CableSyncPacket.java        # 全量同步
-│   ├── CableUpdatePacket.java      # 增量更新
-│   └── CableQueryPacket.java       # 查询响应
+│   ├── CableSignalBlockEntity.java   # 信号广播 BlockEntity
+│   └── ModBlockEntities.java         # BlockEntity 类型注册
+├── client/
+│   ├── ClientCableCache.java         # 客户端链路缓存
+│   ├── gui/CableInfoScreen.java      # 线缆信息 GUI 面板
+│   └── render/CableRenderer.java     # 3D 渲染(方管梁+面亮点+连接线)
 ├── config/
-│   └── ModConfig.java              # 配置
-└── client/
-    ├── ClientCableCache.java       # 客户端缓存
-    ├── render/CableRenderer.java   # 3D 渲染
-    └── gui/CableInfoScreen.java    # 信息界面
+│   ├── ServerConfig.java             # 服务端配置(距离限制)
+│   └── ClientConfig.java             # 客户端配置(聊天/颜色/线宽)
+├── data/
+│   ├── CableLink.java                # 链路数据模型(纯渲染载体)
+│   ├── CableNetwork.java             # 电缆网络图(全局结点索引+信号查询)
+│   ├── CableNode.java                # 电缆拓扑结点(toWho/fromWho 邻接表)
+│   ├── CableNetworkManager.java      # 按维度管理 CableNetwork
+│   └── CableNetworkSavedData.java    # NBT 持久化
+├── item/
+│   ├── VirtualCableItem.java         # 虚拟线缆(创建/删除链路,保留选态)
+│   ├── CableCutterItem.java          # 线缆剪(只删起点链路)
+│   └── CableMagnifierItem.java       # 线缆放大镜(下蹲+右键查看链路信息)
+├── mixin/
+│   └── MixinLevel.java               # getSignal/getDirectSignal 注入
+├── network/
+│   ├── CableNetworkChannel.java      # 网络通道注册
+│   ├── CableActionPacket.java        # 客户端→服务端操作请求(连接/剪刀)
+│   ├── CableActionPacketHandler.java # 服务端数据包处理+updateNeighborsAt
+│   ├── CableSyncPacket.java          # 服务端→客户端全量同步
+│   ├── CableRequestSyncPacket.java   # 客户端→服务端同步请求
+│   └── SyncHelper.java               # 条目转换工具
+├── redstone/
+│   └── RedstoneCalculator.java       # 红石信号触发+updateNeighborsAt
+└── registry/
+    ├── ModItems.java                 # 物品注册
+    └── ModBlocks.java                # 方块注册
 ```
 
 ```
 src/main/resources/
 ├── META-INF/mods.toml
+├── mixins.virtual_redstone_wire.json    # Mixin 配置
 ├── pack.mcmeta
 ├── virtual_redstone_wire.png            # 模组 Logo
 ├── assets/virtual_redstone_wire/

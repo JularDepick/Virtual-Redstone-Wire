@@ -57,52 +57,61 @@ Usage: No consumption, reusable
 # Tech Stack
 
 | Component | Version / Notes |
-|-----------|---------|
+|:---:|:---:|
 | Minecraft | 1.20.1 |
-| Forge | 47.4.22 |
+| Forge | 1.20.1-47.3.0 |
 | JDK | 17 |
-| Gradle | 8.14.3 |
+| Gradle | 8.x, ForgeGradle 6.x |
+| Mapping | official |
 | Mod ID | virtual_redstone_wire |
 
 # Source Directory Structure
 
 ```
 src/main/java/com/virtualredstonewire/
-├── VirtualRedstoneWire.java        # Main mod class
-├── ClientSetup.java                # Client initialization
-├── ServerEventHandler.java         # World save/load/redstone events
-├── registry/
-│   ├── ModItems.java               # Item registration
-│   └── ModBlocks.java              # Block registration
-├── item/
-│   ├── VirtualCableItem.java       # Virtual Cable item
-│   ├── CableCutterItem.java        # Cable Cutter item
-│   └── CableMagnifierItem.java     # Cable Magnifier item
+├── VirtualRedstoneWire.java          # Main mod class
+├── ClientSetup.java                  # Client initialization
+├── ServerEventHandler.java           # Server events (world save/load/tick/block update)
 ├── blockentity/
-│   └── CableSignalBlockEntity.java # Signal broadcast BlockEntity
-├── data/
-│   ├── CableLink.java              # Link data model
-│   ├── CableNetwork.java           # Network graph (adjacency lists)
-│   ├── CableNetworkManager.java    # In-memory manager
-│   └── CableNetworkSavedData.java  # Persistence
-├── redstone/
-│   └── RedstoneCalculator.java     # Redstone signal calculator
-├── network/
-│   ├── CableNetworkChannel.java    # Network channel
-│   ├── CableSyncPacket.java        # Full sync packet
-│   ├── CableUpdatePacket.java      # Incremental update
-│   └── CableQueryPacket.java       # Query response
+│   ├── CableSignalBlockEntity.java   # Signal broadcast BlockEntity
+│   └── ModBlockEntities.java         # BlockEntity type registration
+├── client/
+│   ├── ClientCableCache.java         # Client-side link cache
+│   ├── gui/CableInfoScreen.java      # Cable info GUI panel
+│   └── render/CableRenderer.java     # 3D rendering (tube beams + face dots + lines)
 ├── config/
-│   └── ModConfig.java              # Configuration
-└── client/
-    ├── ClientCableCache.java       # Client-side cache
-    ├── render/CableRenderer.java   # 3D rendering
-    └── gui/CableInfoScreen.java    # Info GUI
+│   ├── ServerConfig.java             # Server config (distance limits)
+│   └── ClientConfig.java             # Client config (chat/color/line width)
+├── data/
+│   ├── CableLink.java                # Link data model (render-only carrier)
+│   ├── CableNetwork.java             # Network graph (node index + signal query)
+│   ├── CableNode.java                # Topology node (toWho/fromWho adjacency)
+│   ├── CableNetworkManager.java      # Per-dimension CableNetwork manager
+│   └── CableNetworkSavedData.java    # NBT persistence
+├── item/
+│   ├── VirtualCableItem.java         # Virtual cable (create/delete links, retain selection)
+│   ├── CableCutterItem.java          # Cable cutter (delete origin links only)
+│   └── CableMagnifierItem.java       # Cable magnifier (sneak+right-click to inspect)
+├── mixin/
+│   └── MixinLevel.java               # getSignal/getDirectSignal injection
+├── network/
+│   ├── CableNetworkChannel.java      # Network channel registration
+│   ├── CableActionPacket.java        # Client->Server action request (connect/cut)
+│   ├── CableActionPacketHandler.java # Server packet processing + updateNeighborsAt
+│   ├── CableSyncPacket.java          # Server->Client full sync
+│   ├── CableRequestSyncPacket.java   # Client->Server sync request
+│   └── SyncHelper.java               # Entry conversion utilities
+├── redstone/
+│   └── RedstoneCalculator.java       # Redstone signal trigger + updateNeighborsAt
+└── registry/
+    ├── ModItems.java                 # Item registration
+    └── ModBlocks.java                # Block registration
 ```
 
 ```
 src/main/resources/
 ├── META-INF/mods.toml
+├── mixins.virtual_redstone_wire.json    # Mixin configuration
 ├── pack.mcmeta
 ├── virtual_redstone_wire.png            # Mod Logo
 ├── assets/virtual_redstone_wire/

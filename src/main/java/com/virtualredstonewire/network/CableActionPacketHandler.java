@@ -42,8 +42,7 @@ public class CableActionPacketHandler
                     for (Map.Entry<BlockPos, Direction> edge : savedOutgoing)
                     {
                         BlockPos outputPos = edge.getKey();
-                        level.neighborChanged(outputPos, level.getBlockState(outputPos).getBlock(), outputPos);
-                        level.neighborChanged(outputPos.relative(edge.getValue()), level.getBlockState(outputPos.relative(edge.getValue())).getBlock(), outputPos);
+                        level.updateNeighborsAt(outputPos, level.getBlockState(outputPos).getBlock());
                     }
                     CableNetworkManager.markDirty(level);
                     broadcastSync(level, network);

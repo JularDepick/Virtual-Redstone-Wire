@@ -36,49 +36,46 @@ public class CableRenderer
     private static final float BEAM_THICKNESS = 0.02f;
     private static final float OUTLINE_EXPAND = 0.001f;
 
+    private static float[] hexToRgba(String hex)
+    {
+        String h = hex.startsWith("#") ? hex.substring(1) : hex;
+        if (h.length() < 6) return new float[]{1,0,0,1};
+        try
+        {
+            int r = Integer.parseInt(h.substring(0, 2), 16);
+            int g = Integer.parseInt(h.substring(2, 4), 16);
+            int b = Integer.parseInt(h.substring(4, 6), 16);
+            return new float[]{r / 255f, g / 255f, b / 255f, 1f};
+        }
+        catch (NumberFormatException e)
+        {
+            return new float[]{1,0,0,1};
+        }
+    }
+
     private static float[] getColorInput()
     {
-        return new float[]{
-            ClientConfig.colorInputR.get().floatValue(),
-            ClientConfig.colorInputG.get().floatValue(),
-            ClientConfig.colorInputB.get().floatValue(),
-            ClientConfig.colorInputA.get().floatValue()};
+        return hexToRgba(ClientConfig.colorInput.get());
     }
 
     private static float[] getColorOutput()
     {
-        return new float[]{
-            ClientConfig.colorOutputR.get().floatValue(),
-            ClientConfig.colorOutputG.get().floatValue(),
-            ClientConfig.colorOutputB.get().floatValue(),
-            ClientConfig.colorOutputA.get().floatValue()};
+        return hexToRgba(ClientConfig.colorOutput.get());
     }
 
     private static float[] getColorLine()
     {
-        return new float[]{
-            ClientConfig.colorLineR.get().floatValue(),
-            ClientConfig.colorLineG.get().floatValue(),
-            ClientConfig.colorLineB.get().floatValue(),
-            ClientConfig.colorLineA.get().floatValue()};
+        return hexToRgba(ClientConfig.colorLine.get());
     }
 
     private static float[] getColorDim()
     {
-        return new float[]{
-            ClientConfig.colorDimR.get().floatValue(),
-            ClientConfig.colorDimG.get().floatValue(),
-            ClientConfig.colorDimB.get().floatValue(),
-            ClientConfig.colorDimA.get().floatValue()};
+        return hexToRgba(ClientConfig.colorDim.get());
     }
 
     private static float[] getColorSelected()
     {
-        return new float[]{
-            ClientConfig.colorSelectedR.get().floatValue(),
-            ClientConfig.colorSelectedG.get().floatValue(),
-            ClientConfig.colorSelectedB.get().floatValue(),
-            ClientConfig.colorSelectedA.get().floatValue()};
+        return hexToRgba(ClientConfig.colorSelected.get());
     }
 
     @SubscribeEvent
@@ -149,13 +146,13 @@ public class CableRenderer
             }
             else if (holdingCable || holdingCutter)
             {
-                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), getColorDim(), level, cx, cy, cz);
+                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), getColorSelected(), level, cx, cy, cz);
             }
         }
 
         if (selectedInput != null)
         {
-            renderBlockOutlineBeams(poseStack, bufferSource, selectedInput, getColorSelected(), level, cx, cy, cz);
+            renderBlockOutlineBeams(poseStack, bufferSource, selectedInput, getColorDim(), level, cx, cy, cz);
         }
 
         bufferSource.endBatch(RenderType.debugQuads());

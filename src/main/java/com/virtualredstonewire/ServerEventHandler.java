@@ -84,6 +84,7 @@ public class ServerEventHandler
 
         if (network.getNode(pos) != null && network.getOutputsForInput(pos).size() > 0)
         {
+            VirtualRedstoneWire.LOGGER.info("NeighborNotify: source pos {} has outgoing links, marking dirty", pos);
             RedstoneCalculator.markDirtyInput(serverLevel, pos);
         }
 
@@ -93,6 +94,7 @@ public class ServerEventHandler
             if (network.getNode(neighborPos) != null
                 && network.getOutputsForInput(neighborPos).size() > 0)
             {
+                VirtualRedstoneWire.LOGGER.info("NeighborNotify: neighbor {} has outgoing links, marking dirty", neighborPos);
                 RedstoneCalculator.markDirtyInput(serverLevel, neighborPos);
             }
         }

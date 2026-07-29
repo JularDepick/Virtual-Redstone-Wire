@@ -1,5 +1,6 @@
 package com.virtualredstonewire.redstone;
 
+import com.virtualredstonewire.VirtualRedstoneWire;
 import com.virtualredstonewire.data.CableNetwork;
 import com.virtualredstonewire.data.CableNetworkManager;
 import net.minecraft.core.BlockPos;
@@ -29,16 +30,17 @@ public class RedstoneCalculator
         CableNetwork network = CableNetworkManager.get(level);
         Set<BlockPos> toProcess = new HashSet<>(pending);
         pending.clear();
+        VirtualRedstoneWire.LOGGER.info("RedstoneCalculator.tick: processing {} dirty inputs in {}", toProcess.size(), dimension.location());
 
         for (BlockPos inputPos : toProcess)
         {
             Set<Map.Entry<BlockPos, Direction>> outputs = network.getOutputsForInput(inputPos);
+            VirtualRedstoneWire.LOGGER.info("RedstoneCalculator: input {} has {} outputs", inputPos, outputs.size());
             for (Map.Entry<BlockPos, Direction> edge : outputs)
             {
                 BlockPos outputPos = edge.getKey();
-                level.neighborChanged(outputPos, level.getBlockState(outputPos).getBlock(), outputPos);
-                level.neighborChanged(outputPos.relative(edge.getValue()),
-                    level.getBlockState(outputPos.relative(edge.getValue())).getBlock(), outputPos);
+                VirtualRedstoneWire.LOGGER.info("RedstoneCalculator: updating neighbors at output {}", outputPos);
+                level.updateNeighborsAt(outputPos, level.getBlockState(outputPos).getBlock());
             }
         }
     }

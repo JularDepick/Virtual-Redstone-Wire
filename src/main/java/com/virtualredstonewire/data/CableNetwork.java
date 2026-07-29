@@ -156,18 +156,24 @@ public class CableNetwork
     public int getSignalAt(BlockPos pos, Direction direction, net.minecraft.world.level.Level level)
     {
         CableNode node = getNode(pos);
-        if (node == null) return 0;
-        Set<BlockPos> inputs = node.getIncomingForFace(direction);
-        if (inputs.isEmpty()) return 0;
-        int maxPower = 0;
-        for (BlockPos inPos : inputs)
+        if (node == null)
         {
-            for (Direction dir : Direction.values())
-            {
-                int p = level.getBlockState(inPos).getSignal(level, inPos, dir);
-                if (p > maxPower) maxPower = p;
-            }
+            VirtualRedstoneWire.LOGGER.info("getSignalAt: no node at {}", pos);
+            return 0;
         }
+        if (node.getIncomingCount() == 0)
+        {
+            VirtualRedstoneWire.LOGGER.info("getSignalAt: node {} has no incoming links", pos);
+            return 0;
+        }
+        int maxPower = 0;
+        for (BlockPos inPos : node.getAllIncoming())
+        {
+            int p = level.getBestNeighborSignal(inPos);
+            VirtualRedstoneWire.LOGGER.info("getSignalAt: incoming {} has bestNeighborSignal={}", inPos, p);
+            if (p > maxPower) maxPower = p;
+        }
+        VirtualRedstoneWire.LOGGER.info("getSignalAt: returning {} for pos {}", maxPower, pos);
         return maxPower;
     }
 
