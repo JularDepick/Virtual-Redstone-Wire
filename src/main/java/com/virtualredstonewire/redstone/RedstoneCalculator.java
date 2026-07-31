@@ -11,6 +11,11 @@ import net.minecraft.world.level.Level;
 
 import java.util.*;
 
+/**
+ * v0.4.0 更新传播器：
+ * 以"输入节点"为源，沿链路 BFS 级联传播到所有下游输出端并触发邻居更新，
+ * 保证 A->B->C 这类链式布线中每个输出端（以及它们旁边的灯）都会重新查询信号。
+ */
 public class RedstoneCalculator
 {
     private static final Map<ResourceKey<Level>, Set<BlockPos>> DIRTY_INPUTS = new HashMap<>();
@@ -30,17 +35,41 @@ public class RedstoneCalculator
         CableNetwork network = CableNetworkManager.get(level);
         Set<BlockPos> toProcess = new HashSet<>(pending);
         pending.clear();
-        VirtualRedstoneWire.LOGGER.info("RedstoneCalculator.tick: processing {} dirty inputs in {}", toProcess.size(), dimension.location());
 
         for (BlockPos inputPos : toProcess)
         {
-            Set<Map.Entry<BlockPos, Direction>> outputs = network.getOutputsForInput(inputPos);
-            VirtualRedstoneWire.LOGGER.info("RedstoneCalculator: input {} has {} outputs", inputPos, outputs.size());
+            propagateUpdates(level, inputPos);
+        }
+    }
+
+    /**
+     * 从某个输入节点出发，沿链路 BFS 级联触发所有下游输出端的邻居更新。
+     * 供 tick 与诊断器/建链操作共用。
+     */
+    public static void propagateUpdates(ServerLevel level, BlockPos startInput)
+    {
+        CableNetwork network = CableNetworkManager.get(level);
+        if (network == null || network.getLinkCount() == 0) return;
+
+        Set<BlockPos> visited = new HashSet<>();
+        Deque<BlockPos> queue = new ArrayDeque<>();
+        queue.add(startInput.immutable());
+
+        while (!queue.isEmpty())
+        {
+            BlockPos cur = queue.poll();
+            if (!visited.add(cur)) continue;
+
+            Set<Map.Entry<BlockPos, Direction>> outputs = network.getOutputsForInput(cur);
             for (Map.Entry<BlockPos, Direction> edge : outputs)
             {
                 BlockPos outputPos = edge.getKey();
-                VirtualRedstoneWire.LOGGER.info("RedstoneCalculator: updating neighbors at output {}", outputPos);
                 level.updateNeighborsAt(outputPos, level.getBlockState(outputPos).getBlock());
+                // 输出端若同时是下游输入端（链式布线），继续级联
+                if (!network.getOutputsForInput(outputPos).isEmpty())
+                {
+                    queue.add(outputPos);
+                }
             }
         }
     }

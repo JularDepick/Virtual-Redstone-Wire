@@ -4,6 +4,9 @@ build/
 out/
 test/
 temp/
+reference/
+/edn/
+/com/
 
 # IDE files
 .idea/

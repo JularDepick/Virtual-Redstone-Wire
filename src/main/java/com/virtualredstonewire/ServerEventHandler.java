@@ -15,6 +15,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.level.LevelEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.server.ServerLifecycleHooks;
@@ -23,13 +24,24 @@ import net.minecraftforge.server.ServerLifecycleHooks;
 public class ServerEventHandler
 {
     @SubscribeEvent
+    public static void onServerStarted(ServerStartedEvent event)
+    {
+        RedstoneDiagnostics.runAutoTestIfRequested(event.getServer());
+    }
+
+    @SubscribeEvent
     public static void onWorldLoad(LevelEvent.Load event)
     {
         if (event.getLevel() instanceof ServerLevel serverLevel)
         {
             CableNetworkSavedData savedData = CableNetworkSavedData.get(serverLevel);
-            CableNetworkManager.load(serverLevel.dimension(), savedData.getNetwork());
-            savedData.rebuildBlockEntities(serverLevel);
+            CableNetwork network = savedData.getNetwork();
+            CableNetworkManager.load(serverLevel.dimension(), network);
+            // 存档加载后强制所有输出端邻居重查信号，让已放置的红石灯/中继器等立即按网络状态点亮
+            for (BlockPos outputPos : network.getAllOutputPositions())
+            {
+                serverLevel.updateNeighborsAt(outputPos, serverLevel.getBlockState(outputPos).getBlock());
+            }
             VirtualRedstoneWire.LOGGER.info("Cable network loaded for dimension: {}",
                 serverLevel.dimension().location());
         }

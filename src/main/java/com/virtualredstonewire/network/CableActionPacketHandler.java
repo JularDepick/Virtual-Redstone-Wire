@@ -82,6 +82,8 @@ public class CableActionPacketHandler
                 CableNetworkManager.markDirty(level);
 
                 RedstoneCalculator.markDirtyInput(level, from);
+                RedstoneCalculator.propagateUpdates(level, from);
+                level.updateNeighborsAt(to, level.getBlockState(to).getBlock());
 
                 broadcastSync(level, network);
             }

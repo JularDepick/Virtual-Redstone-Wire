@@ -1,5 +1,6 @@
 package com.virtualredstonewire.item;
 
+import com.virtualredstonewire.client.gui.CableInfoScreenOpener;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
@@ -29,9 +30,7 @@ public class CableMagnifierItem extends Item
 
         if (level.isClientSide && player.isShiftKeyDown())
         {
-            BlockPos pos = context.getClickedPos();
-            net.minecraft.client.Minecraft.getInstance().setScreen(
-                new com.virtualredstonewire.client.gui.CableInfoScreen(pos));
+            CableInfoScreenOpener.open(context.getClickedPos());
             return InteractionResult.SUCCESS;
         }
 

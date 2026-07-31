@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.virtualredstonewire.VirtualRedstoneWire;
-import com.virtualredstonewire.blockentity.CableSignalBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -43,10 +42,6 @@ public class CableNetwork
             if (outputNode.getIncomingCount() == 0 && inputNode.getIncomingCount() == 0)
             {
                 removeNode(to);
-                if (level != null && !level.isClientSide())
-                {
-                    removeSignalBlockEntity(level, to);
-                }
             }
             if (inputNode.getOutgoingCount() == 0
                 && inputNode.getIncomingCount() == 0)
@@ -60,12 +55,6 @@ public class CableNetwork
         {
             inputNode.addOutgoing(to, toFace);
             outputNode.addIncoming(from, toFace);
-
-            if (level != null && !level.isClientSide())
-            {
-                createSignalBlockEntity(level, to);
-            }
-
             return true;
         }
     }
@@ -93,10 +82,6 @@ public class CableNetwork
                 if (targetNode.getIncomingCount() == 0)
                 {
                     removeNode(toPos);
-                    if (level != null && !level.isClientSide())
-                    {
-                        removeSignalBlockEntity(level, toPos);
-                    }
                 }
             }
             count++;
@@ -114,22 +99,6 @@ public class CableNetwork
     public int removeLinksFrom(BlockPos from)
     {
         return removeLinksFrom(from, null);
-    }
-
-    private void createSignalBlockEntity(Level level, BlockPos pos)
-    {
-        if (level.getBlockEntity(pos) == null)
-        {
-            level.setBlockEntity(new CableSignalBlockEntity(pos, level.getBlockState(pos)));
-        }
-    }
-
-    private void removeSignalBlockEntity(Level level, BlockPos pos)
-    {
-        if (level.getBlockEntity(pos) instanceof CableSignalBlockEntity)
-        {
-            level.removeBlockEntity(pos);
-        }
     }
 
     public Set<BlockPos> getInputsForOutput(BlockPos to, Direction toFace)
@@ -153,27 +122,20 @@ public class CableNetwork
         return node.hasAnyInputOnFace(toFace);
     }
 
+    /**
+     * 全向信号查询：direction 被忽略（虚拟输出端对任意查询方向返回网络信号），
+     * 因此红石灯/中继器/红石粉放在输出端任意相邻面都能收到信号。
+     */
     public int getSignalAt(BlockPos pos, Direction direction, net.minecraft.world.level.Level level)
     {
         CableNode node = getNode(pos);
-        if (node == null)
-        {
-            VirtualRedstoneWire.LOGGER.info("getSignalAt: no node at {}", pos);
-            return 0;
-        }
-        if (node.getIncomingCount() == 0)
-        {
-            VirtualRedstoneWire.LOGGER.info("getSignalAt: node {} has no incoming links", pos);
-            return 0;
-        }
+        if (node == null || node.getIncomingCount() == 0) return 0;
         int maxPower = 0;
         for (BlockPos inPos : node.getAllIncoming())
         {
             int p = level.getBestNeighborSignal(inPos);
-            VirtualRedstoneWire.LOGGER.info("getSignalAt: incoming {} has bestNeighborSignal={}", inPos, p);
             if (p > maxPower) maxPower = p;
         }
-        VirtualRedstoneWire.LOGGER.info("getSignalAt: returning {} for pos {}", maxPower, pos);
         return maxPower;
     }
 

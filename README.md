@@ -160,3 +160,5 @@ gradle build
 Copyright (c) 2026 JularDepick
 
 详见 [COPYRIGHT文件](./COPYRIGHT)
+
+> 娘希匹的Dickseep,做个模组愣是花了劳资20大洋,做了一坨屎出来,给劳资气了积薄都打闪电
