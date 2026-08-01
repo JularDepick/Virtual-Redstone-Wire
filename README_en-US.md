@@ -22,20 +22,19 @@ No mod dependencies required. Fully compatible with vanilla Minecraft.
 ## Virtual Cable
 
 Crafting: Redstone + Iron Ingot
-Usage: Right-click a source block to select the input, then right-click a target block to create the link (right-click the same block again to cancel)
-Notes: Reusable; one input can feed multiple outputs, one output can take multiple inputs (highest signal wins)
+Usage: Right-click an input block, then an output block, to create a one-way redstone link
+Notes: Max distance: 256 blocks. Signal strength propagates along the link; right-click the same block again to cancel; one input can feed multiple outputs, one output can take multiple inputs (highest signal wins)
 
 ## Cable Cutter
 
 Crafting: Iron Ingot + Stick x2
-Usage: Right-click an input block to remove all links originating from it
-Notes: Reusable
+Usage: Right-click an input block to cut all links originating from it
+Notes: Only affects links where this block is the input (source)
 
 ## Cable Magnifier
 
 Crafting: Redstone + Glass Pane + Stick
-Usage: While held, all links are highlighted (blue=input, yellow=output, red=link path); right-click a block to open its link panel
-Notes: Reusable
+Usage: While held, highlights all links (blue is input, yellow is output, red is link path); sneak-right-click a block to inspect its links
 
 ## Redstone Behavior
 
