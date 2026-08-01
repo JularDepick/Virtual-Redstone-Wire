@@ -22,8 +22,8 @@ public class CableActionBarHud
     /**
      * 提示顶部纵坐标（缩放后像素）：
      * 物品名称提示渲染于 height-59 至 height-50，
-     * 本提示置于其正下方 2px 处（相接不重叠），
-     * 快捷栏顶部约为 height-22，整体更贴近快捷栏。
+     * 本提示以 height-48 为基准再向上偏移一个自身高度（font.lineHeight），
+     * 位于物品名称下方且更贴近快捷栏。
      */
     private static final int Y_OFFSET_FROM_BOTTOM = 48;
 
@@ -52,7 +52,7 @@ public class CableActionBarHud
         Font font = mc.font;
         int scaledWidth = event.getWindow().getGuiScaledWidth();
         int scaledHeight = event.getWindow().getGuiScaledHeight();
-        int y = scaledHeight - Y_OFFSET_FROM_BOTTOM;
+        int y = scaledHeight - Y_OFFSET_FROM_BOTTOM - font.lineHeight;
         GuiGraphics g = event.getGuiGraphics();
         int x = (scaledWidth - font.width(text)) / 2;
         g.fill(x - 3, y - 2, x + font.width(text) + 3, y + font.lineHeight + 1, 0x66000000);
