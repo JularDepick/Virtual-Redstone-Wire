@@ -139,5 +139,6 @@ public class VirtualCableItem extends Item
                                  List<Component> tooltip, TooltipFlag flag)
     {
         tooltip.add(Component.translatable("item.virtual_redstone_wire.virtual_cable.desc"));
+        tooltip.add(Component.translatable("item.virtual_redstone_wire.virtual_cable.tip"));
     }
 }
