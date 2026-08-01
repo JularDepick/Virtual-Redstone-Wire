@@ -1,10 +1,11 @@
 package com.virtualredstonewire.item;
 
+import com.virtualredstonewire.client.CableClientQueue;
 import com.virtualredstonewire.client.ClientCableCache;
 import com.virtualredstonewire.config.ClientConfig;
 import com.virtualredstonewire.data.CableLink;
-import com.virtualredstonewire.network.CableActionPacket;
-import com.virtualredstonewire.network.CableNetworkChannel;
+import com.virtualredstonewire.network.CableOpPacket;
+import com.virtualredstonewire.network.CableProtocol;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
@@ -16,6 +17,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CableCutterItem extends Item
@@ -36,19 +38,36 @@ public class CableCutterItem extends Item
 
         if (level.isClientSide)
         {
-            if (ClientCableCache.hasLinkFrom(pos))
+            // v0.3.0：剪刀转换为删除该起点全部出链的单个 del 批量请求，加入任务队列
+            List<CableOpPacket.Link> batch = new ArrayList<>();
+            for (CableLink link : ClientCableCache.getLinks())
             {
-                CableNetworkChannel.sendToServer(CableActionPacket.cutter(pos));
-
-                if (ClientConfig.enableChatFeedback.get())
+                if (link.getFrom().equals(pos))
                 {
-                    player.sendSystemMessage(
-                        Component.translatable("message.virtual_redstone_wire.cutter_removed",
-                            pos.getX(), pos.getY(), pos.getZ()));
+                    batch.add(new CableOpPacket.Link(
+                        link.getFrom().getX(), link.getFrom().getY(), link.getFrom().getZ(),
+                        link.getTo().getX(), link.getTo().getY(), link.getTo().getZ(),
+                        link.getToFace().getName()));
                 }
-                return InteractionResult.SUCCESS;
             }
-            return InteractionResult.PASS;
+            if (batch.isEmpty())
+            {
+                return InteractionResult.PASS;
+            }
+            if (batch.size() > CableProtocol.BATCH_LIMIT)
+            {
+                return InteractionResult.PASS;
+            }
+            CableClientQueue.enqueue(
+                CableOpPacket.del(batch, level.dimension(), player.getName().getString()));
+
+            if (ClientConfig.enableChatFeedback.get())
+            {
+                player.sendSystemMessage(
+                    Component.translatable("message.virtual_redstone_wire.cutter_removed",
+                        pos.getX(), pos.getY(), pos.getZ()));
+            }
+            return InteractionResult.SUCCESS;
         }
 
         return InteractionResult.PASS;

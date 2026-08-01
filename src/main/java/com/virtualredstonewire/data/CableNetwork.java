@@ -73,6 +73,60 @@ public class CableNetwork
         }
     }
 
+    /**
+     * v0.3.0 元操作 add：创建单条链路。链路已存在返回 false，否则建链并刷新信号。
+     */
+    public boolean addLink(BlockPos from, BlockPos to, Direction toFace, Level level)
+    {
+        CableNode inputNode = getOrCreateNode(from);
+        CableNode outputNode = getOrCreateNode(to);
+        if (inputNode.hasOutgoingFace(to, toFace))
+        {
+            return false;
+        }
+        inputNode.addOutgoing(to, toFace);
+        outputNode.addIncoming(from, toFace);
+        if (level != null)
+        {
+            refreshSource(level, from);
+            level.updateNeighborsAt(from, level.getBlockState(from).getBlock());
+        }
+        return true;
+    }
+
+    /**
+     * v0.3.0 元操作 del：删除单条链路。链路不存在返回 false，否则删链并清零输出信号。
+     */
+    public boolean removeLink(BlockPos from, BlockPos to, Direction toFace, Level level)
+    {
+        CableNode inputNode = getNode(from);
+        if (inputNode == null || !inputNode.hasOutgoingFace(to, toFace))
+        {
+            return false;
+        }
+        CableNode outputNode = getNode(to);
+        inputNode.removeOutgoing(to, toFace);
+        if (outputNode != null)
+        {
+            outputNode.removeIncoming(from, toFace);
+        }
+        if (level != null)
+        {
+            // 清零输出端存储信号并触发邻居更新（灯熄灭）
+            setChannelSignal(level, to, toFace, WORLD_CHANNEL, 0);
+            level.updateNeighborsAt(from, level.getBlockState(from).getBlock());
+        }
+        if (outputNode != null && outputNode.getIncomingCount() == 0 && outputNode.getOutgoingCount() == 0)
+        {
+            removeNode(to);
+        }
+        if (inputNode.getOutgoingCount() == 0 && inputNode.getIncomingCount() == 0)
+        {
+            removeNode(from);
+        }
+        return true;
+    }
+
     public boolean toggleLink(BlockPos from, BlockPos to, Direction toFace)
     {
         return toggleLink(from, to, toFace, null);

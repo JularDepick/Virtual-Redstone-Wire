@@ -1,11 +1,10 @@
 package com.virtualredstonewire.item;
 
+import com.virtualredstonewire.client.CableClientQueue;
 import com.virtualredstonewire.client.ClientCableCache;
 import com.virtualredstonewire.config.ClientConfig;
 import com.virtualredstonewire.config.ServerConfig;
-import com.virtualredstonewire.data.CableLink;
-import com.virtualredstonewire.network.CableActionPacket;
-import com.virtualredstonewire.network.CableNetworkChannel;
+import com.virtualredstonewire.network.CableOpPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -84,9 +83,9 @@ public class VirtualCableItem extends Item
                 return InteractionResult.PASS;
             }
 
-            double distance = Math.sqrt(sel.distSqr(clickedPos));
-            int maxDist = ServerConfig.maxLinkDistance.get();
-            if (distance > maxDist)
+            // v0.3.0：本地 422 类预检（客户端先行校验，服务端兜底）
+            double maxDist = ServerConfig.maxLinkDistance.get();
+            if (Math.sqrt(sel.distSqr(clickedPos)) > maxDist)
             {
                 if (ClientConfig.enableChatFeedback.get())
                 {
@@ -95,38 +94,20 @@ public class VirtualCableItem extends Item
                 }
                 return InteractionResult.PASS;
             }
-
-            boolean alreadyExists = false;
-            String checkId = CableLink.generateId(sel, clickedPos, clickedFace);
-            for (CableLink link : ClientCableCache.getLinks())
+            if (level.isEmptyBlock(sel))
             {
-                if (link.getId().equals(checkId))
-                {
-                    alreadyExists = true;
-                    break;
-                }
+                return InteractionResult.PASS;
             }
 
-            CableNetworkChannel.sendToServer(
-                new CableActionPacket(!alreadyExists, sel, clickedPos, clickedFace));
-
-            if (ClientConfig.enableChatFeedback.get())
-            {
-                if (alreadyExists)
-                {
-                    player.sendSystemMessage(
-                        Component.translatable("message.virtual_redstone_wire.link_removed",
-                            sel.getX(), sel.getY(), sel.getZ(),
-                            clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
-                }
-                else
-                {
-                    player.sendSystemMessage(
-                        Component.translatable("message.virtual_redstone_wire.link_created",
-                            sel.getX(), sel.getY(), sel.getZ(),
-                            clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
-                }
-            }
+            // 意图转换：按本地缓存决定 add/del，加入任务队列（不对缓存执行操作）
+            boolean exists = ClientCableCache.hasLink(sel, clickedPos, clickedFace);
+            CableOpPacket.Link link = new CableOpPacket.Link(
+                sel.getX(), sel.getY(), sel.getZ(),
+                clickedPos.getX(), clickedPos.getY(), clickedPos.getZ(),
+                clickedFace.getName());
+            CableClientQueue.enqueue(exists
+                ? CableOpPacket.del(List.of(link), level.dimension(), player.getName().getString())
+                : CableOpPacket.add(List.of(link), level.dimension(), player.getName().getString()));
 
             return InteractionResult.SUCCESS;
         }

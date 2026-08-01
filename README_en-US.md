@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire
 
-[![Version](https://img.shields.io/badge/Version-0.2.1-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.2.1)
+[![Version](https://img.shields.io/badge/Version-0.3.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.3.0)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
@@ -86,6 +86,8 @@ src/main/java/com/virtualredstonewire/
 │   ├── CableActionPacketHandler.java # Server packet processing + updateNeighborsAt
 │   ├── CableSyncPacket.java          # Server->Client full sync
 │   ├── CableRequestSyncPacket.java   # Client->Server sync request
+│   ├── CableInfoRequestPacket.java   # Client->Server signal query (magnifier panel)
+│   ├── CableInfoResponsePacket.java  # Server->Client signal query response
 │   └── SyncHelper.java               # Entry conversion utilities
 └── registry/
     ├── ModItems.java                 # Item registration
@@ -132,7 +134,7 @@ Build:
 
 ```bash
 gradle build
-# Output: build/libs/VirtualRedstoneWire-0.2.1.jar
+# Output: build/libs/VirtualRedstoneWire-0.3.0.jar
 ```
 
 # Contributing

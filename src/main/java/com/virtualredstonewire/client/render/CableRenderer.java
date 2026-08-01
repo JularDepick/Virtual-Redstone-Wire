@@ -9,8 +9,6 @@ import com.virtualredstonewire.data.CableLink;
 import com.virtualredstonewire.item.CableCutterItem;
 import com.virtualredstonewire.item.CableMagnifierItem;
 import com.virtualredstonewire.item.VirtualCableItem;
-import com.virtualredstonewire.network.CableNetworkChannel;
-import com.virtualredstonewire.network.CableRequestSyncPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -167,19 +165,7 @@ public class CableRenderer
         }
         wasHoldingCable = holdingCable;
 
-        if (holdingCable || holdingMagnifier)
-        {
-            syncCooldown--;
-            if (syncCooldown <= 0)
-            {
-                CableNetworkChannel.sendToServer(new CableRequestSyncPacket());
-                syncCooldown = 20;
-            }
-        }
-        else
-        {
-            syncCooldown = 0;
-        }
+        // v0.3.0：移除 20 tick 全量轮询，改由服务端增量广播与按需 pull 驱动
 
         if (holdingCable)
         {

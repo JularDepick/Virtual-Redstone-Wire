@@ -27,3 +27,6 @@ run/
 
 # Agent Tool
 AGENTS*.md
+
+# docs for some versions
+v*.md

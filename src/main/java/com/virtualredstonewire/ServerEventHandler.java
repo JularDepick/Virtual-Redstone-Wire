@@ -4,12 +4,14 @@ import com.virtualredstonewire.data.CableNetwork;
 import com.virtualredstonewire.data.CableNetworkManager;
 import com.virtualredstonewire.data.CableNetworkSavedData;
 import com.virtualredstonewire.item.VirtualCableItem;
+import com.virtualredstonewire.network.CableServerQueue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.level.LevelEvent;
@@ -24,6 +26,16 @@ public class ServerEventHandler
     public static void onServerStarted(ServerStartedEvent event)
     {
         RedstoneDiagnostics.runAutoTestIfRequested(event.getServer());
+    }
+
+    @SubscribeEvent
+    public static void onServerTick(TickEvent.ServerTickEvent event)
+    {
+        if (event.phase != TickEvent.Phase.END) return;
+        for (ServerLevel level : event.getServer().getAllLevels())
+        {
+            CableServerQueue.processPending(level);
+        }
     }
 
     @SubscribeEvent

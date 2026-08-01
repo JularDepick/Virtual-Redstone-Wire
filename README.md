@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire (虚拟红石线缆)
 
-[![Version](https://img.shields.io/badge/Version-0.2.1-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.2.1)
+[![Version](https://img.shields.io/badge/Version-0.3.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.3.0)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
@@ -86,6 +86,8 @@ src/main/java/com/virtualredstonewire/
 │   ├── CableActionPacketHandler.java # 服务端数据包处理+updateNeighborsAt
 │   ├── CableSyncPacket.java          # 服务端→客户端全量同步
 │   ├── CableRequestSyncPacket.java   # 客户端→服务端同步请求
+│   ├── CableInfoRequestPacket.java   # 客户端→服务端信号查询请求(放大镜面板)
+│   ├── CableInfoResponsePacket.java  # 服务端→客户端信号查询响应
 │   └── SyncHelper.java               # 条目转换工具
 └── registry/
     ├── ModItems.java                 # 物品注册
@@ -132,7 +134,7 @@ gradle --version
 
 ```bash
 gradle build
-# 输出在 build/libs/VirtualRedstoneWire-0.2.1.jar
+# 输出在 build/libs/VirtualRedstoneWire-0.3.0.jar
 ```
 
 # 贡献指南

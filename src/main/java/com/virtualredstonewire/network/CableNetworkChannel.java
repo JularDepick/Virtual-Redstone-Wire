@@ -10,7 +10,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 
 public class CableNetworkChannel
 {
-    private static final String PROTOCOL_VERSION = "2";
+    private static final String PROTOCOL_VERSION = CableProtocol.PROTOCOL_VERSION;
     private static int MESSAGE_ID = 0;
 
     @SuppressWarnings("removal")
@@ -23,34 +23,32 @@ public class CableNetworkChannel
 
     public static void register()
     {
-        CHANNEL.messageBuilder(CableSyncPacket.class, MESSAGE_ID++)
-            .encoder(CableSyncPacket::encode)
-            .decoder(CableSyncPacket::new)
-            .consumerMainThread(CableSyncPacket::handle)
-            .add();
-
-        CHANNEL.messageBuilder(CableActionPacket.class, MESSAGE_ID++)
-            .encoder(CableActionPacket::encode)
-            .decoder(CableActionPacket::new)
-            .consumerMainThread(CableActionPacketHandler::handle)
-            .add();
-
-        CHANNEL.messageBuilder(CableRequestSyncPacket.class, MESSAGE_ID++)
-            .encoder(CableRequestSyncPacket::encode)
-            .decoder(CableRequestSyncPacket::new)
-            .consumerMainThread(CableRequestSyncPacket::handle)
-            .add();
-
+        // 0: 信息面板信号查询请求（v0.2.1 功能，保留）
         CHANNEL.messageBuilder(CableInfoRequestPacket.class, MESSAGE_ID++)
             .encoder(CableInfoRequestPacket::encode)
             .decoder(CableInfoRequestPacket::new)
             .consumerMainThread(CableInfoRequestPacket::handle)
             .add();
 
+        // 1: 信息面板信号查询响应（v0.2.1 功能，保留）
         CHANNEL.messageBuilder(CableInfoResponsePacket.class, MESSAGE_ID++)
             .encoder(CableInfoResponsePacket::encode)
             .decoder(CableInfoResponsePacket::new)
             .consumerMainThread(CableInfoResponsePacket::handle)
+            .add();
+
+        // 2: v0.3.0 操作请求（add/del/pull，JSON 载荷）
+        CHANNEL.messageBuilder(CableOpPacket.class, MESSAGE_ID++)
+            .encoder(CableOpPacket::encode)
+            .decoder(CableOpPacket::new)
+            .consumerMainThread(CableOpPacketHandler::handle)
+            .add();
+
+        // 3: v0.3.0 消息（d/f/r，JSON 载荷）
+        CHANNEL.messageBuilder(CableMsgPacket.class, MESSAGE_ID++)
+            .encoder(CableMsgPacket::encode)
+            .decoder(CableMsgPacket::new)
+            .consumerMainThread(CableMsgPacket::handle)
             .add();
     }
 

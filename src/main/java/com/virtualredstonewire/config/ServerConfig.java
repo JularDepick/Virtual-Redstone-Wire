@@ -9,6 +9,8 @@ public class ServerConfig
 
     public static final ForgeConfigSpec.IntValue maxLinkDistance;
     public static final ForgeConfigSpec.IntValue magnifierRenderDistance;
+    public static final ForgeConfigSpec.IntValue networkChangeLogSize;
+    public static final ForgeConfigSpec.BooleanValue networkChangeLogEnabled;
 
     static
     {
@@ -23,6 +25,19 @@ public class ServerConfig
             .defineInRange("magnifierRenderDistance", 512, 64, 1024);
 
         BUILDER.pop();
+
+        BUILDER.push("Network");
+
+        networkChangeLogSize = BUILDER
+            .comment("Capacity of the recent change table for incremental sync (200-1000)")
+            .defineInRange("networkChangeLogSize", 200, 200, 1000);
+
+        networkChangeLogEnabled = BUILDER
+            .comment("Log every client operation request to a per-world JSON Lines file (for audit, no restore)")
+            .define("networkChangeLogEnabled", false);
+
+        BUILDER.pop();
+
         SPEC = BUILDER.build();
     }
 }
