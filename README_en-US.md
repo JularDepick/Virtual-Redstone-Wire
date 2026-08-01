@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire
 
-[![Version](https://img.shields.io/badge/Version-0.2.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.2.0)
+[![Version](https://img.shields.io/badge/Version-0.2.1-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.2.1)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
@@ -11,13 +11,15 @@
 
 </div>
 
-A Minecraft Forge 1.20.1 mod for wireless redstone signal transmission without physical redstone dust. Supports one-to-one, one-to-many, and many-to-one connections.
+A Minecraft mod for long-distance redstone signal transmission that does not rely on physical redstone blocks, supporting one-to-one, one-to-many, and many-to-one connections.
 
 ---
 
 # Usage Guide
 
-No mod dependencies required. Fully compatible with vanilla Minecraft.
+This mod heavily depends on Forge, but has no prerequisite mod dependencies and is not tied to any other mod or modpack.
+
+Currently supports Minecraft 1.20.1 only. For compatibility with other versions, please [submit an Issue](https://github.com/JularDepick/Virtual-Redstone-Wire/issues/new) or [contribute](#contributing).
 
 ## Virtual Cable
 
@@ -122,7 +124,7 @@ src/main/resources/
 Make sure the environment meets these requirements:
 
 | Component | Requirement |
-|:---:|:---|
+|:---:|:---:|
 | JDK | 17 (Eclipse Temurin / Adoptium recommended) |
 | Gradle | 8.14.3 |
 | Minecraft | 1.20.1 (Forge 47.4.22) |
@@ -141,8 +143,12 @@ Build:
 
 ```bash
 gradle build
-# Output: build/libs/VirtualRedstoneWire-0.2.0.jar
+# Output: build/libs/VirtualRedstoneWire-0.2.1.jar
 ```
+
+# Contributing
+
+See [CONTRIBUTING_en-US.md](./CONTRIBUTING_en-US.md)
 
 # License
 
@@ -150,6 +156,8 @@ This project is open source under the [MIT License](./LICENSE).
 
 # Copyright
 
-(c) 2026 JularDepick
-Contact: JularDepick@gmail.com | 1724834368@qq.com
-GitHub: https://github.com/JularDepick/Virtual-Redstone-Wire
+Copyright (c) 2026 JularDepick
+
+See the [COPYRIGHT file](./COPYRIGHT)
+
+> Darn it, Dickseep, this mod cost me 20 bucks, came out a total mess that drove me mad, and only after a hard crack of the whip did we finally get a usable version

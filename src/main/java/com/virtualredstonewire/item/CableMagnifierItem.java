@@ -28,7 +28,7 @@ public class CableMagnifierItem extends Item
         Player player = context.getPlayer();
         if (player == null) return InteractionResult.PASS;
 
-        if (level.isClientSide && player.isShiftKeyDown())
+        if (level.isClientSide && player.isCrouching())
         {
             CableInfoScreenOpener.open(context.getClickedPos());
             return InteractionResult.SUCCESS;

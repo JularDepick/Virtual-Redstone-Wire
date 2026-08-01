@@ -13,6 +13,7 @@ public class CableNetworkChannel
     private static final String PROTOCOL_VERSION = "2";
     private static int MESSAGE_ID = 0;
 
+    @SuppressWarnings("removal")
     public static final SimpleChannel CHANNEL =
         NetworkRegistry.newSimpleChannel(
             new ResourceLocation(VirtualRedstoneWire.MOD_ID, "main"),
@@ -38,6 +39,18 @@ public class CableNetworkChannel
             .encoder(CableRequestSyncPacket::encode)
             .decoder(CableRequestSyncPacket::new)
             .consumerMainThread(CableRequestSyncPacket::handle)
+            .add();
+
+        CHANNEL.messageBuilder(CableInfoRequestPacket.class, MESSAGE_ID++)
+            .encoder(CableInfoRequestPacket::encode)
+            .decoder(CableInfoRequestPacket::new)
+            .consumerMainThread(CableInfoRequestPacket::handle)
+            .add();
+
+        CHANNEL.messageBuilder(CableInfoResponsePacket.class, MESSAGE_ID++)
+            .encoder(CableInfoResponsePacket::encode)
+            .decoder(CableInfoResponsePacket::new)
+            .consumerMainThread(CableInfoResponsePacket::handle)
             .add();
     }
 

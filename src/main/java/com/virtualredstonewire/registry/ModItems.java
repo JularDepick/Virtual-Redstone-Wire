@@ -18,13 +18,13 @@ public class ModItems
         DeferredRegister.create(ForgeRegistries.ITEMS, VirtualRedstoneWire.MOD_ID);
 
     public static final RegistryObject<Item> VIRTUAL_CABLE = ITEMS.register("virtual_cable",
-        () -> new VirtualCableItem(new Item.Properties().stacksTo(1)));
+        () -> new VirtualCableItem(new Item.Properties().stacksTo(64)));
 
     public static final RegistryObject<Item> CABLE_CUTTER = ITEMS.register("cable_cutter",
-        () -> new CableCutterItem(new Item.Properties().stacksTo(1)));
+        () -> new CableCutterItem(new Item.Properties().stacksTo(64)));
 
     public static final RegistryObject<Item> CABLE_MAGNIFIER = ITEMS.register("cable_magnifier",
-        () -> new CableMagnifierItem(new Item.Properties().stacksTo(1)));
+        () -> new CableMagnifierItem(new Item.Properties().stacksTo(64)));
 
     @Mod.EventBusSubscriber(modid = VirtualRedstoneWire.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
     public static class TabRegistration

@@ -44,8 +44,6 @@ public class CableRenderer
     private static final float[] COLOR_OUTPUT = hexToRgba("#FFFF63");
     // - active link beam
     private static final float[] COLOR_LINE = hexToRgba("#FF0000");
-    // - input outline of links that are not selected (dimmer, same hue as the active beam)
-    private static final float[] COLOR_LINK_UNSELECTED = hexToRgba("#B71C1C");
 
     private static float[] hexToRgba(String hex)
     {
@@ -132,7 +130,7 @@ public class CableRenderer
             }
             else if (holdingCable || holdingCutter)
             {
-                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), COLOR_LINK_UNSELECTED, level, cx, cy, cz);
+                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), COLOR_INPUT, level, cx, cy, cz);
             }
         }
 
