@@ -19,6 +19,8 @@
 
 本模组高度依赖Forge，但无前置模组依赖，也不绑定任何其他模组或整合包。
 
+当前模组仅支持 Minecraft 1.20.1版本,如需做其他版本兼容适配,请 [提交Issue](https://github.com/JularDepick/Virtual-Redstone-Wire/issues/new)或 [进行贡献](#贡献指南) 。
+
 ## 线缆
 
 合成: 红石 + 铁锭
@@ -143,6 +145,10 @@ gradle --version
 gradle build
 # 输出在 build/libs/VirtualRedstoneWire-0.2.1.jar
 ```
+
+# 贡献指南
+
+详见 [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 # 许可证
 
