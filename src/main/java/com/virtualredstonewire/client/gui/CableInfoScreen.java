@@ -2,6 +2,8 @@ package com.virtualredstonewire.client.gui;
 
 import com.virtualredstonewire.client.ClientCableCache;
 import com.virtualredstonewire.data.CableLink;
+import com.virtualredstonewire.network.CableInfoRequestPacket;
+import com.virtualredstonewire.network.CableNetworkChannel;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
@@ -17,8 +19,14 @@ public class CableInfoScreen extends Screen
     private static final int HEADER_HEIGHT = 16;
     private static final int LINE_HEIGHT = 11;
 
+    private static volatile CableInfoScreen activeScreen;
+
     private final BlockPos queryPos;
-    private final List<String> lines;
+    private final List<String> lines = new ArrayList<>();
+    private final List<Integer> outEntryLines = new ArrayList<>();
+    private final List<Integer> inEntryLines = new ArrayList<>();
+    private int signalLineIndex = -1;
+    private int signal = -1; // -1 = 等待服务端返回
     private int panelWidth;
     private int panelLeft;
     private int panelTop;
@@ -30,9 +38,23 @@ public class CableInfoScreen extends Screen
     {
         super(Component.translatable("screen.virtual_redstone_wire.cable_info"));
         this.queryPos = pos.immutable();
-        this.lines = new ArrayList<>();
 
-        lines.add("[" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + "]");
+        lines.add(Component.translatable(
+            "screen.virtual_redstone_wire.cable_info.position",
+            pos.getX(), pos.getY(), pos.getZ()).getString());
+
+        signalLineIndex = lines.size();
+        String pending = Component.translatable(
+            "screen.virtual_redstone_wire.cable_info.pending").getString();
+        lines.add(Component.translatable(
+            "screen.virtual_redstone_wire.cable_info.signal", pending).getString());
+
+        String none = Component.translatable(
+            "screen.virtual_redstone_wire.cable_info.none").getString();
+        String arrowOut = Component.translatable(
+            "screen.virtual_redstone_wire.cable_info.arrow_out").getString();
+        String arrowIn = Component.translatable(
+            "screen.virtual_redstone_wire.cable_info.arrow_in").getString();
 
         List<String> out = new ArrayList<>();
         List<String> in = new ArrayList<>();
@@ -40,25 +62,82 @@ public class CableInfoScreen extends Screen
         {
             if (link.getFrom().equals(pos))
             {
-                out.add("-> [" + link.getTo().getX() + "," + link.getTo().getY()
+                out.add(arrowOut + " [" + link.getTo().getX() + "," + link.getTo().getY()
                     + "," + link.getTo().getZ() + "] " + link.getToFace().getName());
             }
             if (link.getTo().equals(pos))
             {
-                in.add("<- [" + link.getFrom().getX() + "," + link.getFrom().getY()
+                in.add(arrowIn + " [" + link.getFrom().getX() + "," + link.getFrom().getY()
                     + "," + link.getFrom().getZ() + "] " + link.getToFace().getName());
             }
         }
-        if (!out.isEmpty())
+        if (out.isEmpty())
         {
-            lines.add("out: " + out.size());
+            lines.add(Component.translatable(
+                "screen.virtual_redstone_wire.cable_info.outgoing", none).getString());
+        }
+        else
+        {
+            lines.add(Component.translatable(
+                "screen.virtual_redstone_wire.cable_info.outgoing", out.size()).getString());
+            int base = lines.size();
+            for (int i = 0; i < out.size(); i++)
+            {
+                outEntryLines.add(base + i);
+            }
             lines.addAll(out);
         }
-        if (!in.isEmpty())
+        if (in.isEmpty())
         {
-            lines.add("in: " + in.size());
+            lines.add(Component.translatable(
+                "screen.virtual_redstone_wire.cable_info.incoming", none).getString());
+        }
+        else
+        {
+            lines.add(Component.translatable(
+                "screen.virtual_redstone_wire.cable_info.incoming", in.size()).getString());
+            int base = lines.size();
+            for (int i = 0; i < in.size(); i++)
+            {
+                inEntryLines.add(base + i);
+            }
             lines.addAll(in);
         }
+
+        activeScreen = this;
+
+        // 请求服务端查询该方块当前的红石信号强度（含虚拟链路信号）
+        CableNetworkChannel.sendToServer(new CableInfoRequestPacket(queryPos));
+    }
+
+    public static CableInfoScreen getActiveScreen()
+    {
+        return activeScreen;
+    }
+
+    public BlockPos getQueryPos()
+    {
+        return queryPos;
+    }
+
+    public void onSignalReceived(int received)
+    {
+        this.signal = received;
+        if (signalLineIndex >= 0 && signalLineIndex < lines.size())
+        {
+            lines.set(signalLineIndex, Component.translatable(
+                "screen.virtual_redstone_wire.cable_info.signal", received).getString());
+        }
+    }
+
+    @Override
+    public void onClose()
+    {
+        if (activeScreen == this)
+        {
+            activeScreen = null;
+        }
+        super.onClose();
     }
 
     @Override
@@ -108,13 +187,14 @@ public class CableInfoScreen extends Screen
         graphics.enableScissor(panelLeft, contentTop, panelLeft + panelWidth, contentBottom);
 
         int y = contentTop - (int) scrollOffset;
-        for (String line : lines)
+        for (int i = 0; i < lines.size(); i++)
         {
-            int color = 0xAAAAAA;
-            if (line.startsWith("[")) color = 0x55AAFF;
-            else if (line.startsWith("->")) color = 0x55FFFF;
-            else if (line.startsWith("<-")) color = 0xFFFF55;
-            else if (line.startsWith("out:") || line.startsWith("in:")) color = 0x888888;
+            String line = lines.get(i);
+            int color = 0x888888;
+            if (i == 0) color = 0x55AAFF;
+            else if (i == signalLineIndex) color = signal > 0 ? 0x55FF55 : 0x888888;
+            else if (outEntryLines.contains(i)) color = 0x55FFFF;
+            else if (inEntryLines.contains(i)) color = 0xFFFF55;
             graphics.drawString(font, Component.literal(line), panelLeft + 2, y, color);
             y += LINE_HEIGHT;
         }
