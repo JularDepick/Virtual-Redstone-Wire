@@ -24,6 +24,10 @@ public class CableNetworkManager
     public static void markDirty(Level level)
     {
         DIRTY_FLAGS.put(level.dimension(), true);
+        if (level instanceof ServerLevel serverLevel)
+        {
+            CableNetworkSavedData.get(serverLevel).setDirty();
+        }
     }
 
     public static boolean isDirty(ResourceKey<Level> dimension)

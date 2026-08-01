@@ -53,7 +53,7 @@ public class CableNetwork
             // DBW 语义：删链后将该输出端存储信号清零，并立即触发邻居更新让灯熄灭
             setChannelSignal(level, to, toFace, WORLD_CHANNEL, 0);
 
-            if (outputNode.getIncomingCount() == 0 && inputNode.getIncomingCount() == 0)
+            if (outputNode.getIncomingCount() == 0 && outputNode.getOutgoingCount() == 0)
             {
                 removeNode(to);
             }
@@ -93,7 +93,7 @@ public class CableNetwork
             if (targetNode != null)
             {
                 targetNode.removeIncoming(from, toFace);
-                if (targetNode.getIncomingCount() == 0)
+                if (targetNode.getIncomingCount() == 0 && targetNode.getOutgoingCount() == 0)
                 {
                     removeNode(toPos);
                 }
