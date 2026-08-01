@@ -160,6 +160,10 @@ Copyright (c) 2026 JularDepick
 
 详见 [COPYRIGHT文件](./COPYRIGHT)
 
+# 开发参考
+
+本模组开发部分参考了 Drive By Wire 模组的交互效果和实现逻辑。
+
 # 需要协作
 
 - 缺少多Minecraft版本兼容

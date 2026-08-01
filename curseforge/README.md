@@ -1,0 +1,244 @@
+# Virtual Redstone Wire
+
+[English]
+| [[简体中文]](#虚拟红石线缆)
+
+A Minecraft mod for long-distance redstone signal transmission that does not rely on physical redstone blocks, supporting one-to-one, one-to-many, and many-to-one connections.
+
+---
+
+## What does it do
+
+Virtual Redstone Wire lets you transmit redstone signals between blocks wirelessly. Create a one-way link from an input block to an output block, and the redstone power at the input is mirrored to the output instantly. No cables, no physical redstone dust, no block entities.
+
+---
+
+## Features
+
+- **Wireless redstone links** - link blocks up to 256 blocks apart (configurable, 1-1024)
+- **One-way directional links** - signal exits from the clicked face of the output block; a redstone lamp placed on the output block lights up directly
+- **Signal strength preserved** - transmits 0-15 signal strength, not just on/off
+- **One-to-many broadcast** - one input can feed multiple outputs
+- **Many-to-one merge** - multiple inputs can feed one output (highest signal wins)
+- **Works after building** - place the signal source, flip a lever, or remove a source at any time; links refresh in real time
+- **Zero space occupation** - no block entities, fully vanilla-compatible world
+- **Cable Magnifier** - highlights all links while held (blue input, yellow output, red path); sneak-right-click a block to inspect its links, or right-click a block to show its redstone signal strength above the hotbar
+- **Cable Cutter** - removes all outgoing links of an input block at once
+
+---
+
+## Items
+
+| Item | Crafting |
+|:---:|:---:|
+| Virtual Cable | Redstone + Iron Ingot |
+| Cable Cutter | Iron Ingot + Stick x2 |
+| Cable Magnifier | Redstone + Glass Pane + Stick |
+
+---
+
+## Usage
+
+### Virtual Cable
+
+1. Hold a **Virtual Cable** and right-click an input block to select it
+2. Right-click an output block to create the one-way link (right-click the same block again to cancel)
+3. Power the input block with any redstone source; the output block delivers the signal from the clicked face
+
+### Cable Cutter
+
+- Right-click an input block to remove all links originating from it (only affects links where the block is the input/source)
+
+### Cable Magnifier
+
+- While held: all links are highlighted (blue input, yellow output, red path)
+- Sneak-right-click a block: open its link information panel
+- Right-click a block: show its redstone signal strength above the hotbar
+
+---
+
+## Requirements
+
+- Forge 47.4.22+
+- No other mod dependencies
+
+---
+
+## Configuration
+
+### How to configure
+
+1. Start the game (or server) once to generate the config files
+2. Open the config file with a text editor:
+   - Server config: `config/virtual_redstone_wire-server.toml` (edit on the machine running the server)
+   - Client config: `config/virtual_redstone_wire-client.toml`
+3. Change the values and save the file
+4. Restart the game or server for the changes to take effect
+
+Example (server, `config/virtual_redstone_wire-server.toml`):
+
+```toml
+maxLinkDistance = 512
+```
+
+### Server options
+
+- `maxLinkDistance` - maximum link distance in blocks (default 256, range 1-1024)
+- `magnifierRenderDistance` - render distance for link visualization (default 512, range 64-1024)
+- `networkChangeLogSize` - capacity of the recent change table for incremental sync (default 200, range 200-1000)
+- `networkChangeLogEnabled` - log every client operation to a per-world JSON Lines file for audit (default false)
+
+### Client options
+
+- `enableChatFeedback` - chat feedback for operations (default false)
+
+---
+
+## Language Support
+
+This mod is fully translated into:
+
+- **简体中文** (Simplified Chinese)
+- **English**
+
+The in-game text (item tooltips, information panel, chat feedback, etc.) follows your Minecraft language setting automatically. No mod configuration is required.
+
+### How to switch language
+
+1. Open the game and go to **Options -> Language**
+2. Select **简体中文 (China)** or **English (US)**
+3. Confirm; the mod text switches immediately
+
+The language setting is **client-side**: each player chooses their own language, and the server needs no configuration.
+
+---
+
+## Notes
+
+- Chat feedback is disabled by default and can be enabled in the client config
+- This mod is inspired by Drive-By-Wire cable logic and works in a vanilla world with no mod dependencies
+- **For support on more Minecraft versions, or to report issues and request features, visit the GitHub repository**: [https://github.com/JularDepick/Virtual-Redstone-Wire](https://github.com/JularDepick/Virtual-Redstone-Wire)
+
+---
+
+
+# 虚拟红石线缆
+
+[[English]](#virtual-redstone-wire)
+| [简体中文]
+
+用于红石信号远程传递的 Minecraft 模组，不依赖实体红石方块，支持一对一、一对多、多对一连接。
+
+---
+
+## 功能简介
+
+虚拟红石线缆可让您在方块之间无线传输红石信号。在输入端方块与输出端方块之间创建单向链路后，输入端的红石能量会即时反映到输出端。无需线缆、无需实体红石粉、无需方块实体。
+
+---
+
+## 特性
+
+- **无线红石链路** - 方块间最远可链接 256 格（可配置，范围 1-1024）
+- **单向定向链路** - 信号从输出方块的指定面射出；放在输出端方块本体上的红石灯可直接点亮
+- **保留信号强度** - 传输 0-15 级信号强度，而非简单的开关
+- **一对多广播** - 一个输入端可连接多个输出端
+- **多对一合并** - 多个输入端可连接一个输出端（取最大信号）
+- **建链后仍可调整** - 随时放置信号源、拨动拉杆或移除信号源，链路实时刷新
+- **零空间占用** - 不使用方块实体，完全兼容原版世界
+- **线缆放大镜** - 手持时高亮全部链路（蓝框输入、黄框输出、红线路径）；潜行右键方块查看链路信息，或右键方块在快捷栏上方显示其红石信号强度
+- **线缆剪** - 一次移除输入端方块的全部出链
+
+---
+
+## 物品
+
+| 物品 | 合成 |
+|:---:|:---:|
+| 虚拟线缆 | 红石 + 铁锭 |
+| 线缆剪 | 铁锭 + 木棍 x2 |
+| 线缆放大镜 | 红石 + 玻璃板 + 木棍 |
+
+---
+
+## 使用方法
+
+### 虚拟线缆
+
+1. 手持**虚拟线缆**右键输入端方块以选中
+2. 右键输出端方块创建单向链路（再次右键同一方块可取消选中）
+3. 用任意红石源为输入端方块供能，输出端方块将从指定面射出信号
+
+### 线缆剪
+
+- 右键输入端方块，移除以其为起点的全部链路（仅作用于该方块作为输入端/起点的链路）
+
+### 线缆放大镜
+
+- 手持时：高亮全部链路（蓝框输入、黄框输出、红线路径）
+- 潜行右键方块：打开其链路信息面板
+- 右键方块：在快捷栏上方显示其红石信号强度
+
+---
+
+## 环境要求
+
+- Forge 47.4.22+
+- 无其他模组依赖
+
+---
+
+## 配置
+
+### 配置方法
+
+1. 先启动一次游戏（或服务器）以生成配置文件
+2. 用文本编辑器打开配置文件：
+   - 服务端配置：`config/virtual_redstone_wire-server.toml`（请在运行服务器的机器上修改）
+   - 客户端配置：`config/virtual_redstone_wire-client.toml`
+3. 修改数值并保存
+4. 重启游戏或服务器后生效
+
+示例（服务端，`config/virtual_redstone_wire-server.toml`）：
+
+```toml
+maxLinkDistance = 512
+```
+
+### 服务端选项
+
+- `maxLinkDistance` - 最大链路距离（默认 256，范围 1-1024）
+- `magnifierRenderDistance` - 链路可视化渲染距离（默认 512，范围 64-1024）
+- `networkChangeLogSize` - 增量同步近期变更表容量（默认 200，范围 200-1000）
+- `networkChangeLogEnabled` - 将每次客户端操作记入世界独立 JSON Lines 日志文件，便于审计（默认关闭）
+
+### 客户端选项
+
+- `enableChatFeedback` - 操作聊天反馈（默认关闭）
+
+---
+
+## 语言支持
+
+本模组内置完整翻译：
+
+- **简体中文**
+- **英文**
+
+游戏内文本（物品提示、信息面板、聊天反馈等）会跟随您的 Minecraft 语言设置自动切换，无需任何模组配置。
+
+### 切换方法
+
+1. 进入游戏后打开 **选项 -> 语言**
+2. 选择 **简体中文** 或 **English (US)**
+3. 确认后模组文本立即切换
+
+语言设置为**客户端级**：每位玩家可自选语言，服务端无需任何配置。
+
+---
+
+## 附注
+
+- 聊天反馈默认关闭，可在客户端配置中启用
+- 本模组受 Drive-By-Wire 线缆逻辑启发，可在原版世界使用，无模组依赖
+- **如需更多游戏版本支持、反馈问题或建议功能，请前往 GitHub 仓库**：[https://github.com/JularDepick/Virtual-Redstone-Wire](https://github.com/JularDepick/Virtual-Redstone-Wire)

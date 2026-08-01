@@ -11,9 +11,7 @@ logoFile="virtual_redstone_wire.png"
 credits="JudeBlack"
 authors="JudeBlack"
 description='''
-Virtual Redstone Wire mod for wireless redstone signal transmission.
-Create one-way redstone links between blocks up to 256 blocks apart.
-Inspired by Drive-By-Wire cable logic, works in vanilla world with no mod dependencies.
+A Minecraft mod for long-distance redstone signal transmission that does not rely on physical redstone blocks, supporting one-to-one, one-to-many, and many-to-one connections.
 '''
 
 [[dependencies.virtual_redstone_wire]]
