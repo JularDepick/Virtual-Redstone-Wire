@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire (虚拟红石线缆)
 
-[![Version](https://img.shields.io/badge/Version-0.2.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.2.0)
+[![Version](https://img.shields.io/badge/Version-0.2.1-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.2.1)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
@@ -22,20 +22,19 @@
 ## 线缆
 
 合成: 红石 + 铁锭
-操作: 右键源方块选定输入端, 再右键目标方块建立链路 (再次右键同一方块取消选中)
-特性: 不消耗可复用; 输入端可连接多个输出端, 输出端可接收多个输入端 (取最大信号)
+操作: 右键输入端方块，再右键输出端方块，创建单向红石链路
+特性: 信号强度沿链路传播；再次右键同一方块可取消选中；输入端可连接多个输出端，输出端可接收多个输入端 (取最大信号)
 
 ## 线缆剪
 
 合成: 铁锭 + 木棍 x2
-操作: 右键输入端方块, 断开其全部出链
-特性: 不消耗可复用
+操作: 右键输入端方块，切断其全部出链
+特性: 仅作用于该方块作为输入端(起点)的链路
 
 ## 线缆放大镜
 
 合成: 红石 + 玻璃板 + 木棍
-操作: 手持时高亮显示全部链路 (蓝=输入端, 黄=输出端, 红=链路), 右键方块打开其关联链路面板
-特性: 不消耗可复用
+操作: 手持时高亮显示全部链路（蓝框是输入端，黄框是输出端，红线是链路路径）；潜行右键方块，查看其链路信息
 
 ## 红石行为
 
@@ -77,7 +76,7 @@ src/main/java/com/virtualredstonewire/
 │   └── VRedTestCommand.java          # /vredtest 诊断命令
 ├── config/
 │   ├── ServerConfig.java             # 服务端配置(距离限制)
-│   └── ClientConfig.java             # 客户端配置(聊天/颜色/线宽)
+│   └── ClientConfig.java             # 客户端配置(聊天反馈)
 ├── data/
 │   ├── CableLink.java                # 链路数据模型(纯渲染载体)
 │   ├── CableNetwork.java             # 电缆网络图(结点索引+存储式信号查询)
@@ -142,7 +141,7 @@ gradle --version
 
 ```bash
 gradle build
-# 输出在 build/libs/VirtualRedstoneWire-0.2.0.jar
+# 输出在 build/libs/VirtualRedstoneWire-0.2.1.jar
 ```
 
 # 许可证

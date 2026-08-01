@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.virtualredstonewire.VirtualRedstoneWire;
 import com.virtualredstonewire.client.ClientCableCache;
-import com.virtualredstonewire.config.ClientConfig;
 import com.virtualredstonewire.config.ServerConfig;
 import com.virtualredstonewire.data.CableLink;
 import com.virtualredstonewire.item.CableCutterItem;
@@ -36,6 +35,18 @@ public class CableRenderer
     private static final float BEAM_THICKNESS = 0.02f;
     private static final float OUTLINE_EXPAND = 0.001f;
 
+    // Fixed color palette (not configurable):
+    // - unselected input outline / magnifier browsing color
+    private static final float[] COLOR_INPUT = hexToRgba("#64B5F6");
+    // - currently selected input block
+    private static final float[] COLOR_INPUT_SELECTED = hexToRgba("#00BFFF");
+    // - output face outline
+    private static final float[] COLOR_OUTPUT = hexToRgba("#FFFF63");
+    // - active link beam
+    private static final float[] COLOR_LINE = hexToRgba("#FF0000");
+    // - input outline of links that are not selected (dimmer, same hue as the active beam)
+    private static final float[] COLOR_LINK_UNSELECTED = hexToRgba("#B71C1C");
+
     private static float[] hexToRgba(String hex)
     {
         String h = hex.startsWith("#") ? hex.substring(1) : hex;
@@ -51,31 +62,6 @@ public class CableRenderer
         {
             return new float[]{1,0,0,1};
         }
-    }
-
-    private static float[] getColorInput()
-    {
-        return hexToRgba(ClientConfig.colorInput.get());
-    }
-
-    private static float[] getColorOutput()
-    {
-        return hexToRgba(ClientConfig.colorOutput.get());
-    }
-
-    private static float[] getColorLine()
-    {
-        return hexToRgba(ClientConfig.colorLine.get());
-    }
-
-    private static float[] getColorDim()
-    {
-        return hexToRgba(ClientConfig.colorDim.get());
-    }
-
-    private static float[] getColorSelected()
-    {
-        return hexToRgba(ClientConfig.colorSelected.get());
     }
 
     @SubscribeEvent
@@ -132,27 +118,27 @@ public class CableRenderer
 
             if (holdingMagnifier)
             {
-                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), getColorInput(), level, cx, cy, cz);
+                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), COLOR_INPUT, level, cx, cy, cz);
                 renderFaceOutline(poseStack, bufferSource,
-                    link.getTo(), link.getToFace(), getColorOutput(), cx, cy, cz);
-                renderCableBeam(poseStack, bufferSource, fromCenter, cableEnd, getColorLine());
+                    link.getTo(), link.getToFace(), COLOR_OUTPUT, cx, cy, cz);
+                renderCableBeam(poseStack, bufferSource, fromCenter, cableEnd, COLOR_LINE);
             }
             else if (holdingCable && isFromSelected)
             {
-                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), getColorInput(), level, cx, cy, cz);
+                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), COLOR_INPUT_SELECTED, level, cx, cy, cz);
                 renderFaceOutline(poseStack, bufferSource,
-                    link.getTo(), link.getToFace(), getColorOutput(), cx, cy, cz);
-                renderCableBeam(poseStack, bufferSource, fromCenter, cableEnd, getColorLine());
+                    link.getTo(), link.getToFace(), COLOR_OUTPUT, cx, cy, cz);
+                renderCableBeam(poseStack, bufferSource, fromCenter, cableEnd, COLOR_LINE);
             }
             else if (holdingCable || holdingCutter)
             {
-                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), getColorSelected(), level, cx, cy, cz);
+                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), COLOR_LINK_UNSELECTED, level, cx, cy, cz);
             }
         }
 
         if (selectedInput != null)
         {
-            renderBlockOutlineBeams(poseStack, bufferSource, selectedInput, getColorDim(), level, cx, cy, cz);
+            renderBlockOutlineBeams(poseStack, bufferSource, selectedInput, COLOR_INPUT_SELECTED, level, cx, cy, cz);
         }
 
         bufferSource.endBatch(RenderType.debugQuads());

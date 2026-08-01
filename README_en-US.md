@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire
 
-[![Version](https://img.shields.io/badge/Version-0.2.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.2.0)
+[![Version](https://img.shields.io/badge/Version-0.2.1-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.2.1)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
@@ -22,20 +22,19 @@ No mod dependencies required. Fully compatible with vanilla Minecraft.
 ## Virtual Cable
 
 Crafting: Redstone + Iron Ingot
-Usage: Right-click a source block to select the input, then right-click a target block to create the link (right-click the same block again to cancel)
-Notes: Reusable; one input can feed multiple outputs, one output can take multiple inputs (highest signal wins)
+Usage: Right-click an input block, then an output block, to create a one-way redstone link
+Notes: Signal strength propagates along the link; right-click the same block again to cancel; one input can feed multiple outputs, one output can take multiple inputs (highest signal wins)
 
 ## Cable Cutter
 
 Crafting: Iron Ingot + Stick x2
-Usage: Right-click an input block to remove all links originating from it
-Notes: Reusable
+Usage: Right-click an input block to cut all links originating from it
+Notes: Only affects links where this block is the input (source)
 
 ## Cable Magnifier
 
 Crafting: Redstone + Glass Pane + Stick
-Usage: While held, all links are highlighted (blue=input, yellow=output, red=link path); right-click a block to open its link panel
-Notes: Reusable
+Usage: While held, highlights all links (blue is input, yellow is output, red is link path); sneak-right-click a block to inspect its links
 
 ## Redstone Behavior
 
@@ -77,7 +76,7 @@ src/main/java/com/virtualredstonewire/
 │   └── VRedTestCommand.java          # /vredtest diagnostics command
 ├── config/
 │   ├── ServerConfig.java             # Server config (distance limits)
-│   └── ClientConfig.java             # Client config (chat/color/line width)
+│   └── ClientConfig.java             # Client config (chat feedback)
 ├── data/
 │   ├── CableLink.java                # Link data model (render-only carrier)
 │   ├── CableNetwork.java             # Network graph (node index + stored signal query)
@@ -142,7 +141,7 @@ Build:
 
 ```bash
 gradle build
-# Output: build/libs/VirtualRedstoneWire-0.2.0.jar
+# Output: build/libs/VirtualRedstoneWire-0.2.1.jar
 ```
 
 # License
