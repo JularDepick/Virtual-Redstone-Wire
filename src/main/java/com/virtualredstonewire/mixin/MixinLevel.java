@@ -7,84 +7,63 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.SignalGetter;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
- * v0.4.0 纯 mixin 方案（零空间占用）：
- * 采用 interface-implementation 方式覆写 SignalGetter 的 default 方法 getSignal/getDirectSignal。
- * 与旧版 @Inject(remap=false) 的区别：
- *   - reobf 后方法名自动正确（混淆后为 m_277185_ 等），不依赖 refmap/remap 参数，
- *     产环境（混淆 jar）下 100% 生效，根治"生产环境注入静默失效"问题；
- *   - 虚拟输出端（网络节点）返回网络信号，direction 无关（全向），
- *     玩家把红石灯放在输出端任意相邻面都能点亮，消除"点击面 vs 输出面"歧义；
- *   - 非虚拟节点回退原版逻辑（isSignalSource ? state.getSignal : 0），不影响其他红石。
+ * v0.4.0 纯 mixin 方案（零空间占用），v0.5.0 对齐 DBW 存储式语义：
+ *   - 仅覆写 getSignal（不覆写 getDirectSignal，强充能/比较器/活塞行为回到原版）；
+ *   - 与 DBW MixinServerLevel 一致：查询节点 (pos.relative(direction.getOpposite()), direction)
+ *     的存储信号，返回 max(原版默认值, 网络存储信号)；
+ *   - 节点 (out, dir) 语义：玩家点击输出方块 out 的 dir 面建链，红石灯放在 out
+ *     本身上即可点亮（灯查询 getBestNeighborSignal(out) 时会调用
+ *     getSignal(out.relative(dir), dir)，命中该节点）；
+ *   - 信号为事件主动写入存储（ServerEvents），查询时纯读，无递归，无需环路保护。
+ * 采用 interface-implementation 方式覆写 SignalGetter 的 default 方法 getSignal：
+ * reobf 后方法名自动正确（混淆后为 m_277185_），产环境下 100% 生效。
  */
 @Mixin(Level.class)
 public abstract class MixinLevel implements SignalGetter
 {
-    /** 按位置环路保护：查询某 pos 过程中再次查询同一 pos 时直接返回 0，避免递归死循环。 */
-    private static final ThreadLocal<Set<BlockPos>> COMPUTING =
-        ThreadLocal.withInitial(HashSet::new);
-
     @Override
     public int getSignal(BlockPos pos, Direction direction)
     {
         Level self = (Level) (Object) this;
-        if (self.isClientSide()) return 0;
+        BlockState state = self.getBlockState(pos);
 
-        BlockPos key = pos.immutable();
-        Set<BlockPos> computing = COMPUTING.get();
-        if (computing.contains(key)) return 0;
-
-        CableNetwork network = CableNetworkManager.get((ServerLevel) self);
-        if (network != null && network.getLinkCount() > 0)
+        // 原版 SignalGetter.getSignal 默认实现（作为 original 回退）
+        int original = state.getSignal(self, pos, direction);
+        if (state.shouldCheckWeakPower(self, pos, direction))
         {
-            computing.add(key);
-            try
-            {
-                int cable = network.getSignalAt(pos, direction, self);
-                if (cable > 0) return cable;
-            }
-            finally
-            {
-                computing.remove(key);
-            }
+            original = Math.max(original, maxDirectSignal(self, pos));
         }
 
-        // 回退原版 SignalGetter.getSignal 默认实现
-        var state = self.getBlockState(pos);
-        return state.isSignalSource() ? state.getSignal(self, pos, direction) : 0;
+        if (self.isClientSide()) return original;
+
+        // DBW 语义：查询 pos 对面节点 (pos.relative(direction.getOpposite()), direction)
+        BlockPos target = pos.relative(direction.getOpposite());
+        CableNetwork network = CableNetworkManager.get((ServerLevel) self);
+        if (network != null)
+        {
+            int cable = network.getSignalAt(target, direction);
+            if (cable > original) original = cable;
+        }
+        return original;
     }
 
-    @Override
-    public int getDirectSignal(BlockPos pos, Direction direction)
+    /**
+     * 6 方向直接信号最大值（等价原版 SignalGetter.getDirectSignal(BlockPos)，
+     * 但 MCP 环境接口未暴露该单参方法，故自行实现）。
+     */
+    private static int maxDirectSignal(Level self, BlockPos pos)
     {
-        Level self = (Level) (Object) this;
-        if (self.isClientSide()) return 0;
-
-        BlockPos key = pos.immutable();
-        Set<BlockPos> computing = COMPUTING.get();
-        if (computing.contains(key)) return 0;
-
-        CableNetwork network = CableNetworkManager.get((ServerLevel) self);
-        if (network != null && network.getLinkCount() > 0)
+        int max = 0;
+        for (Direction d : Direction.values())
         {
-            computing.add(key);
-            try
-            {
-                int cable = network.getSignalAt(pos, direction, self);
-                if (cable > 0) return cable;
-            }
-            finally
-            {
-                computing.remove(key);
-            }
+            int v = self.getDirectSignal(pos.relative(d), d);
+            if (v >= 15) return 15;
+            if (v > max) max = v;
         }
-
-        // 回退原版 SignalGetter.getDirectSignal 默认实现
-        return self.getBlockState(pos).getDirectSignal(self, pos, direction);
+        return max;
     }
 }

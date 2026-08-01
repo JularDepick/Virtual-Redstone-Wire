@@ -7,12 +7,23 @@ import com.virtualredstonewire.VirtualRedstoneWire;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.*;
 
 public class CableNetwork
 {
+    /** 默认通道名（与 DBW 一致：非多通道源一律走 "world" 通道）。 */
+    public static final String WORLD_CHANNEL = "world";
+
     private final Map<BlockPos, CableNode> nodes = new HashMap<>();
+
+    /**
+     * 存储式信号：输出端 (out, side) -> 通道 -> 信号强度。
+     * 与 DBW 的 WireNetworkNode.inputs 对应：信号由事件主动写入存储，查询时纯读，
+     * 不落盘（仅在内存中，存档加载后由事件/refreshSource 重建）。
+     */
+    private final Map<BlockPos, Map<Direction, Map<String, Integer>>> signals = new HashMap<>();
 
     public CableNode getOrCreateNode(BlockPos pos)
     {
@@ -38,6 +49,9 @@ public class CableNetwork
         {
             inputNode.removeOutgoing(to, toFace);
             outputNode.removeIncoming(from, toFace);
+
+            // DBW 语义：删链后将该输出端存储信号清零，并立即触发邻居更新让灯熄灭
+            setChannelSignal(level, to, toFace, WORLD_CHANNEL, 0);
 
             if (outputNode.getIncomingCount() == 0 && inputNode.getIncomingCount() == 0)
             {
@@ -84,6 +98,8 @@ public class CableNetwork
                     removeNode(toPos);
                 }
             }
+            // DBW 语义：删链后清零该输出端存储信号并触发邻居更新
+            setChannelSignal(level, toPos, toFace, WORLD_CHANNEL, 0);
             count++;
         }
         node.clearAllOutgoing();
@@ -123,20 +139,114 @@ public class CableNetwork
     }
 
     /**
-     * 全向信号查询：direction 被忽略（虚拟输出端对任意查询方向返回网络信号），
-     * 因此红石灯/中继器/红石粉放在输出端任意相邻面都能收到信号。
+     * DBW 语义存储式信号查询：返回输出端方块 out 在 side 面上存储的网络信号
+     * （所有通道的最大值）。查询方为 out.relative(side)（该方块查询"out 朝我
+     * 发射的信号"时命中节点 (out, side)）。
      */
-    public int getSignalAt(BlockPos pos, Direction direction, net.minecraft.world.level.Level level)
+    public int getSignalAt(BlockPos out, Direction side)
     {
-        CableNode node = getNode(pos);
-        if (node == null || node.getIncomingCount() == 0) return 0;
-        int maxPower = 0;
-        for (BlockPos inPos : node.getAllIncoming())
+        Map<Direction, Map<String, Integer>> sideSignals = signals.get(out.immutable());
+        if (sideSignals == null) return 0;
+        Map<String, Integer> channelSignals = sideSignals.get(side);
+        if (channelSignals == null || channelSignals.isEmpty()) return 0;
+        int maxSignal = 0;
+        for (int signal : channelSignals.values())
         {
-            int p = level.getBestNeighborSignal(inPos);
-            if (p > maxPower) maxPower = p;
+            if (signal > maxSignal) maxSignal = signal;
         }
-        return maxPower;
+        return maxSignal;
+    }
+
+    /**
+     * 写入输出端 (out, side) 指定通道的存储信号；值有变化时返回 true，
+     * 并触发 out.relative(side) 的邻居更新（DBW WireNetworkSink.setInput 语义：
+     * 让红石灯等查询方立即重查信号）。
+     */
+    public boolean setChannelSignal(Level level, BlockPos out, Direction side,
+                                    String channel, int signal)
+    {
+        BlockPos key = out.immutable();
+
+        // 先只读检查旧值，避免 0→0 时创建空容器（轻微内存泄漏）
+        Map<Direction, Map<String, Integer>> sideSignals = signals.get(key);
+        Integer old = null;
+        if (sideSignals != null)
+        {
+            Map<String, Integer> channelSignals = sideSignals.get(side);
+            if (channelSignals != null) old = channelSignals.get(channel);
+        }
+        int oldSignal = old == null ? 0 : old;
+        if (oldSignal == signal) return false;
+
+        sideSignals = signals.computeIfAbsent(key, k -> new HashMap<>());
+        Map<String, Integer> channelSignals =
+            sideSignals.computeIfAbsent(side, k -> new HashMap<>());
+
+        if (signal == 0)
+        {
+            channelSignals.remove(channel);
+            if (channelSignals.isEmpty())
+            {
+                sideSignals.remove(side);
+                if (sideSignals.isEmpty())
+                {
+                    signals.remove(key);
+                }
+            }
+        }
+        else
+        {
+            channelSignals.put(channel, signal);
+        }
+
+        if (level != null)
+        {
+            level.updateNeighborsAt(out.relative(side),
+                level.getBlockState(out.relative(side)).getBlock());
+        }
+        return true;
+    }
+
+    /**
+     * DBW ShipWireNetworkManager.setSource 语义：
+     * 源方块 srcPos 的某个通道信号变化为 signal 时，遍历该源所有输出端
+     * （sink），逐个写入存储信号并触发邻居更新。
+     */
+    public void setSource(Level level, BlockPos srcPos, String channel, int signal)
+    {
+        CableNode node = getNode(srcPos);
+        if (node == null || node.getOutgoingCount() == 0) return;
+        for (Map.Entry<BlockPos, Direction> edge : node.getOutgoing())
+        {
+            setChannelSignal(level, edge.getKey(), edge.getValue(), channel, signal);
+        }
+    }
+
+    /**
+     * 主动采集源方块当前真实信号并写入存储（世界加载后重建 / 建链后立即生效）：
+     * 与 DBW ServerEvents.onBlockUpdate 的两分支一致——
+     * 信号源方块取 6 方向 getSignal 最大值，非信号源取 getBestNeighborSignal。
+     */
+    public void refreshSource(Level level, BlockPos srcPos)
+    {
+        CableNode node = getNode(srcPos);
+        if (node == null || node.getOutgoingCount() == 0) return;
+
+        BlockState state = level.getBlockState(srcPos);
+        int signal;
+        if (state.isSignalSource())
+        {
+            signal = 0;
+            for (Direction d : Direction.values())
+            {
+                signal = Math.max(signal, state.getSignal(level, srcPos, d));
+            }
+        }
+        else
+        {
+            signal = level.getBestNeighborSignal(srcPos);
+        }
+        setSource(level, srcPos, WORLD_CHANNEL, signal);
     }
 
     public Set<BlockPos> getInputPositions()

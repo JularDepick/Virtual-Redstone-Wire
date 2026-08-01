@@ -4,21 +4,18 @@ import com.virtualredstonewire.data.CableNetwork;
 import com.virtualredstonewire.data.CableNetworkManager;
 import com.virtualredstonewire.data.CableNetworkSavedData;
 import com.virtualredstonewire.item.VirtualCableItem;
-import com.virtualredstonewire.redstone.RedstoneCalculator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.TickEvent;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.server.ServerLifecycleHooks;
 
 @Mod.EventBusSubscriber(modid = VirtualRedstoneWire.MOD_ID)
 public class ServerEventHandler
@@ -37,10 +34,11 @@ public class ServerEventHandler
             CableNetworkSavedData savedData = CableNetworkSavedData.get(serverLevel);
             CableNetwork network = savedData.getNetwork();
             CableNetworkManager.load(serverLevel.dimension(), network);
-            // 存档加载后强制所有输出端邻居重查信号，让已放置的红石灯/中继器等立即按网络状态点亮
-            for (BlockPos outputPos : network.getAllOutputPositions())
+            // 信号不落盘（DBW 语义）：存档加载后对所有输入源主动采集一次真实信号写入存储，
+            // 让已放置的红石灯等立即按网络状态点亮
+            for (BlockPos inputPos : network.getInputPositions())
             {
-                serverLevel.updateNeighborsAt(outputPos, serverLevel.getBlockState(outputPos).getBlock());
+                network.refreshSource(serverLevel, inputPos);
             }
             VirtualRedstoneWire.LOGGER.info("Cable network loaded for dimension: {}",
                 serverLevel.dimension().location());
@@ -66,23 +64,8 @@ public class ServerEventHandler
         {
             ResourceKey<Level> dimension = serverLevel.dimension();
             CableNetworkManager.onDimensionUnload(dimension);
-            RedstoneCalculator.onDimensionUnload(dimension);
             VirtualRedstoneWire.LOGGER.info("Cable network unloaded for dimension: {}",
                 dimension.location());
-        }
-    }
-
-    @SubscribeEvent
-    public static void onServerTick(TickEvent.ServerTickEvent event)
-    {
-        if (event.phase == TickEvent.Phase.END)
-        {
-            MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-            if (server == null) return;
-            for (ServerLevel level : server.getAllLevels())
-            {
-                RedstoneCalculator.tick(level);
-            }
         }
     }
 
@@ -93,21 +76,29 @@ public class ServerEventHandler
 
         BlockPos pos = event.getPos();
         CableNetwork network = CableNetworkManager.get(serverLevel);
+        BlockState state = serverLevel.getBlockState(pos);
 
-        if (network.getNode(pos) != null && network.getOutputsForInput(pos).size() > 0)
+        // DBW ServerEvents.onBlockUpdate 语义：
+        // 1) 事件方块本身是信号源 → 取其 6 方向 getSignal 最大值写入存储
+        if (state.isSignalSource())
         {
-            VirtualRedstoneWire.LOGGER.info("NeighborNotify: source pos {} has outgoing links, marking dirty", pos);
-            RedstoneCalculator.markDirtyInput(serverLevel, pos);
+            int maxSignal = 0;
+            for (Direction dir : Direction.values())
+            {
+                maxSignal = Math.max(maxSignal, state.getSignal(serverLevel, pos, dir));
+            }
+            network.setSource(serverLevel, pos, CableNetwork.WORLD_CHANNEL, maxSignal);
         }
 
-        for (Direction dir : Direction.values())
+        // 2) 被通知邻居（非信号源）→ 取 getBestNeighborSignal 写入存储
+        for (Direction dir : event.getNotifiedSides())
         {
             BlockPos neighborPos = pos.relative(dir);
-            if (network.getNode(neighborPos) != null
-                && network.getOutputsForInput(neighborPos).size() > 0)
+            BlockState neighborState = serverLevel.getBlockState(neighborPos);
+            if (!neighborState.isSignalSource())
             {
-                VirtualRedstoneWire.LOGGER.info("NeighborNotify: neighbor {} has outgoing links, marking dirty", neighborPos);
-                RedstoneCalculator.markDirtyInput(serverLevel, neighborPos);
+                network.setSource(serverLevel, neighborPos, CableNetwork.WORLD_CHANNEL,
+                    serverLevel.getBestNeighborSignal(neighborPos));
             }
         }
     }

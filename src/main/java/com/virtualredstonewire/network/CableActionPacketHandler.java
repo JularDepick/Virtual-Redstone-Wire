@@ -4,7 +4,6 @@ import com.virtualredstonewire.VirtualRedstoneWire;
 import com.virtualredstonewire.config.ServerConfig;
 import com.virtualredstonewire.data.CableNetwork;
 import com.virtualredstonewire.data.CableNetworkManager;
-import com.virtualredstonewire.redstone.RedstoneCalculator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -28,22 +27,12 @@ public class CableActionPacketHandler
             if (packet.isCutter())
             {
                 BlockPos pos = packet.getFrom();
-                List<Map.Entry<BlockPos, Direction>> savedOutgoing = new ArrayList<>();
-                var node = network.getNode(pos);
-                if (node != null)
-                {
-                    savedOutgoing.addAll(node.getOutgoing());
-                }
 
+                // removeLinksFrom 内部会对每个被删链路清零输出端存储信号并触发邻居更新（灯熄灭）
                 int removed = network.removeLinksFrom(pos, level);
 
                 if (removed > 0)
                 {
-                    for (Map.Entry<BlockPos, Direction> edge : savedOutgoing)
-                    {
-                        BlockPos outputPos = edge.getKey();
-                        level.updateNeighborsAt(outputPos, level.getBlockState(outputPos).getBlock());
-                    }
                     CableNetworkManager.markDirty(level);
                     broadcastSync(level, network);
                 }
@@ -81,9 +70,9 @@ public class CableActionPacketHandler
                 network.toggleLink(from, to, packet.getToFace(), level);
                 CableNetworkManager.markDirty(level);
 
-                RedstoneCalculator.markDirtyInput(level, from);
-                RedstoneCalculator.propagateUpdates(level, from);
-                level.updateNeighborsAt(to, level.getBlockState(to).getBlock());
+                // 建链后主动采集源方块当前真实信号写入存储（setChannelSignal 变化时
+                // 自动触发输出端邻居更新，让红石灯立即点亮）
+                network.refreshSource(level, from);
 
                 broadcastSync(level, network);
             }
