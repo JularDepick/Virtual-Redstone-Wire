@@ -19,9 +19,25 @@ import java.util.List;
 
 public class CableMagnifierItem extends Item
 {
+    /** 信号查询节流：发起查询后 1 秒内不得再次发起（无论服务端返回什么） */
+    private static final long QUERY_COOLDOWN_MS = 1000;
+    private static long lastQueryTime = 0;
+
     public CableMagnifierItem(Properties properties)
     {
         super(properties);
+    }
+
+    /** 尝试发起信号查询：通过节流则记录时间并返回 true，否则返回 false */
+    public static boolean tryStartQuery()
+    {
+        long now = System.currentTimeMillis();
+        if (now - lastQueryTime < QUERY_COOLDOWN_MS)
+        {
+            return false;
+        }
+        lastQueryTime = now;
+        return true;
     }
 
     @Override
@@ -35,14 +51,17 @@ public class CableMagnifierItem extends Item
         {
             if (player.isCrouching())
             {
-                // 下蹲 + 右键：查看链路信息面板（原有逻辑）
+                // 下蹲 + 右键：查看链路信息面板（原有逻辑，面板内查询同样受节流）
                 CableInfoScreenOpener.open(context.getClickedPos());
                 return InteractionResult.SUCCESS;
             }
 
-            // 未下蹲 + 右键：快捷栏上方飘浮提示目标方块的红石信号强度
-            CableNetworkChannel.sendToServer(
-                new CableInfoRequestPacket(context.getClickedPos(), true));
+            // 未下蹲 + 右键：快捷栏上方飘浮提示目标方块的红石信号强度（受 1 秒节流）
+            if (tryStartQuery())
+            {
+                CableNetworkChannel.sendToServer(
+                    new CableInfoRequestPacket(context.getClickedPos(), true));
+            }
             return InteractionResult.SUCCESS;
         }
 
