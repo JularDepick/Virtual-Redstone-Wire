@@ -6,10 +6,12 @@ import com.virtualredstonewire.network.CableOpPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
@@ -19,6 +21,8 @@ import java.util.Set;
  * v0.3.0 客户端操作任务队列：串行发送，同一时刻至多一个在途请求。
  * 出队判定：收到增量广播且包含自己请求的链路条目（fr/to/fc 与 op 匹配），或收到拒绝响应；
  * 版本号落后（异常）时作废在途请求并触发全量。
+ * 全量请求节流：5 秒内不得重复发出；60 秒内超过 10 次视为异常，断开连接并提示
+ * （不持久标记，断开后可正常重连）。
  */
 public final class CableClientQueue
 {
@@ -26,6 +30,12 @@ public final class CableClientQueue
     private static CableOpPacket inFlight = null;
     private static long lastPullSc = 0;
     private static String lastPullDim = null;
+
+    // 全量请求节流
+    private static final long FULL_COOLDOWN_MS = 5000;
+    private static final int FULL_MAX_PER_MINUTE = 10;
+    private static long lastFullRequestTime = 0;
+    private static final Deque<Long> FULL_REQUEST_TIMES = new ArrayDeque<>();
 
     private CableClientQueue() {}
 
@@ -50,6 +60,42 @@ public final class CableClientQueue
             lastPullDim = inFlight.dimension;
         }
         CableNetworkChannel.sendToServer(inFlight);
+    }
+
+    /**
+     * 发起当前维度全量请求（sc 为 0），带节流：
+     * 5 秒内不得重复发出；60 秒内超过 10 次则断开连接并提示，
+     * 随后重置计数（不标记用户，保证重连不受影响）。
+     */
+    public static void requestFull()
+    {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null) return;
+
+        long now = System.currentTimeMillis();
+        if (now - lastFullRequestTime < FULL_COOLDOWN_MS)
+        {
+            return; // 冷却期内丢弃
+        }
+        while (!FULL_REQUEST_TIMES.isEmpty() && now - FULL_REQUEST_TIMES.peekFirst() > 60000)
+        {
+            FULL_REQUEST_TIMES.pollFirst();
+        }
+        if (FULL_REQUEST_TIMES.size() >= FULL_MAX_PER_MINUTE)
+        {
+            // 异常：断开连接并提示，重置计数保证重连正常
+            FULL_REQUEST_TIMES.clear();
+            lastFullRequestTime = 0;
+            if (mc.player.connection != null)
+            {
+                mc.player.connection.getConnection().disconnect(Component.translatable(
+                    "message.virtual_redstone_wire.full_request_throttle"));
+            }
+            return;
+        }
+        FULL_REQUEST_TIMES.addLast(now);
+        lastFullRequestTime = now;
+        enqueue(CableOpPacket.pull(0, mc.level.dimension(), mc.player.getName().getString()));
     }
 
     /** 增量广播（tp 为 d）到达：按内容匹配出队 */
@@ -80,16 +126,11 @@ public final class CableClientQueue
         sendNext();
     }
 
-    /** 版本号落后（异常）：作废在途请求并触发全量 */
+    /** 版本号落后（异常）：作废在途请求并触发全量（带节流） */
     public static void onVersionRollback()
     {
         inFlight = null;
-        Level level = Minecraft.getInstance().level;
-        if (level != null)
-        {
-            enqueue(CableOpPacket.pull(0, level.dimension(),
-                Minecraft.getInstance().player.getName().getString()));
-        }
+        requestFull();
     }
 
     /** 拒绝响应（tp 为 r）到达：按错误码分流 */

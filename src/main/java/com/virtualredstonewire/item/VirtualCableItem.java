@@ -47,6 +47,12 @@ public class VirtualCableItem extends Item
         SELECTED_INPUTS.remove(player.getUUID());
     }
 
+    /** 清空全部选中态（客户端登出/断线时调用，防跨会话残留） */
+    public static void clearAllSelectedInputs()
+    {
+        SELECTED_INPUTS.clear();
+    }
+
     @Override
     public InteractionResult useOn(UseOnContext context)
     {

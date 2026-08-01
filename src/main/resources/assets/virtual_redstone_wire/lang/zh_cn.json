@@ -24,5 +24,6 @@
   "screen.virtual_redstone_wire.cable_info.none": "无",
   "screen.virtual_redstone_wire.cable_info.arrow_out": "->",
   "screen.virtual_redstone_wire.cable_info.arrow_in": "<-",
-  "screen.virtual_redstone_wire.cable_info.pending": "-"
+  "screen.virtual_redstone_wire.cable_info.pending": "-",
+  "message.virtual_redstone_wire.full_request_throttle": "客户端执行全量请求过于频繁，存在未知错误"
 }

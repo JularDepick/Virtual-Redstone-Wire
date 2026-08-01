@@ -24,5 +24,6 @@
   "screen.virtual_redstone_wire.cable_info.none": "None",
   "screen.virtual_redstone_wire.cable_info.arrow_out": "->",
   "screen.virtual_redstone_wire.cable_info.arrow_in": "<-",
-  "screen.virtual_redstone_wire.cable_info.pending": "-"
+  "screen.virtual_redstone_wire.cable_info.pending": "-",
+  "message.virtual_redstone_wire.full_request_throttle": "Client full-sync requests too frequent, an unknown error occurred"
 }

@@ -146,6 +146,10 @@ gradlew build
 # Output: build/libs/VirtualRedstoneWire-0.3.0.jar
 ```
 
+# Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md)
+
 # Contributing
 
 See [CONTRIBUTING_en-US.md](./CONTRIBUTING_en-US.md)
@@ -159,6 +163,10 @@ This project is open source under the [MIT License](./LICENSE).
 Copyright (c) 2026 JularDepick
 
 See the [COPYRIGHT file](./COPYRIGHT)
+
+# Development Reference
+
+This mod's development partially references the interaction effects and implementation logic of the Drive By Wire mod.
 
 # Looking for Collaboration
 

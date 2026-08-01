@@ -146,6 +146,10 @@ gradlew build
 # 输出在 build/libs/VirtualRedstoneWire-0.3.0.jar
 ```
 
+# 变更日志
+
+详见 [CHANGELOG.md](./CHANGELOG.md)
+
 # 贡献指南
 
 详见 [CONTRIBUTING.md](./CONTRIBUTING.md)
@@ -166,7 +170,7 @@ Copyright (c) 2026 JularDepick
 
 # 需要协作
 
-- 缺少多Minecraft版本兼容
+- 缺少多 Minecraft 版本兼容
 - 缺少优秀的物品贴图素材方案
 
 > 娘希匹的Dickseep,做个模组愣是花了劳资20大洋,做了一坨屎出来,给劳资气了积薄都打闪电,最后狠狠鞭笞才做出可用版本

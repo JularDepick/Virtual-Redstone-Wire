@@ -106,9 +106,7 @@ public class CableMsgPacket
                 {
                     if (expired)
                     {
-                        CableClientQueue.enqueue(com.virtualredstonewire.network.CableOpPacket.pull(
-                            0, dimensionKey(),
-                            net.minecraft.client.Minecraft.getInstance().player.getName().getString()));
+                        com.virtualredstonewire.client.CableClientQueue.requestFull();
                     }
                     else if (CableClientQueue.getLastPullSc() == 0)
                     {
