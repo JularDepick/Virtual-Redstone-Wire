@@ -1,33 +1,35 @@
 """
-remove_bg.py — 素材预处理工具（连通分量版）
+remove_bg.py - 素材预处理工具(HSV色相去绿版)
 
 功能:
-  1. 将图片居中补齐到 1:1 方形（不拉伸）
-  2. 自动取样背景色（边缘出现次数最多的颜色）
-  3. 找出所有与背景色相似的像素，仅保留面积最大的连通块作透明化
-     （避免误伤非背景内容中与背景色同色的部分）
-  4. 移除文件名中的 "_resized" 后缀
+  1. 将图片居中补齐到 1:1 方形(不拉伸)
+  2. 通过 HSV 色相范围过滤去除绿色背景(覆盖黄绿~青绿渐变),
+     饱和度下限保护低饱和度的灰色/黑色物品主体
+  3. 缩放到 512x512 输出
 
 用法:
   python src/scripts/remove_bg.py
 
 输入:  src/assets/*.png
-输出:  src/assets/processed/*.png（已补齐方形、去背景）
+输出:  src/assets/processed/*.png(已补齐方形、绿色背景透明、512x512)
 """
 
 import os
-from collections import Counter, deque
+from collections import Counter
 from PIL import Image
 
 BASE_DIR    = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 ASSETS_DIR  = os.path.join(BASE_DIR, "assets")
 OUTPUT_DIR  = os.path.join(ASSETS_DIR, "processed")
-TOLERANCE   = 50        # 曼哈顿距离容差
+HUE_MIN     = 35        # 色相下界(黄绿)
+HUE_MAX     = 115       # 色相上界(青绿)
+SAT_MIN     = 40        # 饱和度下限,低于此值视为灰阶(物品)保留
+OUTPUT_SIZE = 512
 
 FILES = [
-    "virtual_redstone_wire_resized.png",
-    "wire_cutter_resized.png",
-    "wire_magnifier_resized.png",
+    "virtual_cable.png",
+    "cable_cutter.png",
+    "cable_magnifier.png",
 ]
 
 # ── 图像工具 ──────────────────────────────────────
@@ -73,68 +75,30 @@ def sample_background_color(img: Image.Image, step: int = 4) -> tuple:
     return Counter(samples).most_common(1)[0][0]
 
 
-def color_similar(c1: tuple, c2: tuple, tol: int = TOLERANCE) -> bool:
-    """曼哈顿距离判断两颜色是否相似"""
-    return (abs(c1[0] - c2[0]) + abs(c1[1] - c2[1]) + abs(c1[2] - c2[2])) <= tol
+def is_green(h: int, s: int) -> bool:
+    """HSV 判断是否为绿色背景像素(黄绿~青绿、饱和度足够)"""
+    return HUE_MIN <= h <= HUE_MAX and s > SAT_MIN
 
 
-# ── 连通分量分析 ──────────────────────────────────
-
-def find_largest_background_blob(img: Image.Image, bg: tuple, tol: int = TOLERANCE) -> list:
+def remove_green_background(img: Image.Image) -> int:
     """
-    遍历所有像素，找出与 bg 相似的颜色像素中面积最大的连通块，
-    返回该连通块中所有像素坐标的列表。
-    使用四连通（上/下/左/右）。
+    将所有绿色背景像素设为透明，返回处理像素数
     """
     w, h = img.size
-    px = img.load()
-
-    # 1. 标记所有"候选"像素（与背景色相似且非透明）
-    is_candidate = [[False] * h for _ in range(w)]
+    hsv  = img.convert("HSV")
+    px   = img.load()
+    hp   = hsv.load()
+    removed = 0
     for y in range(h):
         for x in range(w):
             r, g, b, a = px[x, y]
-            if a > 0 and color_similar((r, g, b), bg, tol):
-                is_candidate[x][y] = True
-
-    visited = [[False] * h for _ in range(w)]
-    best_blob = []
-    directions = [(-1,0), (1,0), (0,-1), (0,1)]
-
-    for y in range(h):
-        for x in range(w):
-            if not is_candidate[x][y] or visited[x][y]:
+            if a == 0:
                 continue
-
-            # BFS 搜集当前连通块
-            blob = []
-            dq = deque()
-            dq.append((x, y))
-            visited[x][y] = True
-
-            while dq:
-                cx, cy = dq.popleft()
-                blob.append((cx, cy))
-                for dx_, dy_ in directions:
-                    nx, ny = cx + dx_, cy + dy_
-                    if 0 <= nx < w and 0 <= ny < h:
-                        if is_candidate[nx][ny] and not visited[nx][ny]:
-                            visited[nx][ny] = True
-                            dq.append((nx, ny))
-
-            if len(blob) > len(best_blob):
-                best_blob = blob
-
-    return best_blob
-
-
-def remove_background_blob(img: Image.Image, blob: list):
-    """将指定连通块中的所有像素设为透明"""
-    px = img.load()
-    for (x, y) in blob:
-        r, g, b, a = px[x, y]
-        if a > 0:
-            px[x, y] = (r, g, b, 0)
+            h_, s, _ = hp[x, y]
+            if is_green(h_, s):
+                px[x, y] = (r, g, b, 0)
+                removed += 1
+    return removed
 
 
 # ── 主流程 ────────────────────────────────────────
@@ -155,27 +119,27 @@ def main():
         img = pad_to_square(img)
         pad_added = img.size[0] - orig_w if img.size[0] > orig_w else img.size[1] - orig_h
 
-        # 2. 采样背景色
+        # 2. 采样背景色(仅记录)
         bg = sample_background_color(img)
         print(f"  bg_color: {bg}")
 
-        # 3. 找最大连通块
-        blob = find_largest_background_blob(img, bg)
-        print(f"  background_blob_pixels: {len(blob)} / {img.size[0] * img.size[1]}")
+        # 3. 去除绿色背景
+        removed = remove_green_background(img)
+        print(f"  green_pixels_removed: {removed} / {img.size[0] * img.size[1]}")
 
-        # 4. 只删除该连通块
-        remove_background_blob(img, blob)
+        # 4. 缩放到 512x512(LANCZOS 高质量缩放)
+        img = img.resize((OUTPUT_SIZE, OUTPUT_SIZE), Image.LANCZOS)
         total_px = img.size[0] * img.size[1]
 
-        # 5. 输出 — 去掉 _resized
-        out_name = fname.replace("_resized", "")
+        # 5. 输出
+        out_name = fname
         out_path = os.path.join(OUTPUT_DIR, out_name)
         img.save(out_path, "PNG")
 
         # 统计
-        px_data = list(img.getdata())
-        opq = sum(1 for _, _, _, a in px_data if a == 255)
-        clr = sum(1 for _, _, _, a in px_data if a == 0)
+        alpha_hist = img.split()[3].histogram()
+        opq = alpha_hist[255]
+        clr = alpha_hist[0]
         semi = total_px - opq - clr
         print(f"  [{out_name}]  {img.size}  (pad={pad_added})"
               f"  opaque={opq}({opq*100//total_px}%)"
