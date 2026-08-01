@@ -5,6 +5,7 @@ import com.virtualredstonewire.client.ClientCableCache;
 import com.virtualredstonewire.config.ClientConfig;
 import com.virtualredstonewire.config.ServerConfig;
 import com.virtualredstonewire.network.CableOpPacket;
+import com.virtualredstonewire.util.TooltipLines;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -119,7 +120,7 @@ public class VirtualCableItem extends Item
     public void appendHoverText(ItemStack stack, @Nullable Level level,
                                  List<Component> tooltip, TooltipFlag flag)
     {
-        tooltip.add(Component.translatable("item.virtual_redstone_wire.virtual_cable.desc"));
-        tooltip.add(Component.translatable("item.virtual_redstone_wire.virtual_cable.tip"));
+        TooltipLines.add(tooltip, "item.virtual_redstone_wire.virtual_cable.desc");
+        TooltipLines.add(tooltip, "item.virtual_redstone_wire.virtual_cable.tip");
     }
 }

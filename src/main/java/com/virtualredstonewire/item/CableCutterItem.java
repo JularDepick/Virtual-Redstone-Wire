@@ -6,6 +6,7 @@ import com.virtualredstonewire.config.ClientConfig;
 import com.virtualredstonewire.data.CableLink;
 import com.virtualredstonewire.network.CableOpPacket;
 import com.virtualredstonewire.network.CableProtocol;
+import com.virtualredstonewire.util.TooltipLines;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
@@ -77,6 +78,7 @@ public class CableCutterItem extends Item
     public void appendHoverText(ItemStack stack, @Nullable Level level,
                                  List<Component> tooltip, TooltipFlag flag)
     {
-        tooltip.add(Component.translatable("item.virtual_redstone_wire.cable_cutter.desc"));
+        TooltipLines.add(tooltip, "item.virtual_redstone_wire.cable_cutter.desc");
+        TooltipLines.add(tooltip, "item.virtual_redstone_wire.cable_cutter.tip");
     }
 }

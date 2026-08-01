@@ -18,20 +18,34 @@ import java.util.function.Supplier;
 public class CableInfoRequestPacket
 {
     private final BlockPos pos;
+    private final boolean actionBar;
 
     public CableInfoRequestPacket(BlockPos pos)
     {
+        this(pos, false);
+    }
+
+    public CableInfoRequestPacket(BlockPos pos, boolean actionBar)
+    {
         this.pos = pos.immutable();
+        this.actionBar = actionBar;
+    }
+
+    public boolean isActionBar()
+    {
+        return actionBar;
     }
 
     public CableInfoRequestPacket(FriendlyByteBuf buf)
     {
         this.pos = buf.readBlockPos();
+        this.actionBar = buf.readBoolean();
     }
 
     public void encode(FriendlyByteBuf buf)
     {
         buf.writeBlockPos(this.pos);
+        buf.writeBoolean(this.actionBar);
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx)
@@ -45,7 +59,7 @@ public class CableInfoRequestPacket
             int signal = level.getBestNeighborSignal(this.pos);
 
             CableNetworkChannel.sendToPlayer(sender,
-                new CableInfoResponsePacket(this.pos, signal));
+                new CableInfoResponsePacket(this.pos, signal, this.actionBar));
         });
         ctx.get().setPacketHandled(true);
     }

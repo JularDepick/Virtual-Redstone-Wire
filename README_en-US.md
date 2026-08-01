@@ -25,7 +25,7 @@ Currently supports Minecraft 1.20.1 only. For compatibility with other versions,
 |:---:|:---:|:---:|:---:|
 | Virtual Cable | Redstone + Iron Ingot | Right-click an input block, then an output block, to create a one-way redstone link | Signal strength propagates along the link; right-click the same block again to cancel; one input can feed multiple outputs, one output can take multiple inputs (highest signal wins) |
 | Cable Cutter | Iron Ingot + Stick x2 | Right-click an input block to cut all links originating from it | Only affects links where this block is the input (source) |
-| Cable Magnifier | Redstone + Glass Pane + Stick | While held, highlights all links (blue is input, yellow is output, red is link path); sneak-right-click a block to inspect its links |  |
+| Cable Magnifier | Redstone + Glass Pane + Stick | While held, highlights all links (blue is input, yellow is output, red is link path); sneak-right-click a block to inspect its links; right-click a block to show its redstone signal strength above the hotbar |  |
 
 ## Redstone Behavior
 
@@ -59,39 +59,48 @@ src/main/java/com/virtualredstonewire/
 ├── ServerEventHandler.java           # Server events (world load/save/unload/block update)
 ├── RedstoneDiagnostics.java          # Redstone signal diagnostics (debug only)
 ├── client/
-│   ├── ClientCableCache.java         # Client-side link cache
+│   ├── ClientCableCache.java         # Client-side link cache (versioned, read-only)
+│   ├── CableClientQueue.java         # Operation queue (single in-flight)
+│   ├── CableClientEvents.java        # Full sync on connect/dimension change
+│   ├── CableActionBarHud.java        # Signal popup above the hotbar
 │   ├── gui/CableInfoScreen.java      # Cable info GUI panel
 │   ├── gui/CableInfoScreenOpener.java
 │   └── render/CableRenderer.java     # 3D rendering (tube beams + face dots + lines)
 ├── commands/
 │   └── VRedTestCommand.java          # /vredtest diagnostics command
 ├── config/
-│   ├── ServerConfig.java             # Server config (distance limits)
+│   ├── ServerConfig.java             # Server config (distance/change table/log)
 │   └── ClientConfig.java             # Client config (chat feedback)
 ├── data/
 │   ├── CableLink.java                # Link data model (render-only carrier)
 │   ├── CableNetwork.java             # Network graph (node index + stored signal query)
 │   ├── CableNode.java                # Topology node (toWho/fromWho adjacency)
-│   ├── CableNetworkManager.java      # Per-dimension CableNetwork manager
+│   ├── CableNetworkManager.java      # Per-dimension network/counter/change table
 │   └── CableNetworkSavedData.java    # NBT persistence
 ├── item/
 │   ├── VirtualCableItem.java         # Virtual cable (create/delete links, retain selection)
 │   ├── CableCutterItem.java          # Cable cutter (delete origin links only)
-│   └── CableMagnifierItem.java       # Cable magnifier (sneak+right-click to inspect)
+│   └── CableMagnifierItem.java       # Magnifier (sneak: panel / right-click: signal)
 ├── mixin/
 │   └── MixinLevel.java               # Overrides getSignal only (DBW stored-signal semantics)
 ├── network/
 │   ├── CableNetworkChannel.java      # Network channel registration
-│   ├── CableActionPacket.java        # Client->Server action request (connect/cut)
-│   ├── CableActionPacketHandler.java # Server packet processing + updateNeighborsAt
-│   ├── CableSyncPacket.java          # Server->Client full sync
-│   ├── CableRequestSyncPacket.java   # Client->Server sync request
-│   ├── CableInfoRequestPacket.java   # Client->Server signal query (magnifier panel)
-│   ├── CableInfoResponsePacket.java  # Server->Client signal query response
-│   └── SyncHelper.java               # Entry conversion utilities
+│   ├── CableProtocol.java            # Protocol constants/abbreviated keys/error codes
+│   ├── CableOpPacket.java            # Operation request (add/del/pull, JSON)
+│   ├── CableMsgPacket.java           # Message (d/f/r, JSON)
+│   ├── CableOpPacketHandler.java     # Server request processing and validation
+│   ├── CableServerQueue.java         # Server tick queue and conflict handling
+│   ├── CableChangeLog.java           # Change log (optional)
+│   ├── CableInfoRequestPacket.java   # Magnifier signal query request
+│   └── CableInfoResponsePacket.java  # Magnifier signal query response
 └── registry/
     ├── ModItems.java                 # Item registration
     └── ModBlocks.java                # Block registration
+```
+
+```
+src/main/java/com/virtualredstonewire/util/
+└── TooltipLines.java                 # Multi-line item tooltip helper
 ```
 
 ```
@@ -126,14 +135,14 @@ Verify the environment:
 java -version
 # Should show openjdk version "17.x.x"
 
-gradle --version
+gradlew --version
 # Should show Gradle 8.14.3
 ```
 
 Build:
 
 ```bash
-gradle build
+gradlew build
 # Output: build/libs/VirtualRedstoneWire-0.3.0.jar
 ```
 
@@ -150,5 +159,10 @@ This project is open source under the [MIT License](./LICENSE).
 Copyright (c) 2026 JularDepick
 
 See the [COPYRIGHT file](./COPYRIGHT)
+
+# Looking for Collaboration
+
+- Missing multi-version Minecraft compatibility
+- Missing a proper item texture asset solution
 
 > Darn it, Dickseep, this mod cost me 20 bucks, came out a total mess that drove me mad, and only after a hard crack of the whip did we finally get a usable version

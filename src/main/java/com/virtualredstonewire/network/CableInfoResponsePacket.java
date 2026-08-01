@@ -17,23 +17,32 @@ public class CableInfoResponsePacket
 {
     private final BlockPos pos;
     private final int signal;
+    private final boolean actionBar;
 
     public CableInfoResponsePacket(BlockPos pos, int signal)
     {
+        this(pos, signal, false);
+    }
+
+    public CableInfoResponsePacket(BlockPos pos, int signal, boolean actionBar)
+    {
         this.pos = pos.immutable();
         this.signal = signal;
+        this.actionBar = actionBar;
     }
 
     public CableInfoResponsePacket(FriendlyByteBuf buf)
     {
         this.pos = buf.readBlockPos();
         this.signal = buf.readVarInt();
+        this.actionBar = buf.readBoolean();
     }
 
     public void encode(FriendlyByteBuf buf)
     {
         buf.writeBlockPos(this.pos);
         buf.writeVarInt(this.signal);
+        buf.writeBoolean(this.actionBar);
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx)
@@ -42,6 +51,14 @@ public class CableInfoResponsePacket
         {
             DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
             {
+                if (actionBar)
+                {
+                    // 快捷栏上方飘浮提示（自定义 HUD，贴近快捷栏且与物品名称相接不重叠）
+                    com.virtualredstonewire.client.CableActionBarHud.show(
+                        net.minecraft.network.chat.Component.translatable(
+                            "screen.virtual_redstone_wire.cable_info.signal", this.signal).getString());
+                    return;
+                }
                 CableInfoScreen screen = CableInfoScreen.getActiveScreen();
                 if (screen != null && screen.getQueryPos().equals(this.pos))
                 {
