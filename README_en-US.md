@@ -23,7 +23,7 @@ No mod dependencies required. Fully compatible with vanilla Minecraft.
 
 Crafting: Redstone + Iron Ingot
 Usage: Right-click an input block, then an output block, to create a one-way redstone link
-Notes: Max distance: 256 blocks. Signal strength propagates along the link; right-click the same block again to cancel; one input can feed multiple outputs, one output can take multiple inputs (highest signal wins)
+Notes: Signal strength propagates along the link; right-click the same block again to cancel; one input can feed multiple outputs, one output can take multiple inputs (highest signal wins)
 
 ## Cable Cutter
 
@@ -76,7 +76,7 @@ src/main/java/com/virtualredstonewire/
 │   └── VRedTestCommand.java          # /vredtest diagnostics command
 ├── config/
 │   ├── ServerConfig.java             # Server config (distance limits)
-│   └── ClientConfig.java             # Client config (chat/color/line width)
+│   └── ClientConfig.java             # Client config (chat feedback)
 ├── data/
 │   ├── CableLink.java                # Link data model (render-only carrier)
 │   ├── CableNetwork.java             # Network graph (node index + stored signal query)

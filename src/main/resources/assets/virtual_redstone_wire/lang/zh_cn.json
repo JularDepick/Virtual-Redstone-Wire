@@ -1,7 +1,7 @@
 {
   "item.virtual_redstone_wire.virtual_cable": "线缆",
   "item.virtual_redstone_wire.virtual_cable.desc": "右键输入端方块，\n再右键输出端方块，\n创建单向红石链路",
-  "item.virtual_redstone_wire.virtual_cable.tip": "最大距离 256 格；\n信号强度沿链路传播",
+  "item.virtual_redstone_wire.virtual_cable.tip": "信号强度沿链路传播",
   "item.virtual_redstone_wire.cable_cutter": "线缆剪",
   "item.virtual_redstone_wire.cable_cutter.desc": "右键输入端方块，\n切断其全部出链",
   "item.virtual_redstone_wire.cable_cutter.tip": "仅作用于该方块作为输入端(起点)的链路",

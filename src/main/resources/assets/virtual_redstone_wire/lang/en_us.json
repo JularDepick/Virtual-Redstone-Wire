@@ -1,7 +1,7 @@
 {
   "item.virtual_redstone_wire.virtual_cable": "Virtual Cable",
   "item.virtual_redstone_wire.virtual_cable.desc": "Right-click an input block,\nthen an output block,\nto create a one-way redstone link",
-  "item.virtual_redstone_wire.virtual_cable.tip": "Max distance: 256 blocks.\nSignal strength propagates along the link",
+  "item.virtual_redstone_wire.virtual_cable.tip": "Signal strength propagates along the link",
   "item.virtual_redstone_wire.cable_cutter": "Cable Cutter",
   "item.virtual_redstone_wire.cable_cutter.desc": "Right-click an input block\nto cut all links originating from it",
   "item.virtual_redstone_wire.cable_cutter.tip": "Only affects links where this block\nis the input (source)",
