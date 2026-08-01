@@ -74,33 +74,43 @@ public class ServerEventHandler
     {
         if (!(event.getLevel() instanceof ServerLevel serverLevel)) return;
 
-        BlockPos pos = event.getPos();
         CableNetwork network = CableNetworkManager.get(serverLevel);
-        BlockState state = serverLevel.getBlockState(pos);
 
-        // DBW ServerEvents.onBlockUpdate 语义：
-        // 1) 事件方块本身是信号源 → 取其 6 方向 getSignal 最大值写入存储
-        if (state.isSignalSource())
-        {
-            int maxSignal = 0;
-            for (Direction dir : Direction.values())
-            {
-                maxSignal = Math.max(maxSignal, state.getSignal(serverLevel, pos, dir));
-            }
-            network.setSource(serverLevel, pos, CableNetwork.WORLD_CHANNEL, maxSignal);
-        }
-
-        // 2) 被通知邻居（非信号源）→ 取 getBestNeighborSignal 写入存储
+        // DBW ServerEvents.onBlockUpdate 语义（与 DBW updateSource 一致，不做信号源排除）：
+        // 1) 事件方块本身
+        updateSource(serverLevel, network, event.getPos());
+        // 2) 所有被通知的邻居（含信号源邻居，如红石块/拉杆/红石线——它们的信号
+        //    变化只以"邻居"身份到达输入节点，必须处理，否则拨拉杆/放红石块灯不亮）
         for (Direction dir : event.getNotifiedSides())
         {
-            BlockPos neighborPos = pos.relative(dir);
-            BlockState neighborState = serverLevel.getBlockState(neighborPos);
-            if (!neighborState.isSignalSource())
+            updateSource(serverLevel, network, event.getPos().relative(dir));
+        }
+    }
+
+    /**
+     * DBW updateSource 语义：输入节点 pos 的信号源状态变化时，将当前真实信号写入存储。
+     * 信号源方块取 6 方向 getSignal 最大值，非信号源取 getBestNeighborSignal。
+     */
+    private static void updateSource(ServerLevel level, CableNetwork network, BlockPos pos)
+    {
+        com.virtualredstonewire.data.CableNode node = network.getNode(pos);
+        if (node == null || node.getOutgoingCount() == 0) return;
+
+        BlockState state = level.getBlockState(pos);
+        int signal;
+        if (state.isSignalSource())
+        {
+            signal = 0;
+            for (Direction dir : Direction.values())
             {
-                network.setSource(serverLevel, neighborPos, CableNetwork.WORLD_CHANNEL,
-                    serverLevel.getBestNeighborSignal(neighborPos));
+                signal = Math.max(signal, state.getSignal(level, pos, dir));
             }
         }
+        else
+        {
+            signal = level.getBestNeighborSignal(pos);
+        }
+        network.setSource(level, pos, CableNetwork.WORLD_CHANNEL, signal);
     }
 
     @SubscribeEvent

@@ -113,6 +113,27 @@ public final class RedstoneDiagnostics
 
             report.add("RESULT: " + (failures == 0 ? "PASS" : "FAIL") + " (" + failures + " assertion(s) failed)");
 
+            // ---------- 场景 2：事件驱动（DBW 真实时序：先建链，后放源，不手动 refreshSource）----------
+            // 覆盖 ServerEventHandler.onNeighborBlockUpdate 的 updateSource 路径：
+            // 旧实现会把"信号源邻居"排除，导致放红石块/拨拉杆后灯永不亮（用户实测用不了的根因）。
+            network.removeLinksFrom(from, level);
+            level.setBlockAndUpdate(inputBlock, Blocks.AIR.defaultBlockState());
+            level.setBlockAndUpdate(from, Blocks.AIR.defaultBlockState());
+            level.setBlockAndUpdate(lamp, Blocks.AIR.defaultBlockState());
+
+            level.setBlockAndUpdate(from, Blocks.STONE.defaultBlockState());
+            level.setBlockAndUpdate(lamp, Blocks.REDSTONE_LAMP.defaultBlockState());
+            network.toggleLink(from, lamp, toFace, level); // 建链瞬间 from 无信号，不调用 refreshSource
+            level.setBlockAndUpdate(inputBlock, Blocks.REDSTONE_BLOCK.defaultBlockState()); // 事件驱动写入
+
+            int eventSignal = network.getSignalAt(lamp, toFace);
+            boolean eventLampLit = level.getBlockState(lamp).getValue(RedstoneLampBlock.LIT);
+            report.add(String.format("event-driven: getSignalAt(lamp,SOUTH)=%d  (expected 15)", eventSignal));
+            report.add(String.format("event-driven: lamp LIT=%s  (expected true)", eventLampLit));
+            if (eventSignal != 15) failures++;
+            if (!eventLampLit) failures++;
+            report.add("RESULT2: " + (failures == 0 ? "PASS" : "FAIL") + " (" + failures + " assertion(s) failed total)");
+
             // ---------- 清理 ----------
             if (network.getNode(from) != null)
             {

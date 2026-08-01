@@ -29,6 +29,3 @@ Inspired by Drive-By-Wire cable logic, works in vanilla world with no mod depend
     versionRange="[1.20.1,1.21)"
     ordering="NONE"
     side="BOTH"
-
-[[mods.mixins]]
-config="mixins.virtual_redstone_wire.json"
