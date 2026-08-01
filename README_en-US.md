@@ -21,22 +21,11 @@ This mod heavily depends on Forge, but has no prerequisite mod dependencies and 
 
 Currently supports Minecraft 1.20.1 only. For compatibility with other versions, please [submit an Issue](https://github.com/JularDepick/Virtual-Redstone-Wire/issues/new) or [contribute](#contributing).
 
-## Virtual Cable
-
-Crafting: Redstone + Iron Ingot
-Usage: Right-click an input block, then an output block, to create a one-way redstone link
-Notes: Signal strength propagates along the link; right-click the same block again to cancel; one input can feed multiple outputs, one output can take multiple inputs (highest signal wins)
-
-## Cable Cutter
-
-Crafting: Iron Ingot + Stick x2
-Usage: Right-click an input block to cut all links originating from it
-Notes: Only affects links where this block is the input (source)
-
-## Cable Magnifier
-
-Crafting: Redstone + Glass Pane + Stick
-Usage: While held, highlights all links (blue is input, yellow is output, red is link path); sneak-right-click a block to inspect its links
+| Item | Crafting | Usage | Notes |
+|:---:|:---:|:---:|:---:|
+| Virtual Cable | Redstone + Iron Ingot | Right-click an input block, then an output block, to create a one-way redstone link | Signal strength propagates along the link; right-click the same block again to cancel; one input can feed multiple outputs, one output can take multiple inputs (highest signal wins) |
+| Cable Cutter | Iron Ingot + Stick x2 | Right-click an input block to cut all links originating from it | Only affects links where this block is the input (source) |
+| Cable Magnifier | Redstone + Glass Pane + Stick | While held, highlights all links (blue is input, yellow is output, red is link path); sneak-right-click a block to inspect its links |  |
 
 ## Redstone Behavior
 
