@@ -22,28 +22,20 @@
 ## 线缆
 
 合成: 红石 + 铁锭
-
-用法: 不消耗, 可重复使用
-1. 手持线缆, 右键点击一个方块, 将其设为输入端 (聊天栏提示已选中)
-2. 再右键点击另一个方块, 将其设为输出端, 链路即建立
-3. 如需取消选中, 再次右键同一方块即可
-4. 同一输入端可连接多个输出端 (一对多), 同一输出端也可接收多个输入端 (多对一, 取最大信号强度)
+操作: 右键源方块选定输入端, 再右键目标方块建立链路 (再次右键同一方块取消选中)
+特性: 不消耗可复用; 输入端可连接多个输出端, 输出端可接收多个输入端 (取最大信号)
 
 ## 线缆剪
 
 合成: 铁锭 + 木棍 x2
-
-用法: 不消耗, 可重复使用
-- 右键点击任意与线缆关联的方块, 断开其所有输入/输出链路
-- 对输入端或输出端使用均可
+操作: 右键输入端方块, 断开其全部出链
+特性: 不消耗可复用
 
 ## 线缆放大镜
 
 合成: 红石 + 玻璃板 + 木棍
-
-用法: 不消耗, 可重复使用
-- 手持时: 所有链路的输入端和输出端以高亮边框显示, 链路以红色线条可视化 (蓝色边框=输入端, 黄色边框=输出端, 红色线=链路路径)
-- 右键方块时: 打开独立信息面板, 显示该方块关联的所有输入/输出链路列表 (点击面板外或X按钮关闭)
+操作: 手持时高亮显示全部链路 (蓝=输入端, 黄=输出端, 红=链路), 右键方块打开其关联链路面板
+特性: 不消耗可复用
 
 ## 红石行为
 
@@ -52,16 +44,19 @@
 - 信号沿链路传递到输出端, 通过内存网络图查询返回信号强度（无方块占用）
 - 输入端的红石变化会实时反映到输出端
 - 支持一对多广播、多对一合并 (取最大值)
+- 链路有方向: 信号从输出方块的指定面射出 (方向精确), 红石灯放在输出端方块本身上即可点亮
+- 支持先建链后放源: 放置/移除信号源、拨动拉杆等操作会实时刷新链路信号
 - 聊天栏操作反馈默认关闭, 可在配置文件中启用
 
 # 技术栈
 
-| 组件 | 版本 / 说明 |
+| 组件 | 版本 |
 |:---:|:---:|
 | Minecraft | 1.20.1 |
-| Forge | 1.20.1-47.3.0 |
+| Forge | 47.4.22 |
 | JDK | 17 |
-| Gradle | 8.x, ForgeGradle 6.x |
+| Gradle | 8.14.3 |
+| ForgeGradle | 6.x |
 | 映射 | official |
 | 模组 ID | virtual_redstone_wire |
 
@@ -71,20 +66,21 @@
 src/main/java/com/virtualredstonewire/
 ├── VirtualRedstoneWire.java          # 模组主入口
 ├── ClientSetup.java                  # 客户端初始化
-├── ServerEventHandler.java           # 服务端事件(世界加载/保存/tick/方块更新)
-├── blockentity/
-│   ├── CableSignalBlockEntity.java   # 信号广播 BlockEntity
-│   └── ModBlockEntities.java         # BlockEntity 类型注册
+├── ServerEventHandler.java           # 服务端事件(世界加载/保存/卸载/方块更新)
+├── RedstoneDiagnostics.java          # 红石信号自动化诊断(调试用)
 ├── client/
 │   ├── ClientCableCache.java         # 客户端链路缓存
 │   ├── gui/CableInfoScreen.java      # 线缆信息 GUI 面板
+│   ├── gui/CableInfoScreenOpener.java
 │   └── render/CableRenderer.java     # 3D 渲染(方管梁+面亮点+连接线)
+├── commands/
+│   └── VRedTestCommand.java          # /vredtest 诊断命令
 ├── config/
 │   ├── ServerConfig.java             # 服务端配置(距离限制)
 │   └── ClientConfig.java             # 客户端配置(聊天/颜色/线宽)
 ├── data/
 │   ├── CableLink.java                # 链路数据模型(纯渲染载体)
-│   ├── CableNetwork.java             # 电缆网络图(全局结点索引+信号查询)
+│   ├── CableNetwork.java             # 电缆网络图(结点索引+存储式信号查询)
 │   ├── CableNode.java                # 电缆拓扑结点(toWho/fromWho 邻接表)
 │   ├── CableNetworkManager.java      # 按维度管理 CableNetwork
 │   └── CableNetworkSavedData.java    # NBT 持久化
@@ -93,7 +89,7 @@ src/main/java/com/virtualredstonewire/
 │   ├── CableCutterItem.java          # 线缆剪(只删起点链路)
 │   └── CableMagnifierItem.java       # 线缆放大镜(下蹲+右键查看链路信息)
 ├── mixin/
-│   └── MixinLevel.java               # getSignal/getDirectSignal 注入
+│   └── MixinLevel.java               # 仅覆写 getSignal (DBW 存储式语义)
 ├── network/
 │   ├── CableNetworkChannel.java      # 网络通道注册
 │   ├── CableActionPacket.java        # 客户端→服务端操作请求(连接/剪刀)
@@ -101,8 +97,6 @@ src/main/java/com/virtualredstonewire/
 │   ├── CableSyncPacket.java          # 服务端→客户端全量同步
 │   ├── CableRequestSyncPacket.java   # 客户端→服务端同步请求
 │   └── SyncHelper.java               # 条目转换工具
-├── redstone/
-│   └── RedstoneCalculator.java       # 红石信号触发+updateNeighborsAt
 └── registry/
     ├── ModItems.java                 # 物品注册
     └── ModBlocks.java                # 方块注册
@@ -161,4 +155,4 @@ Copyright (c) 2026 JularDepick
 
 详见 [COPYRIGHT文件](./COPYRIGHT)
 
-> 娘希匹的Dickseep,做个模组愣是花了劳资20大洋,做了一坨屎出来,给劳资气了积薄都打闪电
+> 娘希匹的Dickseep,做个模组愣是花了劳资20大洋,做了一坨屎出来,给劳资气了积薄都打闪电,最后狠狠鞭笞才做出可用版本

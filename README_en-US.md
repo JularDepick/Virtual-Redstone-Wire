@@ -22,28 +22,20 @@ No mod dependencies required. Fully compatible with vanilla Minecraft.
 ## Virtual Cable
 
 Crafting: Redstone + Iron Ingot
-
-Usage: No consumption, reusable
-1. Hold the Virtual Cable and right-click a block to set it as input (chat confirms selection)
-2. Right-click another block to set it as output -- the link is created
-3. To cancel selection, right-click the same block again
-4. One input can connect to multiple outputs (broadcast); multiple inputs can connect to the same output (max signal strength wins)
+Usage: Right-click a source block to select the input, then right-click a target block to create the link (right-click the same block again to cancel)
+Notes: Reusable; one input can feed multiple outputs, one output can take multiple inputs (highest signal wins)
 
 ## Cable Cutter
 
 Crafting: Iron Ingot + Stick x2
-
-Usage: No consumption, reusable
-- Right-click any block associated with cable links to remove all its connections
-- Works on both input and output blocks
+Usage: Right-click an input block to remove all links originating from it
+Notes: Reusable
 
 ## Cable Magnifier
 
 Crafting: Redstone + Glass Pane + Stick
-
-Usage: No consumption, reusable
-- When held: all links are visualized with colored highlights (blue outline=input, yellow outline=output, red line=link path)
-- When right-clicked on a block: opens an independent info panel showing all associated links (click outside or X button to close)
+Usage: While held, all links are highlighted (blue=input, yellow=output, red=link path); right-click a block to open its link panel
+Notes: Reusable
 
 ## Redstone Behavior
 
@@ -52,16 +44,19 @@ Usage: No consumption, reusable
 - Signal propagates along the link to the output, queried through the in-memory network graph (zero space occupation)
 - Input changes are reflected at the output in real-time
 - Supports one-to-many broadcast and many-to-one merging (max signal)
+- Links are directional: the signal exits from the clicked face of the output block (face-accurate); a redstone lamp placed on the output block itself lights up
+- Works when the source is placed after the link: placing/removing a signal source or flipping a lever refreshes the link signal in real-time
 - Chat feedback is disabled by default; can be enabled in the config file
 
 # Tech Stack
 
-| Component | Version / Notes |
+| Component | Version |
 |:---:|:---:|
 | Minecraft | 1.20.1 |
-| Forge | 1.20.1-47.3.0 |
+| Forge | 47.4.22 |
 | JDK | 17 |
-| Gradle | 8.x, ForgeGradle 6.x |
+| Gradle | 8.14.3 |
+| ForgeGradle | 6.x |
 | Mapping | official |
 | Mod ID | virtual_redstone_wire |
 
@@ -71,20 +66,21 @@ Usage: No consumption, reusable
 src/main/java/com/virtualredstonewire/
 ├── VirtualRedstoneWire.java          # Main mod class
 ├── ClientSetup.java                  # Client initialization
-├── ServerEventHandler.java           # Server events (world save/load/tick/block update)
-├── blockentity/
-│   ├── CableSignalBlockEntity.java   # Signal broadcast BlockEntity
-│   └── ModBlockEntities.java         # BlockEntity type registration
+├── ServerEventHandler.java           # Server events (world load/save/unload/block update)
+├── RedstoneDiagnostics.java          # Redstone signal diagnostics (debug only)
 ├── client/
 │   ├── ClientCableCache.java         # Client-side link cache
 │   ├── gui/CableInfoScreen.java      # Cable info GUI panel
+│   ├── gui/CableInfoScreenOpener.java
 │   └── render/CableRenderer.java     # 3D rendering (tube beams + face dots + lines)
+├── commands/
+│   └── VRedTestCommand.java          # /vredtest diagnostics command
 ├── config/
 │   ├── ServerConfig.java             # Server config (distance limits)
 │   └── ClientConfig.java             # Client config (chat/color/line width)
 ├── data/
 │   ├── CableLink.java                # Link data model (render-only carrier)
-│   ├── CableNetwork.java             # Network graph (node index + signal query)
+│   ├── CableNetwork.java             # Network graph (node index + stored signal query)
 │   ├── CableNode.java                # Topology node (toWho/fromWho adjacency)
 │   ├── CableNetworkManager.java      # Per-dimension CableNetwork manager
 │   └── CableNetworkSavedData.java    # NBT persistence
@@ -93,7 +89,7 @@ src/main/java/com/virtualredstonewire/
 │   ├── CableCutterItem.java          # Cable cutter (delete origin links only)
 │   └── CableMagnifierItem.java       # Cable magnifier (sneak+right-click to inspect)
 ├── mixin/
-│   └── MixinLevel.java               # getSignal/getDirectSignal injection
+│   └── MixinLevel.java               # Overrides getSignal only (DBW stored-signal semantics)
 ├── network/
 │   ├── CableNetworkChannel.java      # Network channel registration
 │   ├── CableActionPacket.java        # Client->Server action request (connect/cut)
@@ -101,8 +97,6 @@ src/main/java/com/virtualredstonewire/
 │   ├── CableSyncPacket.java          # Server->Client full sync
 │   ├── CableRequestSyncPacket.java   # Client->Server sync request
 │   └── SyncHelper.java               # Entry conversion utilities
-├── redstone/
-│   └── RedstoneCalculator.java       # Redstone signal trigger + updateNeighborsAt
 └── registry/
     ├── ModItems.java                 # Item registration
     └── ModBlocks.java                # Block registration

@@ -1,12 +1,6 @@
 # Build outputs
 build/
 *.log
-out/
-test/
-temp/
-reference/
-/edn/
-/com/
 
 # IDE files
 .idea/
@@ -17,17 +11,15 @@ reference/
 .project
 .settings/
 .vscode/
-*.class
 
 # OS files
-.DS_Store
 Thumbs.db
 *.swp
 *~
 
 # Gradle cache
 .gradle/
-gradle/
+gradle/*
 !gradle/wrapper/
 
 # Forge runtime (Minecraft instance, worlds, logs)
@@ -35,5 +27,3 @@ run/
 
 # Agent Tool
 AGENTS*.md
-*版本审计.md
-*更新计划.md
