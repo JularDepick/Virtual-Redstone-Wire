@@ -124,7 +124,7 @@ src/main/resources/
 确保环境满足以下要求：
 
 | 组件 | 要求 |
-|------|------|
+|:---:|:---:|
 | JDK | 17 (推荐 Eclipse Temurin / Adoptium) |
 | Gradle | 8.14.3 |
 | Minecraft | 1.20.1 (Forge 47.4.22) |
@@ -172,5 +172,10 @@ Copyright (c) 2026 JularDepick
 
 - 缺少多 Minecraft 版本兼容
 - 缺少优秀的物品贴图素材方案
+
+# 相关链接
+
+- CurseForge模组链接：https://www.curseforge.com/minecraft/mc-mods/virtual-redstone-wire
+- Modrinth模组链接：https://modrinth.com/mod/virtual-redstone-wire
 
 > 娘希匹的Dickseep,做个模组愣是花了劳资20大洋,做了一坨屎出来,给劳资气了积薄都打闪电,最后狠狠鞭笞才做出可用版本

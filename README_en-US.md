@@ -173,4 +173,9 @@ This mod's development partially references the interaction effects and implemen
 - Missing multi-version Minecraft compatibility
 - Missing a proper item texture asset solution
 
+# Related Links
+
+- CurseForge: https://www.curseforge.com/minecraft/mc-mods/virtual-redstone-wire
+- Modrinth: https://modrinth.com/mod/virtual-redstone-wire
+
 > Darn it, Dickseep, this mod cost me 20 bucks, came out a total mess that drove me mad, and only after a hard crack of the whip did we finally get a usable version

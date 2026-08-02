@@ -42,18 +42,36 @@ Virtual Redstone Wire lets you transmit redstone signals between blocks wireless
 ### Virtual Cable
 
 1. Hold a **Virtual Cable** and right-click an input block to select it
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/11.png" alt="Right-click an input block with Virtual Cable to select it" />
+
 2. Right-click an output block to create the one-way link (right-click the same block again to cancel)
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/12.png" alt="Right-click an output block to create a one-way link" />
+
 3. Power the input block with any redstone source; the output block delivers the signal from the clicked face
 
 ### Cable Cutter
 
 - Right-click an input block to remove all links originating from it (only affects links where the block is the input/source)
 
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/21.png" alt="Cable Cutter used on an input block before removing links" />
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/22.png" alt="Cable Cutter after removing all outgoing links from the input block" />
+
 ### Cable Magnifier
 
 - While held: all links are highlighted (blue input, yellow output, red path)
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/31.png" alt="Cable Magnifier highlighting all links with blue input, yellow output, and red path" />
+
 - Sneak-right-click a block: open its link information panel
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/32.png" alt="Sneak-right-click a block to open the link information panel" />
+
 - Right-click a block: show its redstone signal strength above the hotbar
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/33.png" alt="Right-click a block to display its redstone signal strength above the hotbar" />
 
 ---
 
@@ -166,18 +184,36 @@ The language setting is **client-side**: each player chooses their own language,
 ### 虚拟线缆
 
 1. 手持**虚拟线缆**右键输入端方块以选中
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/11.png" alt="手持虚拟线缆右键输入端方块以选中" />
+
 2. 右键输出端方块创建单向链路（再次右键同一方块可取消选中）
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/12.png" alt="右键输出端方块创建单向链路" />
+
 3. 用任意红石源为输入端方块供能，输出端方块将从指定面射出信号
 
 ### 线缆剪
 
 - 右键输入端方块，移除以其为起点的全部链路（仅作用于该方块作为输入端/起点的链路）
 
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/21.png" alt="线缆剪使用前，输入端方块仍有链路" />
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/22.png" alt="线缆剪使用后，输入端方块的全部出链被移除" />
+
 ### 线缆放大镜
 
 - 手持时：高亮全部链路（蓝框输入、黄框输出、红线路径）
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/31.png" alt="手持线缆放大镜高亮全部链路，蓝框为输入，黄框为输出，红线为路径" />
+
 - 潜行右键方块：打开其链路信息面板
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/32.png" alt="潜行右键方块打开链路信息面板" />
+
 - 右键方块：在快捷栏上方显示其红石信号强度
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/33.png" alt="右键方块在快捷栏上方显示红石信号强度" />
 
 ---
 
