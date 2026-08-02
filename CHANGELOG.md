@@ -26,6 +26,13 @@
 - 放大镜未下蹲/下蹲右键的信号查询统一走 1 秒节流（tryStartQuery）
 - 面板本地构建不受影响，被节流时信号行保持占位
 
+## aae2199
+### 完善README与CurseForge描述：相关链接与操作截图
+
+- README 新增相关链接小节（CurseForge/Modrinth），英文版同步
+- README 构建环境要求表格改为居中
+- CurseForge 发布描述补充虚拟线缆/线缆剪/放大镜操作截图（中英双语）
+
 ---
 
 > 本文件记录落后于 git 记录一个 commit（追加变更日志时不可能提前知晓未提交 commit 的 hash 编号）
