@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire
 
-[![Version](https://img.shields.io/badge/Version-0.3.1-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.3.1)
+[![Version](https://img.shields.io/badge/Version-0.4.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.4.0)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
@@ -36,7 +36,7 @@ Currently supports Minecraft 1.20.1 only. For compatibility with other versions,
 - Supports one-to-many broadcast and many-to-one merging (max signal)
 - Links are directional: the signal exits from the clicked face of the output block (face-accurate); a redstone lamp placed on the output block itself lights up
 - Works when the source is placed after the link: placing/removing a signal source or flipping a lever refreshes the link signal in real-time
-- Chat feedback is disabled by default; can be enabled in the config file
+- Chat feedback is disabled by default; can be enabled in-game from the Mods menu or in the config file
 
 # Runtime Files
 
@@ -88,6 +88,12 @@ src/main/java/com/virtualredstonewire/
 │   ├── CableActionBarHud.java        # Signal popup above the hotbar
 │   ├── gui/CableInfoScreen.java      # Cable info GUI panel
 │   ├── gui/CableInfoScreenOpener.java
+│   ├── gui/ClientConfigScreen.java   # Mods menu config index (config file list)
+│   ├── gui/ClientConfigSubScreen.java # Client config file sub-page
+│   ├── gui/ServerConfigSubScreen.java # Server config file sub-page (owner-only)
+│   ├── gui/ConfigLabels.java         # Config display-name translation
+│   ├── gui/ConfigScreenTarget.java   # Config response target dispatch
+│   ├── gui/ServerConfigResponseTarget.java # Config response receiver interface
 │   └── render/CableRenderer.java     # 3D rendering (tube beams + face dots + lines)
 ├── commands/
 │   └── VRedTestCommand.java          # /vredtest diagnostics command
@@ -113,9 +119,11 @@ src/main/java/com/virtualredstonewire/
 │   ├── CableMsgPacket.java           # Message (d/f/r, JSON)
 │   ├── CableOpPacketHandler.java     # Server request processing and validation
 │   ├── CableServerQueue.java         # Server tick queue and conflict handling
-│   ├── CableChangeLog.java           # Change log (optional)
+│   ├── CableChangeLog.java           # Dual logs (operation/request, optional)
 │   ├── CableInfoRequestPacket.java   # Magnifier signal query request
-│   └── CableInfoResponsePacket.java  # Magnifier signal query response
+│   ├── CableInfoResponsePacket.java  # Magnifier signal query response
+│   ├── CableServerConfigRequestPacket.java # Server config query/change request
+│   └── CableServerConfigResponsePacket.java # Server config query/change response
 └── registry/
     ├── ModItems.java                 # Item registration
     └── ModBlocks.java                # Block registration
@@ -166,7 +174,7 @@ Build:
 
 ```bash
 gradlew build
-# Output: build/libs/VirtualRedstoneWire-0.3.1.jar
+# Output: build/libs/VirtualRedstoneWire-0.4.0.jar
 ```
 
 # Changelog

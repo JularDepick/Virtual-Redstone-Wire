@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire (虚拟红石线缆)
 
-[![Version](https://img.shields.io/badge/Version-0.3.1-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.3.1)
+[![Version](https://img.shields.io/badge/Version-0.4.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.4.0)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
@@ -36,7 +36,7 @@
 - 支持一对多广播、多对一合并 (取最大值)
 - 链路有方向: 信号从输出方块的指定面射出 (方向精确), 红石灯放在输出端方块本身上即可点亮
 - 支持先建链后放源: 放置/移除信号源、拨动拉杆等操作会实时刷新链路信号
-- 聊天栏操作反馈默认关闭, 可在配置文件中启用
+- 聊天栏操作反馈默认关闭, 可在游戏内 Mods 菜单或配置文件中启用
 
 # 运行时文件
 
@@ -88,6 +88,12 @@ src/main/java/com/virtualredstonewire/
 │   ├── CableActionBarHud.java        # 快捷栏上方信号飘浮提示
 │   ├── gui/CableInfoScreen.java      # 线缆信息 GUI 面板
 │   ├── gui/CableInfoScreenOpener.java
+│   ├── gui/ClientConfigScreen.java   # Mods 菜单配置索引页(配置文件列表)
+│   ├── gui/ClientConfigSubScreen.java # 客户端配置文件子页
+│   ├── gui/ServerConfigSubScreen.java # 服务端配置文件子页(仅拥有者)
+│   ├── gui/ConfigLabels.java         # 配置项显示名翻译
+│   ├── gui/ConfigScreenTarget.java   # 配置响应目标分发
+│   ├── gui/ServerConfigResponseTarget.java # 配置响应接收接口
 │   └── render/CableRenderer.java     # 3D 渲染(方管梁+面亮点+连接线)
 ├── commands/
 │   └── VRedTestCommand.java          # /vredtest 诊断命令
@@ -113,9 +119,11 @@ src/main/java/com/virtualredstonewire/
 │   ├── CableMsgPacket.java           # 消息(d/f/r, JSON)
 │   ├── CableOpPacketHandler.java     # 服务端请求处理与校验
 │   ├── CableServerQueue.java         # 服务端 tick 队列与冲突处理
-│   ├── CableChangeLog.java           # 变更日志(可选)
+│   ├── CableChangeLog.java           # 双日志(操作/请求,可选)
 │   ├── CableInfoRequestPacket.java   # 放大镜信号查询请求
-│   └── CableInfoResponsePacket.java  # 放大镜信号查询响应
+│   ├── CableInfoResponsePacket.java  # 放大镜信号查询响应
+│   ├── CableServerConfigRequestPacket.java # 服务端配置查询/修改请求
+│   └── CableServerConfigResponsePacket.java # 服务端配置查询/修改响应
 └── registry/
     ├── ModItems.java                 # 物品注册
     └── ModBlocks.java                # 方块注册
@@ -166,7 +174,7 @@ gradlew --version
 
 ```bash
 gradlew build
-# 输出在 build/libs/VirtualRedstoneWire-0.3.1.jar
+# 输出在 build/libs/VirtualRedstoneWire-0.4.0.jar
 ```
 
 # 变更日志
