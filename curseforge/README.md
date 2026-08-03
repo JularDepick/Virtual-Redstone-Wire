@@ -22,7 +22,7 @@ Virtual Redstone Wire lets you transmit redstone signals between blocks wireless
 - **Many-to-one merge** - multiple inputs can feed one output (highest signal wins)
 - **Works after building** - place the signal source, flip a lever, or remove a source at any time; links refresh in real time
 - **Zero space occupation** - no block entities, fully vanilla-compatible world
-- **Cable Magnifier** - highlights all links while held (blue input, yellow output, red path); sneak-right-click a block to inspect its links, or right-click a block to show its redstone signal strength above the hotbar
+- **Cable Magnifier** - highlights all links while held (blue input, yellow output, red path); sneak-right-click a block to inspect its links, or right-click a block to show its redstone signal strength and position above the hotbar
 - **Cable Cutter** - removes all outgoing links of an input block at once
 
 ---
@@ -69,9 +69,9 @@ Virtual Redstone Wire lets you transmit redstone signals between blocks wireless
 
 <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/32.png" alt="Sneak-right-click a block to open the link information panel" />
 
-- Right-click a block: show its redstone signal strength above the hotbar
+- Right-click a block: show its redstone signal strength and position above the hotbar
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/33.png" alt="Right-click a block to display its redstone signal strength above the hotbar" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/33.png" alt="Right-click a block to display its redstone signal strength and position above the hotbar" />
 
 ---
 
@@ -104,7 +104,7 @@ maxLinkDistance = 512
 - `maxLinkDistance` - maximum link distance in blocks (default 256, range 1-1024)
 - `magnifierRenderDistance` - render distance for link visualization (default 512, range 64-1024)
 - `networkChangeLogSize` - capacity of the recent change table for incremental sync (default 200, range 200-1000)
-- `networkChangeLogEnabled` - log every client operation to a per-world JSON Lines file for audit (default false)
+- `networkChangeLogEnabled` - log every client operation to a per-world JSON Lines file for audit (default true)
 
 ### Client options
 
@@ -164,7 +164,7 @@ The language setting is **client-side**: each player chooses their own language,
 - **多对一合并** - 多个输入端可连接一个输出端（取最大信号）
 - **建链后仍可调整** - 随时放置信号源、拨动拉杆或移除信号源，链路实时刷新
 - **零空间占用** - 不使用方块实体，完全兼容原版世界
-- **线缆放大镜** - 手持时高亮全部链路（蓝框输入、黄框输出、红线路径）；潜行右键方块查看链路信息，或右键方块在快捷栏上方显示其红石信号强度
+- **线缆放大镜** - 手持时高亮全部链路（蓝框输入、黄框输出、红线路径）；潜行右键方块查看链路信息，或右键方块在快捷栏上方显示其红石信号强度与坐标
 - **线缆剪** - 一次移除输入端方块的全部出链
 
 ---
@@ -211,9 +211,9 @@ The language setting is **client-side**: each player chooses their own language,
 
 <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/32.png" alt="潜行右键方块打开链路信息面板" />
 
-- 右键方块：在快捷栏上方显示其红石信号强度
+- 右键方块：在快捷栏上方显示其红石信号强度与坐标
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/33.png" alt="右键方块在快捷栏上方显示红石信号强度" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/33.png" alt="右键方块在快捷栏上方显示红石信号强度与坐标" />
 
 ---
 
@@ -246,7 +246,7 @@ maxLinkDistance = 512
 - `maxLinkDistance` - 最大链路距离（默认 256，范围 1-1024）
 - `magnifierRenderDistance` - 链路可视化渲染距离（默认 512，范围 64-1024）
 - `networkChangeLogSize` - 增量同步近期变更表容量（默认 200，范围 200-1000）
-- `networkChangeLogEnabled` - 将每次客户端操作记入世界独立 JSON Lines 日志文件，便于审计（默认关闭）
+- `networkChangeLogEnabled` - 将每次客户端操作记入世界独立 JSON Lines 日志文件，便于审计（默认开启）
 
 ### 客户端选项
 

@@ -34,7 +34,7 @@ public class ServerConfig
 
         networkChangeLogEnabled = BUILDER
             .comment("Log every client operation request to a per-world JSON Lines file (for audit, no restore)")
-            .define("networkChangeLogEnabled", false);
+            .define("networkChangeLogEnabled", true);
 
         BUILDER.pop();
 

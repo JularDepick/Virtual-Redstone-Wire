@@ -45,6 +45,13 @@
 - 客户端飘浮显示拒绝原因（面板/飘浮模式均生效）
 - 新增 query_not_loaded 中英翻译
 ---
+## 5d989a9
+### v0.3.1: 版本号单源化
+
+- build.gradle 作为版本号唯一来源，processResources 注入 mods.toml 占位符
+- mods.toml 改用 ${version} 占位，不再手写版本号
+- README 中英版本号更新至 0.3.1
+
 
 > 本文件记录落后于 git 记录一个 commit（追加变更日志时不可能提前知晓未提交 commit 的 hash 编号）
 

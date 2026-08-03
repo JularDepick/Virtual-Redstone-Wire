@@ -88,9 +88,13 @@ public class CableInfoResponsePacket
                 }
                 if (actionBar)
                 {
-                    // 快捷栏上方飘浮提示（自定义 HUD，贴近快捷栏且与物品名称相接不重叠）
+                    // 快捷栏上方飘浮提示（自定义 HUD，贴近快捷栏且与物品名称相接不重叠）：
+                    // 附加目标方块坐标，便于远距离辨别所查询方块
                     com.virtualredstonewire.client.CableActionBarHud.show(
                         net.minecraft.network.chat.Component.translatable(
+                            "screen.virtual_redstone_wire.cable_info.position",
+                            this.pos.getX(), this.pos.getY(), this.pos.getZ()).getString()
+                            + " " + net.minecraft.network.chat.Component.translatable(
                             "screen.virtual_redstone_wire.cable_info.signal", this.signal).getString());
                     return;
                 }
