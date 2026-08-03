@@ -8,6 +8,9 @@ version = '0.4.0'
 group = 'com.virtualredstonewire'
 archivesBaseName = 'VirtualRedstoneWire'
 
+// MC 版本单源化：mappings、forge 依赖、产物文件名共用
+def mcVersion = '1.20.1'
+
 // 版本号单源化：build.gradle 的 version 为唯一来源，
 // processResources 将 mods.toml 中的 ${version} 占位替换为实际版本
 processResources {
@@ -39,7 +42,7 @@ repositories {
 }
 
 minecraft {
-    mappings channel: 'official', version: '1.20.1'
+    mappings channel: 'official', version: mcVersion
 
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
     runs {
@@ -76,12 +79,14 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.20.1-47.4.22'
+    minecraft "net.minecraftforge:forge:${mcVersion}-47.4.22"
     annotationProcessor 'org.spongepowered:mixin:0.8.5'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
 jar {
+    // 产物命名：VirtualRedstoneWire-v<version>-forge-mc<mcVersion>.jar（v 前缀仅用于文件名，mods.toml 内部版本保持纯 semver）
+    archiveFileName = "${archivesBaseName}-v${project.version}-forge-mc${mcVersion}.jar"
     manifest {
         attributes([
             "Specification-Title"     : "Virtual Redstone Wire",

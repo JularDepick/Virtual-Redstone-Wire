@@ -13,7 +13,7 @@ echo.
 echo Build successful!
 echo.
 echo Output:
-dir /b build\libs\VirtualRedstoneWire-*.jar
+dir /b build\libs\VirtualRedstoneWire-v*.jar
 echo.
 echo Full path: %cd%\build\libs\
 pause

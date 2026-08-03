@@ -174,7 +174,7 @@ gradlew --version
 
 ```bash
 gradlew build
-# 输出在 build/libs/VirtualRedstoneWire-0.4.0.jar
+# 输出在 build/libs/VirtualRedstoneWire-v<version>-forge-mc1.20.1.jar
 ```
 
 # 变更日志

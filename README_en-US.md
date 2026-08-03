@@ -174,7 +174,7 @@ Build:
 
 ```bash
 gradlew build
-# Output: build/libs/VirtualRedstoneWire-0.4.0.jar
+# Output: build/libs/VirtualRedstoneWire-v<version>-forge-mc1.20.1.jar
 ```
 
 # Changelog
