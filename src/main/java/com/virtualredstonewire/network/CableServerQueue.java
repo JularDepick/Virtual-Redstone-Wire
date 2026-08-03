@@ -60,7 +60,8 @@ public final class CableServerQueue
                 // 相背：全部不执行
                 for (QueuedOp op : members)
                 {
-                    sendReject(op, CableProtocol.CODE_CONFLICT, "同 tick 相背请求未执行");
+                    sendReject(op, CableProtocol.CODE_CONFLICT,
+                        "message.virtual_redstone_wire.reject_conflict_same_tick");
                 }
                 continue;
             }
@@ -78,7 +79,8 @@ public final class CableServerQueue
                 {
                     for (QueuedOp op : members)
                     {
-                        sendReject(op, CableProtocol.CODE_CONFLICT, "目标链路已存在");
+                        sendReject(op, CableProtocol.CODE_CONFLICT,
+                            "message.virtual_redstone_wire.reject_already_exists");
                     }
                     continue;
                 }
@@ -92,7 +94,8 @@ public final class CableServerQueue
                 {
                     for (QueuedOp op : members)
                     {
-                        sendReject(op, CableProtocol.CODE_NOT_EXISTS, "目标链路不存在");
+                        sendReject(op, CableProtocol.CODE_NOT_EXISTS,
+                            "message.virtual_redstone_wire.reject_not_exists");
                     }
                     continue;
                 }
@@ -116,7 +119,8 @@ public final class CableServerQueue
                 // 已校验通过仍失败，防御性拒绝
                 for (QueuedOp op : members)
                 {
-                    sendReject(op, CableProtocol.CODE_CONFLICT, "批量执行失败");
+                    sendReject(op, CableProtocol.CODE_CONFLICT,
+                        "message.virtual_redstone_wire.reject_batch_failed");
                 }
                 continue;
             }

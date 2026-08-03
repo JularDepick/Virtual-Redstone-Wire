@@ -30,5 +30,17 @@
   "screen.virtual_redstone_wire.cable_info.pending": "-",
   "message.virtual_redstone_wire.full_request_throttle": "Client full-sync requests too frequent, an unknown error occurred",
   "message.virtual_redstone_wire.query_not_loaded": "Target block is not loaded, cannot query redstone signal",
-  "message.virtual_redstone_wire.config_clamped": "%s out of range [%d, %d], clamped to %d"
+  "message.virtual_redstone_wire.config_clamped": "%s out of range [%d, %d], clamped to %d",
+  "message.virtual_redstone_wire.reject_dimension_mismatch": "Dimension does not match sender's dimension",
+  "message.virtual_redstone_wire.reject_player_mismatch": "Player name does not match sender",
+  "message.virtual_redstone_wire.reject_empty_links": "Link list is empty",
+  "message.virtual_redstone_wire.reject_batch_too_large": "Batch exceeds %d entries",
+  "message.virtual_redstone_wire.reject_same_pos": "Start and end are the same block",
+  "message.virtual_redstone_wire.reject_too_far": "Distance between start and end exceeds the limit",
+  "message.virtual_redstone_wire.reject_player_too_far": "Player is too far from the start block",
+  "message.virtual_redstone_wire.reject_start_air": "Start block is air",
+  "message.virtual_redstone_wire.reject_conflict_same_tick": "Conflicting requests in the same tick were not executed",
+  "message.virtual_redstone_wire.reject_already_exists": "Link already exists",
+  "message.virtual_redstone_wire.reject_not_exists": "Link does not exist",
+  "message.virtual_redstone_wire.reject_batch_failed": "Batch execution failed"
 }

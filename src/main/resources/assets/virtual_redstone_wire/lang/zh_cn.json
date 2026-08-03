@@ -40,5 +40,17 @@
   "screen.virtual_redstone_wire.cable_info.pending": "-",
   "message.virtual_redstone_wire.full_request_throttle": "客户端执行全量请求过于频繁，存在未知错误",
   "message.virtual_redstone_wire.query_not_loaded": "目标方块未加载，无法查询红石信号",
-  "message.virtual_redstone_wire.config_clamped": "%s 超出范围 [%d, %d]，已自动调整到 %d"
+  "message.virtual_redstone_wire.config_clamped": "%s 超出范围 [%d, %d]，已自动调整到 %d",
+  "message.virtual_redstone_wire.reject_dimension_mismatch": "维度与发送者所在维度不一致",
+  "message.virtual_redstone_wire.reject_player_mismatch": "玩家名称与发送者不一致",
+  "message.virtual_redstone_wire.reject_empty_links": "链路列表为空",
+  "message.virtual_redstone_wire.reject_batch_too_large": "批量超过 %d 条",
+  "message.virtual_redstone_wire.reject_same_pos": "起点与终点相同",
+  "message.virtual_redstone_wire.reject_too_far": "起点到终点超过距离上限",
+  "message.virtual_redstone_wire.reject_player_too_far": "玩家与起点距离超过上限",
+  "message.virtual_redstone_wire.reject_start_air": "起点方块为空气",
+  "message.virtual_redstone_wire.reject_conflict_same_tick": "同 tick 相背请求未执行",
+  "message.virtual_redstone_wire.reject_already_exists": "目标链路已存在",
+  "message.virtual_redstone_wire.reject_not_exists": "目标链路不存在",
+  "message.virtual_redstone_wire.reject_batch_failed": "批量执行失败"
 }

@@ -160,14 +160,17 @@ public final class CableClientQueue
         inFlight = null;
         Level level = Minecraft.getInstance().level;
         if (level == null) return;
-        // 操作结果反馈：聊天栏显示服务端拒绝原因（错误反馈始终可见，红色）
+        // 操作结果反馈：聊天栏显示服务端拒绝原因（语言键本地化，错误反馈始终可见，红色）
         if (msg.message != null && !msg.message.isEmpty())
         {
             Minecraft mc = Minecraft.getInstance();
             if (mc.player != null)
             {
-                mc.player.sendSystemMessage(
-                    Component.literal(msg.message).withStyle(style -> style.withColor(0xFF5555)));
+                net.minecraft.network.chat.MutableComponent rejectMsg =
+                    "message.virtual_redstone_wire.reject_batch_too_large".equals(msg.message)
+                        ? Component.translatable(msg.message, CableProtocol.BATCH_LIMIT)
+                        : Component.translatable(msg.message);
+                mc.player.sendSystemMessage(rejectMsg.withStyle(style -> style.withColor(0xFF5555)));
             }
         }
         if (msg.code == 404 || msg.code == 409)

@@ -30,12 +30,14 @@ public class CableOpPacketHandler
             // 格式与身份校验（400）
             if (!level.dimension().location().toString().equals(packet.dimension))
             {
-                reject(sender, packet, CableProtocol.CODE_BAD_REQUEST, "维度与发送者所在维度不一致");
+                reject(sender, packet, CableProtocol.CODE_BAD_REQUEST,
+                    "message.virtual_redstone_wire.reject_dimension_mismatch");
                 return;
             }
             if (!sender.getName().getString().equals(packet.player))
             {
-                reject(sender, packet, CableProtocol.CODE_BAD_REQUEST, "玩家名称与发送者不一致");
+                reject(sender, packet, CableProtocol.CODE_BAD_REQUEST,
+                    "message.virtual_redstone_wire.reject_player_mismatch");
                 return;
             }
 
@@ -63,11 +65,11 @@ public class CableOpPacketHandler
     {
         if (packet.links.isEmpty())
         {
-            return "链路列表为空";
+            return "message.virtual_redstone_wire.reject_empty_links";
         }
         if (packet.links.size() > CableProtocol.BATCH_LIMIT)
         {
-            return "批量超过 " + CableProtocol.BATCH_LIMIT + " 条";
+            return "message.virtual_redstone_wire.reject_batch_too_large";
         }
         double max = ServerConfig.maxLinkDistance.get();
         double maxSq = max * max;
@@ -77,19 +79,19 @@ public class CableOpPacketHandler
             BlockPos to = l.to();
             if (fr.equals(to))
             {
-                return "起点与终点相同";
+                return "message.virtual_redstone_wire.reject_same_pos";
             }
             if (fr.distSqr(to) > maxSq)
             {
-                return "起点到终点超过距离上限";
+                return "message.virtual_redstone_wire.reject_too_far";
             }
             if (sender.blockPosition().distSqr(fr) > maxSq)
             {
-                return "玩家与起点距离超过上限";
+                return "message.virtual_redstone_wire.reject_player_too_far";
             }
             if (level.isEmptyBlock(fr))
             {
-                return "起点方块为空气";
+                return "message.virtual_redstone_wire.reject_start_air";
             }
         }
         return null;
