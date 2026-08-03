@@ -18,6 +18,8 @@
   "screen.virtual_redstone_wire.config.split.both": "合并+按玩家",
   "screen.virtual_redstone_wire.config.split.player": "仅按玩家",
   "screen.virtual_redstone_wire.cable_info.position": "位置: [%d, %d, %d]",
+  "screen.virtual_redstone_wire.cable_info.position_label": "位置",
+  "screen.virtual_redstone_wire.cable_info.signal_label": "红石信号",
   "screen.virtual_redstone_wire.cable_info.outgoing": "输出: %s",
   "screen.virtual_redstone_wire.cable_info.incoming": "输入: %s",
   "message.virtual_redstone_wire.selected_input": "已选中输入端: [%d, %d, %d]",

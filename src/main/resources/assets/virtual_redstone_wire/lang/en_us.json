@@ -18,6 +18,8 @@
   "screen.virtual_redstone_wire.config.split.both": "Shared + per-player",
   "screen.virtual_redstone_wire.config.split.player": "Per-player only",
   "screen.virtual_redstone_wire.cable_info.position": "Position: [%d, %d, %d]",
+  "screen.virtual_redstone_wire.cable_info.position_label": "Position",
+  "screen.virtual_redstone_wire.cable_info.signal_label": "Redstone signal",
   "screen.virtual_redstone_wire.cable_info.outgoing": "Outgoing: %s",
   "screen.virtual_redstone_wire.cable_info.incoming": "Incoming: %s",
   "message.virtual_redstone_wire.selected_input": "Selected input: [%d, %d, %d]",

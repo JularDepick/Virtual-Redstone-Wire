@@ -4,6 +4,7 @@ import com.virtualredstonewire.VirtualRedstoneWire;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
@@ -27,13 +28,13 @@ public class CableActionBarHud
      */
     private static final int Y_OFFSET_FROM_BOTTOM = 48;
 
-    private static String text;
+    private static Component text;
     private static long expireAt;
 
     private CableActionBarHud() {}
 
-    /** 显示飘浮提示 */
-    public static void show(String content)
+    /** 显示飘浮提示（支持组件内嵌颜色） */
+    public static void show(Component content)
     {
         text = content;
         expireAt = System.currentTimeMillis() + DURATION_MS;
