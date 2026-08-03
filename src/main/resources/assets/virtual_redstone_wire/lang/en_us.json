@@ -14,6 +14,9 @@
   "screen.virtual_redstone_wire.config.server": "Server Config",
   "screen.virtual_redstone_wire.config.loading": "Loading...",
   "screen.virtual_redstone_wire.config.open": "Open",
+  "screen.virtual_redstone_wire.config.split.total": "Merge into one file",
+  "screen.virtual_redstone_wire.config.split.both": "Shared + per-player",
+  "screen.virtual_redstone_wire.config.split.player": "Per-player only",
   "screen.virtual_redstone_wire.cable_info.position": "Position: [%d, %d, %d]",
   "screen.virtual_redstone_wire.cable_info.outgoing": "Outgoing: %s",
   "screen.virtual_redstone_wire.cable_info.incoming": "Incoming: %s",
@@ -42,5 +45,13 @@
   "message.virtual_redstone_wire.reject_conflict_same_tick": "Conflicting requests in the same tick were not executed",
   "message.virtual_redstone_wire.reject_already_exists": "Link already exists",
   "message.virtual_redstone_wire.reject_not_exists": "Link does not exist",
-  "message.virtual_redstone_wire.reject_batch_failed": "Batch execution failed"
+  "message.virtual_redstone_wire.reject_batch_failed": "Batch execution failed",
+  "message.virtual_redstone_wire.config_owner_only_view": "Only the save owner can view server config",
+  "message.virtual_redstone_wire.config_owner_only_set": "Only the save owner can change server config",
+  "message.virtual_redstone_wire.config_unknown_action": "Unknown action",
+  "message.virtual_redstone_wire.config_unknown_key": "Unknown config key",
+  "message.virtual_redstone_wire.config_range": "Valid range %d-%d",
+  "message.virtual_redstone_wire.config_file_name_empty": "File name cannot be empty",
+  "message.virtual_redstone_wire.config_number_format": "Invalid number format",
+  "message.virtual_redstone_wire.config_invalid_value": "Invalid value"
 }

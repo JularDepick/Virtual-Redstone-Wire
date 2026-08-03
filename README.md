@@ -38,6 +38,29 @@
 - 支持先建链后放源: 放置/移除信号源、拨动拉杆等操作会实时刷新链路信号
 - 聊天栏操作反馈默认关闭, 可在配置文件中启用
 
+# 运行时文件
+
+## 配置文件
+
+- 客户端配置: `config/virtual_redstone_wire-client.toml`（游戏目录下 config 文件夹，聊天反馈开关等；可在游戏内 Mods 菜单配置）
+- 服务端配置: `<世界文件夹>/serverconfig/virtual_redstone_wire-server.toml`
+  - 单机/局域网: `saves/<存档名>/serverconfig/`
+  - 专用服务器: `<服务器世界文件夹>/serverconfig/`（如 `world/serverconfig/`）
+  - 内容: 链路最大距离/放大镜渲染距离/同步变更表容量/操作日志与请求日志；可在游戏内 Mods 菜单配置（仅存档拥有者）
+
+## 数据文件
+
+- 链路数据按维度独立存储（自动保存，同目录保留 `.dat_old` 备份）:
+  - 主世界: `<世界文件夹>/data/virtual_redstone_wire_network.dat`
+  - 下界: `<世界文件夹>/DIM-1/data/virtual_redstone_wire_network.dat`
+  - 末地: `<世界文件夹>/DIM1/data/virtual_redstone_wire_network.dat`
+  - 其他维度: `<世界文件夹>/<维度子目录>/data/virtual_redstone_wire_network.dat`
+
+## 日志文件（世界文件夹根目录，均仅输出不恢复）
+
+- 操作日志: `<世界文件夹>/Virtual_Redstone_Wire-Operations.log`（add/del 执行与拒绝；分割模式为 player/both 时生成 `Virtual_Redstone_Wire-Operations_<玩家名>.log`）
+- 请求日志: `<世界文件夹>/Virtual_Redstone_Wire-Requests.log`（调试级，记录每次收到的原始请求与最终状态码，默认关闭）
+
 # 技术栈
 
 | 组件 | 版本 |

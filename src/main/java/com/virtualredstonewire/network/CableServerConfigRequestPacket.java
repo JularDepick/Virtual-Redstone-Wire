@@ -61,7 +61,8 @@ public class CableServerConfigRequestPacket
                 if (!owner)
                 {
                     CableNetworkChannel.sendToPlayer(sender,
-                        new CableServerConfigResponsePacket(false, "仅存档拥有者可查看服务端配置", null));
+                        new CableServerConfigResponsePacket(false,
+                            "message.virtual_redstone_wire.config_owner_only_view", null));
                     return;
                 }
                 CableNetworkChannel.sendToPlayer(sender,
@@ -72,20 +73,25 @@ public class CableServerConfigRequestPacket
             if (!ACTION_SET.equals(action))
             {
                 CableNetworkChannel.sendToPlayer(sender,
-                    new CableServerConfigResponsePacket(false, "未知操作", null));
+                    new CableServerConfigResponsePacket(false,
+                        "message.virtual_redstone_wire.config_unknown_action", null));
                 return;
             }
             if (!owner)
             {
                 CableNetworkChannel.sendToPlayer(sender,
-                    new CableServerConfigResponsePacket(false, "仅存档拥有者可修改服务端配置", null));
+                    new CableServerConfigResponsePacket(false,
+                        "message.virtual_redstone_wire.config_owner_only_set", null));
                 return;
             }
             String error = apply(key, value);
             if (error != null)
             {
+                // 错误响应携带出错配置键的当前值，供客户端按范围参数本地化显示
+                Map<String, String> single = new LinkedHashMap<>();
+                single.put(key, currentValue(key));
                 CableNetworkChannel.sendToPlayer(sender,
-                    new CableServerConfigResponsePacket(false, key + ": " + error, null));
+                    new CableServerConfigResponsePacket(false, error, single));
                 return;
             }
             ServerConfig.SPEC.save();
@@ -129,21 +135,24 @@ public class CableServerConfigRequestPacket
                 case "maxLinkDistance":
                 {
                     int parsed = Integer.parseInt(v);
-                    if (parsed < 1 || parsed > 1024) return "取值范围 1-1024";
+                    if (parsed < 1 || parsed > 1024)
+                        return "message.virtual_redstone_wire.config_range";
                     ServerConfig.maxLinkDistance.set(parsed);
                     return null;
                 }
                 case "magnifierRenderDistance":
                 {
                     int parsed = Integer.parseInt(v);
-                    if (parsed < 64 || parsed > 1024) return "取值范围 64-1024";
+                    if (parsed < 64 || parsed > 1024)
+                        return "message.virtual_redstone_wire.config_range";
                     ServerConfig.magnifierRenderDistance.set(parsed);
                     return null;
                 }
                 case "networkChangeLogSize":
                 {
                     int parsed = Integer.parseInt(v);
-                    if (parsed < 200 || parsed > 1000) return "取值范围 200-1000";
+                    if (parsed < 200 || parsed > 1000)
+                        return "message.virtual_redstone_wire.config_range";
                     ServerConfig.networkChangeLogSize.set(parsed);
                     return null;
                 }
@@ -155,27 +164,27 @@ public class CableServerConfigRequestPacket
                         ServerConfig.OperationLogSplit.valueOf(v.toUpperCase(java.util.Locale.ROOT)));
                     return null;
                 case "operationLogFile":
-                    if (v.isEmpty()) return "文件名不能为空";
+                    if (v.isEmpty()) return "message.virtual_redstone_wire.config_file_name_empty";
                     ServerConfig.operationLogFile.set(v);
                     return null;
                 case "requestLogEnabled":
                     ServerConfig.requestLogEnabled.set(Boolean.parseBoolean(v));
                     return null;
                 case "requestLogFile":
-                    if (v.isEmpty()) return "文件名不能为空";
+                    if (v.isEmpty()) return "message.virtual_redstone_wire.config_file_name_empty";
                     ServerConfig.requestLogFile.set(v);
                     return null;
                 default:
-                    return "未知配置项";
+                    return "message.virtual_redstone_wire.config_unknown_key";
             }
         }
         catch (NumberFormatException e)
         {
-            return "数值格式错误";
+            return "message.virtual_redstone_wire.config_number_format";
         }
         catch (IllegalArgumentException e)
         {
-            return "取值错误";
+            return "message.virtual_redstone_wire.config_invalid_value";
         }
     }
 }

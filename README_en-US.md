@@ -38,6 +38,29 @@ Currently supports Minecraft 1.20.1 only. For compatibility with other versions,
 - Works when the source is placed after the link: placing/removing a signal source or flipping a lever refreshes the link signal in real-time
 - Chat feedback is disabled by default; can be enabled in the config file
 
+# Runtime Files
+
+## Config Files
+
+- Client config: `config/virtual_redstone_wire-client.toml` (in the game directory's config folder; chat feedback etc., adjustable in-game from the Mods menu)
+- Server config: `<world folder>/serverconfig/virtual_redstone_wire-server.toml`
+  - Singleplayer/LAN: `saves/<save name>/serverconfig/`
+  - Dedicated server: `<server world folder>/serverconfig/` (e.g. `world/serverconfig/`)
+  - Contents: max link distance / magnifier render distance / sync change table size / operation & request logs; adjustable in-game from the Mods menu (owner-only)
+
+## Data Files
+
+- Link data is stored per-dimension (auto-saved, with a `.dat_old` backup kept in the same folder):
+  - Overworld: `<world folder>/data/virtual_redstone_wire_network.dat`
+  - Nether: `<world folder>/DIM-1/data/virtual_redstone_wire_network.dat`
+  - End: `<world folder>/DIM1/data/virtual_redstone_wire_network.dat`
+  - Other dimensions: `<world folder>/<dimension subfolder>/data/virtual_redstone_wire_network.dat`
+
+## Log Files (in the world folder root, output-only)
+
+- Operation log: `<world folder>/Virtual_Redstone_Wire-Operations.log` (add/del execution and rejection; with player/both split mode a `Virtual_Redstone_Wire-Operations_<player>.log` is also written)
+- Request log: `<world folder>/Virtual_Redstone_Wire-Requests.log` (debug level, raw requests with final status codes, disabled by default)
+
 # Tech Stack
 
 | Component | Version |

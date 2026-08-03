@@ -186,6 +186,21 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
         onClose();
     }
 
+    /** 服务端返回消息本地化显示（config_range 键按出错配置项的范围参数补齐） */
+    private String localizedMessage()
+    {
+        if ("message.virtual_redstone_wire.config_range".equals(message))
+        {
+            String key = values.keySet().stream().findFirst().orElse("");
+            int[] range = NUMERIC_RANGES.get(key);
+            if (range != null)
+            {
+                return Component.translatable(message, range[0], range[1]).getString();
+            }
+        }
+        return Component.translatable(message).getString();
+    }
+
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
     {
@@ -193,7 +208,8 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, TITLE_Y, 0xFFFFFF);
         if (requested && !allowed)
         {
-            guiGraphics.drawCenteredString(this.font, message, this.width / 2, 120, 0xAAAAAA);
+            guiGraphics.drawCenteredString(this.font, localizedMessage(),
+                this.width / 2, 120, 0xAAAAAA);
         }
         else if (requested && values.isEmpty())
         {
@@ -327,26 +343,33 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
         }
     }
 
-    /** 操作日志分割档位条（total/both/player 三档，拖动中显示档位，释放时提交） */
+    /** 操作日志分割档位条（total/both/player 三档，档位文本语言键本地化，拖动显示、释放提交） */
     private final class SplitSliderRow extends Row
     {
-        private static final String[] LABELS = {"total", "both", "player"};
+        private static final String[] KEYS = {
+            "screen.virtual_redstone_wire.config.split.total",
+            "screen.virtual_redstone_wire.config.split.both",
+            "screen.virtual_redstone_wire.config.split.player"};
+        private static final String[] VALUES = {"total", "both", "player"};
 
         SplitSliderRow(String key, String current)
         {
             super(key);
-            int initial = Math.max(0, java.util.Arrays.asList(LABELS).indexOf(current));
-            int width = Math.max(
-                Math.max(ServerConfigSubScreen.this.font.width(LABELS[0]),
-                    ServerConfigSubScreen.this.font.width(LABELS[1])),
-                ServerConfigSubScreen.this.font.width(LABELS[2])) + 16;
+            int initial = Math.max(0, java.util.Arrays.asList(VALUES).indexOf(current));
+            int width = 0;
+            for (String k : KEYS)
+            {
+                width = Math.max(width, ServerConfigSubScreen.this.font.width(
+                    Component.translatable(k).getString()));
+            }
+            width += 16;
             AbstractSliderButton slider = new AbstractSliderButton(0, 0, width, 20,
-                Component.literal(LABELS[initial]), initial / (double) (LABELS.length - 1))
+                Component.translatable(KEYS[initial]), initial / (double) (KEYS.length - 1))
             {
                 @Override
                 protected void updateMessage()
                 {
-                    setMessage(Component.literal(LABELS[getIndex()]));
+                    setMessage(Component.translatable(KEYS[getIndex()]));
                 }
 
                 @Override
@@ -359,12 +382,12 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
                 public void onRelease(double mouseX, double mouseY)
                 {
                     super.onRelease(mouseX, mouseY);
-                    sendSet(key, LABELS[getIndex()]);
+                    sendSet(key, VALUES[getIndex()]);
                 }
 
                 private int getIndex()
                 {
-                    return (int) Math.round(this.value * (LABELS.length - 1));
+                    return (int) Math.round(this.value * (KEYS.length - 1));
                 }
             };
             addWidget(slider);
