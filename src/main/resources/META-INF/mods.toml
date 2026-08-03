@@ -5,7 +5,7 @@ license="MIT"
 
 [[mods]]
 modId="virtual_redstone_wire"
-version="0.3.0"
+version="${version}"
 displayName="Virtual Redstone Wire"
 logoFile="virtual_redstone_wire.png"
 credits="JudeBlack"

@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire
 
-[![Version](https://img.shields.io/badge/Version-0.3.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.3.0)
+[![Version](https://img.shields.io/badge/Version-0.3.1-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.3.1)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
@@ -143,7 +143,7 @@ Build:
 
 ```bash
 gradlew build
-# Output: build/libs/VirtualRedstoneWire-0.3.0.jar
+# Output: build/libs/VirtualRedstoneWire-0.3.1.jar
 ```
 
 # Changelog
