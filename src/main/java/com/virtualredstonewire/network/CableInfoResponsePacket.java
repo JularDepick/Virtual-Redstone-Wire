@@ -18,6 +18,8 @@ public class CableInfoResponsePacket
     private final BlockPos pos;
     private final int signal;
     private final boolean actionBar;
+    private final boolean error;
+    private final String messageKey;
 
     public CableInfoResponsePacket(BlockPos pos, int signal)
     {
@@ -26,9 +28,23 @@ public class CableInfoResponsePacket
 
     public CableInfoResponsePacket(BlockPos pos, int signal, boolean actionBar)
     {
+        this(pos, signal, actionBar, false, null);
+    }
+
+    /** 查询失败响应（error 为 true），messageKey 为客户端语言键 */
+    public CableInfoResponsePacket(BlockPos pos, String messageKey, boolean actionBar)
+    {
+        this(pos, 0, actionBar, true, messageKey);
+    }
+
+    private CableInfoResponsePacket(BlockPos pos, int signal, boolean actionBar,
+                                    boolean error, String messageKey)
+    {
         this.pos = pos.immutable();
         this.signal = signal;
         this.actionBar = actionBar;
+        this.error = error;
+        this.messageKey = messageKey;
     }
 
     public CableInfoResponsePacket(FriendlyByteBuf buf)
@@ -36,6 +52,8 @@ public class CableInfoResponsePacket
         this.pos = buf.readBlockPos();
         this.signal = buf.readVarInt();
         this.actionBar = buf.readBoolean();
+        this.error = buf.readBoolean();
+        this.messageKey = buf.readBoolean() ? buf.readUtf(256) : null;
     }
 
     public void encode(FriendlyByteBuf buf)
@@ -43,6 +61,16 @@ public class CableInfoResponsePacket
         buf.writeBlockPos(this.pos);
         buf.writeVarInt(this.signal);
         buf.writeBoolean(this.actionBar);
+        buf.writeBoolean(this.error);
+        if (this.messageKey != null)
+        {
+            buf.writeBoolean(true);
+            buf.writeUtf(this.messageKey);
+        }
+        else
+        {
+            buf.writeBoolean(false);
+        }
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx)
@@ -51,6 +79,13 @@ public class CableInfoResponsePacket
         {
             DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
             {
+                if (error)
+                {
+                    // 查询失败：快捷栏上方飘浮显示原因（语言键由服务端指定）
+                    com.virtualredstonewire.client.CableActionBarHud.show(
+                        net.minecraft.network.chat.Component.translatable(messageKey).getString());
+                    return;
+                }
                 if (actionBar)
                 {
                     // 快捷栏上方飘浮提示（自定义 HUD，贴近快捷栏且与物品名称相接不重叠）

@@ -25,5 +25,6 @@
   "screen.virtual_redstone_wire.cable_info.arrow_out": "->",
   "screen.virtual_redstone_wire.cable_info.arrow_in": "<-",
   "screen.virtual_redstone_wire.cable_info.pending": "-",
-  "message.virtual_redstone_wire.full_request_throttle": "客户端执行全量请求过于频繁，存在未知错误"
+  "message.virtual_redstone_wire.full_request_throttle": "客户端执行全量请求过于频繁，存在未知错误",
+  "message.virtual_redstone_wire.query_not_loaded": "目标方块未加载，无法查询红石信号"
 }

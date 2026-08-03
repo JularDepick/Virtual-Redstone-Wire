@@ -56,6 +56,15 @@ public class CableInfoRequestPacket
             if (sender == null || sender.serverLevel() == null) return;
             ServerLevel level = sender.serverLevel();
 
+            if (!level.isLoaded(this.pos))
+            {
+                // 目标区块未加载，无法计算信号：返回错误响应（客户端飘浮提示原因）
+                CableNetworkChannel.sendToPlayer(sender,
+                    new CableInfoResponsePacket(this.pos,
+                        "message.virtual_redstone_wire.query_not_loaded", this.actionBar));
+                return;
+            }
+
             int signal = level.getBestNeighborSignal(this.pos);
 
             CableNetworkChannel.sendToPlayer(sender,
