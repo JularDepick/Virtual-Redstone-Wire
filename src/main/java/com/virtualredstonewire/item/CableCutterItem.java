@@ -66,7 +66,8 @@ public class CableCutterItem extends Item
             {
                 player.sendSystemMessage(
                     Component.translatable("message.virtual_redstone_wire.cutter_removed",
-                        pos.getX(), pos.getY(), pos.getZ()));
+                        pos.getX(), pos.getY(), pos.getZ())
+                        .withStyle(style -> style.withColor(0x00AA00)));
             }
             return InteractionResult.SUCCESS;
         }

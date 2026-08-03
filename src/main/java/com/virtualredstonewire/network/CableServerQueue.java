@@ -135,7 +135,8 @@ public final class CableServerQueue
             }
             CableNetworkChannel.sendToAll(level,
                 CableMsgPacket.delta(v, changes, dim.location().toString()));
-            CableChangeLog.log(level, v, playerName, op0, req.links, "success");
+            CableChangeLog.logOperation(level, playerName, op0, req.links, "success");
+            CableChangeLog.logRequest(level, req.toJson(), CableProtocol.CODE_OK);
         }
     }
 
@@ -144,7 +145,8 @@ public final class CableServerQueue
         CableNetworkChannel.sendToPlayer(op.player(),
             CableMsgPacket.reject(op.packet().toJson(), code, message));
         ServerLevel level = op.player().serverLevel();
-        CableChangeLog.log(level, CableNetworkManager.currentVersion(level.dimension()),
-            op.player().getName().getString(), op.packet().op, op.packet().links, "rejected");
+        CableChangeLog.logOperation(level, op.player().getName().getString(),
+            op.packet().op, op.packet().links, "rejected");
+        CableChangeLog.logRequest(level, op.packet().toJson(), code);
     }
 }

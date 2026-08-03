@@ -40,6 +40,7 @@ public class VirtualRedstoneWire
             () -> () -> {
                 modContainer.addConfig(new ModConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC,
                     modContainer, MOD_ID + "-client.toml"));
+                ClientSetup.registerConfigScreen(modContainer);
                 modEventBus.addListener(ClientSetup::onClientSetup);
             });
 

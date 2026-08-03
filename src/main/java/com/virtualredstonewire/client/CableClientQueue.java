@@ -1,8 +1,10 @@
 package com.virtualredstonewire.client;
 
+import com.virtualredstonewire.config.ClientConfig;
 import com.virtualredstonewire.network.CableMsgPacket;
 import com.virtualredstonewire.network.CableNetworkChannel;
 import com.virtualredstonewire.network.CableOpPacket;
+import com.virtualredstonewire.network.CableProtocol;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -98,11 +100,12 @@ public final class CableClientQueue
         enqueue(CableOpPacket.pull(0, mc.level.dimension(), mc.player.getName().getString()));
     }
 
-    /** 增量广播（tp 为 d）到达：按内容匹配出队 */
+    /** 增量广播（tp 为 d）到达：按内容匹配出队；单条请求确认时反馈结果，批量（线缆剪）不逐条提示 */
     public static void onDeltaReceived(List<CableMsgPacket.Change> changes)
     {
         if (inFlight != null && !inFlight.isPull())
         {
+            boolean batch = inFlight.links.size() > 1;
             Set<CableOpPacket.Link> wanted = new HashSet<>(inFlight.links);
             for (CableMsgPacket.Change c : changes)
             {
@@ -111,11 +114,29 @@ public final class CableClientQueue
                 if (c.op().equals(inFlight.op) && wanted.contains(l))
                 {
                     inFlight = null;
+                    if (!batch)
+                    {
+                        showOperationFeedback(c);
+                    }
                     break;
                 }
             }
         }
         sendNext();
+    }
+
+    /** 操作成功反馈：聊天栏显示链路创建/移除结果（含输出端接收面，受聊天反馈开关） */
+    private static void showOperationFeedback(CableMsgPacket.Change c)
+    {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || !ClientConfig.enableChatFeedback.get()) return;
+        mc.player.sendSystemMessage(Component.translatable(
+            CableProtocol.OP_ADD.equals(c.op())
+                ? "message.virtual_redstone_wire.link_created"
+                : "message.virtual_redstone_wire.link_removed",
+            c.fx(), c.fy(), c.fz(), c.tx(), c.ty(), c.tz(), c.face())
+            .withStyle(style -> style.withColor(
+                CableProtocol.OP_ADD.equals(c.op()) ? 0x55FF55 : 0x00AA00)));
     }
 
     /** 全量/追回响应（tp 为 f）到达 */
@@ -133,12 +154,22 @@ public final class CableClientQueue
         requestFull();
     }
 
-    /** 拒绝响应（tp 为 r）到达：按错误码分流 */
+    /** 拒绝响应（tp 为 r）到达：飘浮反馈拒绝原因，按错误码分流 */
     public static void onRejectReceived(CableMsgPacket msg)
     {
         inFlight = null;
         Level level = Minecraft.getInstance().level;
         if (level == null) return;
+        // 操作结果反馈：聊天栏显示服务端拒绝原因（错误反馈始终可见，红色）
+        if (msg.message != null && !msg.message.isEmpty())
+        {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player != null)
+            {
+                mc.player.sendSystemMessage(
+                    Component.literal(msg.message).withStyle(style -> style.withColor(0xFF5555)));
+            }
+        }
         if (msg.code == 404 || msg.code == 409)
         {
             // 状态不一致：增量追回纠正缓存

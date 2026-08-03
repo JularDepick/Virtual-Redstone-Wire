@@ -38,6 +38,7 @@ public final class CableProtocol
     public static final String OP_PULL = "pull";
 
     // 错误码（数字，参考 HTTP 状态码风格）
+    public static final int CODE_OK = 200;            // 成功
     public static final int CODE_BAD_REQUEST = 400;    // 格式/身份异常
     public static final int CODE_NOT_EXISTS = 404;     // del 目标链路不存在
     public static final int CODE_CONFLICT = 409;       // add 已存在 / 同 tick 相背

@@ -19,8 +19,9 @@ import java.util.List;
 
 public class CableMagnifierItem extends Item
 {
-    /** 信号查询节流：发起查询后 1 秒内不得再次发起（无论服务端返回什么） */
+    /** 信号查询节流：同一目标方块 1 秒内不得重复查询；查询其他方块不受限 */
     private static final long QUERY_COOLDOWN_MS = 1000;
+    private static BlockPos lastQueryPos = null;
     private static long lastQueryTime = 0;
 
     public CableMagnifierItem(Properties properties)
@@ -28,14 +29,15 @@ public class CableMagnifierItem extends Item
         super(properties);
     }
 
-    /** 尝试发起信号查询：通过节流则记录时间并返回 true，否则返回 false */
-    public static boolean tryStartQuery()
+    /** 尝试发起信号查询：同方块在节流期内返回 false；不同方块始终放行并记录 */
+    public static boolean tryStartQuery(BlockPos pos)
     {
         long now = System.currentTimeMillis();
-        if (now - lastQueryTime < QUERY_COOLDOWN_MS)
+        if (pos.equals(lastQueryPos) && now - lastQueryTime < QUERY_COOLDOWN_MS)
         {
             return false;
         }
+        lastQueryPos = pos.immutable();
         lastQueryTime = now;
         return true;
     }
@@ -56,8 +58,8 @@ public class CableMagnifierItem extends Item
                 return InteractionResult.SUCCESS;
             }
 
-            // 未下蹲 + 右键：快捷栏上方飘浮提示目标方块的红石信号强度（受 1 秒节流）
-            if (tryStartQuery())
+            // 未下蹲 + 右键：快捷栏上方飘浮提示目标方块的红石信号强度（同方块 1 秒节流）
+            if (tryStartQuery(context.getClickedPos()))
             {
                 CableNetworkChannel.sendToServer(
                     new CableInfoRequestPacket(context.getClickedPos(), true));

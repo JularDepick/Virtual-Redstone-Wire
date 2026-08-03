@@ -104,11 +104,17 @@ maxLinkDistance = 512
 - `maxLinkDistance` - maximum link distance in blocks (default 256, range 1-1024)
 - `magnifierRenderDistance` - render distance for link visualization (default 512, range 64-1024)
 - `networkChangeLogSize` - capacity of the recent change table for incremental sync (default 200, range 200-1000)
-- `networkChangeLogEnabled` - log every client operation to a per-world JSON Lines file for audit (default true)
+- `operationLogEnabled` - log every applied/rejected add/del operation to a per-world text file (default true)
+- `operationLogSplit` - operation log split mode: total (one shared file), both (shared + per-player), player (per-player only) (default total)
+- `operationLogFile` - operation log file name; with player/both split the base name gets a `_<player>` suffix (default Virtual_Redstone_Wire-Operations.log)
+- `requestLogEnabled` - log every received request (raw JSON) with its final status code, debug level (default false)
+- `requestLogFile` - request log file name (default Virtual_Redstone_Wire-Requests.log)
+- Server options can be viewed and changed in-game from the Mods menu (Config); owner-only
 
 ### Client options
 
 - `enableChatFeedback` - chat feedback for operations (default false)
+- Client options can be changed in-game from the Mods menu (Config), taking effect immediately
 
 ---
 
@@ -246,11 +252,17 @@ maxLinkDistance = 512
 - `maxLinkDistance` - 最大链路距离（默认 256，范围 1-1024）
 - `magnifierRenderDistance` - 链路可视化渲染距离（默认 512，范围 64-1024）
 - `networkChangeLogSize` - 增量同步近期变更表容量（默认 200，范围 200-1000）
-- `networkChangeLogEnabled` - 将每次客户端操作记入世界独立 JSON Lines 日志文件，便于审计（默认开启）
+- `operationLogEnabled` - 操作日志：add/del 执行/拒绝记录（默认开启）
+- `operationLogSplit` - 操作日志分割：total 合并同一文件 / both 合并+按玩家 / player 仅按玩家分文件（默认 total）
+- `operationLogFile` - 操作日志文件名（默认 Virtual_Redstone_Wire-Operations.log；player/both 分割时主名后缀 `_<玩家名>`）
+- `requestLogEnabled` - 请求日志：记录每次收到的原始请求与最终状态码，调试级（默认关闭）
+- `requestLogFile` - 请求日志文件名（默认 Virtual_Redstone_Wire-Requests.log）
+- 服务端选项可在游戏内 Mods 菜单（Config）查看与修改，仅存档拥有者可改
 
 ### 客户端选项
 
 - `enableChatFeedback` - 操作聊天反馈（默认关闭）
+- 客户端选项可在游戏内 Mods 菜单（Config）修改，即时生效
 
 ---
 

@@ -106,8 +106,8 @@ public class CableInfoScreen extends Screen
 
         activeScreen = this;
 
-        // 请求服务端查询该方块当前的红石信号强度（含虚拟链路信号），受 1 秒节流
-        if (com.virtualredstonewire.item.CableMagnifierItem.tryStartQuery())
+        // 请求服务端查询该方块当前的红石信号强度（含虚拟链路信号），同方块 1 秒节流
+        if (com.virtualredstonewire.item.CableMagnifierItem.tryStartQuery(queryPos))
         {
             CableNetworkChannel.sendToServer(new CableInfoRequestPacket(queryPos));
         }

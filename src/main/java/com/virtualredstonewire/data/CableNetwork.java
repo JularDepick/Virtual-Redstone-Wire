@@ -359,7 +359,7 @@ public class CableNetwork
             {
                 BlockPos to = edge.getKey();
                 result.add("-> [" + to.getX() + "," + to.getY() + "," + to.getZ()
-                    + "] " + edge.getValue().getName());
+                    + "," + edge.getValue().getName() + "]");
             }
         }
         return result;

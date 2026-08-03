@@ -52,6 +52,12 @@
 - mods.toml 改用 ${version} 占位，不再手写版本号
 - README 中英版本号更新至 0.3.1
 
+## 7b379e4
+### 放大镜飘浮提示附加方块坐标，服务器变更日志默认开启
+
+- 放大镜未下蹲右键的飘浮提示附加目标方块坐标（复用信息面板 position/signal 语言键，面板显示不变）
+- 服务器变更日志 networkChangeLogEnabled 默认开启，每世界 JSON Lines 操作日志落地即生效
+- README 中英版与 CurseForge 发布描述同步更新
 
 > 本文件记录落后于 git 记录一个 commit（追加变更日志时不可能提前知晓未提交 commit 的 hash 编号）
 

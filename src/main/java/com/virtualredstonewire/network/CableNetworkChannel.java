@@ -50,6 +50,20 @@ public class CableNetworkChannel
             .decoder(CableMsgPacket::new)
             .consumerMainThread(CableMsgPacket::handle)
             .add();
+
+        // 4: 服务端配置读取/修改请求（二进制）
+        CHANNEL.messageBuilder(CableServerConfigRequestPacket.class, MESSAGE_ID++)
+            .encoder(CableServerConfigRequestPacket::encode)
+            .decoder(CableServerConfigRequestPacket::new)
+            .consumerMainThread(CableServerConfigRequestPacket::handle)
+            .add();
+
+        // 5: 服务端配置读取/修改响应（二进制）
+        CHANNEL.messageBuilder(CableServerConfigResponsePacket.class, MESSAGE_ID++)
+            .encoder(CableServerConfigResponsePacket::encode)
+            .decoder(CableServerConfigResponsePacket::new)
+            .consumerMainThread(CableServerConfigResponsePacket::handle)
+            .add();
     }
 
     public static void sendToAll(ServerLevel level, Object packet)

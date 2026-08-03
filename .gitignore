@@ -30,3 +30,8 @@ AGENTS*.md
 
 # docs for some versions
 v*.md
+
+# other
+release*/
+reference/
+temp/

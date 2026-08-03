@@ -41,6 +41,7 @@ public class CableOpPacketHandler
 
             if (packet.isPull())
             {
+                CableChangeLog.logRequest(level, packet.toJson(), CableProtocol.CODE_OK);
                 CableNetworkChannel.sendToPlayer(sender, buildPullResponse(level, packet.since));
                 return;
             }
@@ -97,6 +98,7 @@ public class CableOpPacketHandler
     private static void reject(ServerPlayer sender, CableOpPacket packet, int code, String message)
     {
         CableNetworkChannel.sendToPlayer(sender, CableMsgPacket.reject(packet.toJson(), code, message));
+        CableChangeLog.logRequest(sender.serverLevel(), packet.toJson(), code);
     }
 
     private static CableMsgPacket buildPullResponse(ServerLevel level, long since)
