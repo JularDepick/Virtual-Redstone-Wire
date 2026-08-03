@@ -143,7 +143,9 @@ src/main/resources/
 ├── assets/virtual_redstone_wire/
 │   ├── lang/{en_us,zh_cn}.json
 │   ├── models/item/*.json
-│   └── textures/item/{virtual_cable,cable_cutter,cable_magnifier}.png
+│   └── textures/
+│       ├── block/virtual_source.png
+│       └── item/{virtual_cable,cable_cutter,cable_magnifier}.png
 └── data/virtual_redstone_wire/recipes/
     ├── virtual_cable.json
     ├── cable_cutter.json
@@ -208,5 +210,3 @@ This mod's development partially references the interaction effects and implemen
 
 - CurseForge: https://www.curseforge.com/minecraft/mc-mods/virtual-redstone-wire
 - Modrinth: https://modrinth.com/mod/virtual-redstone-wire
-
-> Darn it, Dickseep, this mod cost me 20 bucks, came out a total mess that drove me mad, and only after a hard crack of the whip did we finally get a usable version

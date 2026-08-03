@@ -44,7 +44,6 @@ repositories {
 minecraft {
     mappings channel: 'official', version: mcVersion
 
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
     runs {
         client {
             workingDirectory project.file('run')
@@ -90,11 +89,11 @@ jar {
     manifest {
         attributes([
             "Specification-Title"     : "Virtual Redstone Wire",
-            "Specification-Vendor"    : "JudeBlack",
+            "Specification-Vendor"    : "JularDepick",
             "Specification-Version"   : "1",
             "Implementation-Title"    : project.name,
             "Implementation-Version"  : project.jar.archiveVersion,
-            "Implementation-Vendor"   : "JudeBlack",
+            "Implementation-Vendor"   : "JularDepick",
             "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
             // Forge 1.20.1 产环境唯一认可的 mixin 配置加载方式（dev 环境靠 runs 的 arg 参数，
             // 产环境必须靠 MANIFEST 属性，否则 mixin 静默不加载导致信号注入失效）

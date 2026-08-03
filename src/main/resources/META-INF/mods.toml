@@ -8,8 +8,8 @@ modId="virtual_redstone_wire"
 version="${version}"
 displayName="Virtual Redstone Wire"
 logoFile="virtual_redstone_wire.png"
-credits="JudeBlack"
-authors="JudeBlack"
+credits="JularDepick"
+authors="JularDepick"
 description='''
 A Minecraft mod for long-distance redstone signal transmission that does not rely on physical redstone blocks, supporting one-to-one, one-to-many, and many-to-one connections.
 '''

@@ -143,7 +143,9 @@ src/main/resources/
 ├── assets/virtual_redstone_wire/
 │   ├── lang/{en_us,zh_cn}.json
 │   ├── models/item/*.json
-│   └── textures/item/{virtual_cable,cable_cutter,cable_magnifier}.png
+│   └── textures/
+│       ├── block/virtual_source.png
+│       └── item/{virtual_cable,cable_cutter,cable_magnifier}.png
 └── data/virtual_redstone_wire/recipes/
     ├── virtual_cable.json
     ├── cable_cutter.json
@@ -208,5 +210,3 @@ Copyright (c) 2026 JularDepick
 
 - CurseForge模组链接：https://www.curseforge.com/minecraft/mc-mods/virtual-redstone-wire
 - Modrinth模组链接：https://modrinth.com/mod/virtual-redstone-wire
-
-> 娘希匹的Dickseep,做个模组愣是花了劳资20大洋,做了一坨屎出来,给劳资气了积薄都打闪电,最后狠狠鞭笞才做出可用版本
