@@ -38,6 +38,8 @@
   "config.virtual_redstone_wire.requestLogEnabled": "请求日志",
   "config.virtual_redstone_wire.requestLogFile": "请求日志文件",
   "config.virtual_redstone_wire.enableChatFeedback": "操作聊天反馈",
+  "config.virtual_redstone_wire.undoHistorySize": "撤销/重做历史上限",
+  "config.virtual_redstone_wire.undoRedoFeedback": "撤销/重做提示",
   "screen.virtual_redstone_wire.cable_info.signal": "红石信号: %s",
   "screen.virtual_redstone_wire.cable_info.none": "无",
   "screen.virtual_redstone_wire.cable_info.arrow_out": "->",
@@ -65,5 +67,16 @@
   "message.virtual_redstone_wire.config_range": "取值范围 %d-%d",
   "message.virtual_redstone_wire.config_file_name_empty": "文件名不能为空",
   "message.virtual_redstone_wire.config_number_format": "数值格式错误",
-  "message.virtual_redstone_wire.config_invalid_value": "取值错误"
+  "message.virtual_redstone_wire.config_invalid_value": "取值错误",
+  "key.categories.virtual_redstone_wire": "虚拟红石线缆",
+  "key.virtual_redstone_wire.undo": "撤销链路操作",
+  "key.virtual_redstone_wire.redo": "重做链路操作",
+  "message.virtual_redstone_wire.undo_done": "已撤销",
+  "message.virtual_redstone_wire.redo_done": "已重做",
+  "message.virtual_redstone_wire.undo_empty": "没有可撤销的操作",
+  "message.virtual_redstone_wire.redo_empty": "没有可重做的操作",
+  "message.virtual_redstone_wire.undo_failed": "撤销失败,建议重试",
+  "message.virtual_redstone_wire.redo_failed": "重做失败,建议重试",
+  "message.virtual_redstone_wire.undo_failed_state": "撤销失败(状态已变化)",
+  "message.virtual_redstone_wire.redo_failed_state": "重做失败(状态已变化)"
 }

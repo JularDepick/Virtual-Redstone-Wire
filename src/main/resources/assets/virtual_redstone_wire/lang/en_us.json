@@ -55,5 +55,16 @@
   "message.virtual_redstone_wire.config_range": "Valid range %d-%d",
   "message.virtual_redstone_wire.config_file_name_empty": "File name cannot be empty",
   "message.virtual_redstone_wire.config_number_format": "Invalid number format",
-  "message.virtual_redstone_wire.config_invalid_value": "Invalid value"
+  "message.virtual_redstone_wire.config_invalid_value": "Invalid value",
+  "key.categories.virtual_redstone_wire": "Virtual Redstone Wire",
+  "key.virtual_redstone_wire.undo": "Undo link operation",
+  "key.virtual_redstone_wire.redo": "Redo link operation",
+  "message.virtual_redstone_wire.undo_done": "Undone",
+  "message.virtual_redstone_wire.redo_done": "Redone",
+  "message.virtual_redstone_wire.undo_empty": "Nothing to undo",
+  "message.virtual_redstone_wire.redo_empty": "Nothing to redo",
+  "message.virtual_redstone_wire.undo_failed": "Undo failed, try again",
+  "message.virtual_redstone_wire.redo_failed": "Redo failed, try again",
+  "message.virtual_redstone_wire.undo_failed_state": "Undo failed (state has changed)",
+  "message.virtual_redstone_wire.redo_failed_state": "Redo failed (state has changed)"
 }

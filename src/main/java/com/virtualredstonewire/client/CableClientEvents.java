@@ -36,9 +36,10 @@ public class CableClientEvents
     @SubscribeEvent
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event)
     {
-        // 断线/登出：重置初始化标记（重连后自动全量），并清空线缆选中态（防跨会话残留）
+        // 断线/登出：重置初始化标记（重连后自动全量），并清空线缆选中态与撤销/重做历史（防跨会话残留）
         initialized = false;
         VirtualCableItem.clearAllSelectedInputs();
+        CableUndoRedoManager.clearHistory();
     }
 
     @SubscribeEvent
@@ -48,6 +49,7 @@ public class CableClientEvents
         {
             ClientCableCache.clear();
             initialized = false;
+            CableUndoRedoManager.clearHistory();
         }
     }
 }

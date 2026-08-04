@@ -1,10 +1,12 @@
 package com.virtualredstonewire;
 
+import com.virtualredstonewire.client.CableUndoRedoManager;
 import com.virtualredstonewire.client.gui.ClientConfigScreen;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.common.Mod;
@@ -17,6 +19,13 @@ public class ClientSetup
     public static void onClientSetup(FMLClientSetupEvent event)
     {
         // Client-side initialization
+    }
+
+    /** 注册撤销/重做按键（可在 Controls 设置中修改绑定） */
+    @SubscribeEvent
+    public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event)
+    {
+        CableUndoRedoManager.registerKeys(event);
     }
 
     /** 注册 Mods 菜单配置界面（基于 ClientConfig） */

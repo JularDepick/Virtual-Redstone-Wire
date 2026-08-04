@@ -2,9 +2,11 @@ package com.virtualredstonewire.client.gui;
 
 import com.virtualredstonewire.config.ClientConfig;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.CycleButton;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.screens.Screen;
@@ -12,12 +14,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraftforge.common.ForgeConfigSpec;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * 客户端配置文件子页（virtual_redstone_wire-client.toml 条目）：
  * 两列无边框表格——第一列显示名（语言翻译，超长自动换行），
- * 第二列 CycleButton 开关，修改即时生效并保存。
+ * 第二列 CycleButton 开关 / EditBox 数值输入，修改即时生效并保存。
  */
 public class ClientConfigSubScreen extends Screen
 {
@@ -63,6 +66,8 @@ public class ClientConfigSubScreen extends Screen
         list = new ConfigList(this.width, this.height, LIST_Y0,
             this.height - DONE_HEIGHT - 12, ITEM_HEIGHT);
         list.addRow(new ClientBoolRow(ClientConfig.enableChatFeedback));
+        list.addRow(new ClientBoolRow(ClientConfig.undoRedoFeedback));
+        list.addRow(new ClientIntRow(ClientConfig.undoHistorySize, 10, 100));
         addRenderableWidget(list);
         int doneWidth = this.font.width(
             Component.translatable("gui.done").getString()) + 40;
@@ -81,14 +86,14 @@ public class ClientConfigSubScreen extends Screen
 
     // ---------- 滚动条目 ----------
 
-    private final class ConfigList extends ContainerObjectSelectionList<ClientBoolRow>
+    private final class ConfigList extends ContainerObjectSelectionList<Row>
     {
         ConfigList(int width, int height, int y0, int y1, int itemHeight)
         {
             super(ClientConfigSubScreen.this.minecraft, width, height, y0, y1, itemHeight);
         }
 
-        void addRow(ClientBoolRow row)
+        void addRow(Row row)
         {
             addEntry(row);
         }
@@ -101,42 +106,31 @@ public class ClientConfigSubScreen extends Screen
         }
     }
 
-    private final class ClientBoolRow extends ContainerObjectSelectionList.Entry<ClientBoolRow>
+    private abstract class Row extends ContainerObjectSelectionList.Entry<Row>
     {
-        private final String name;
-        private final CycleButton<Boolean> cycle;
+        protected final String name;
+        protected final List<AbstractWidget> widgets = new ArrayList<>();
 
-        ClientBoolRow(ForgeConfigSpec.BooleanValue value)
+        Row(String key)
         {
-            List<String> path = value.getPath();
-            this.name = ConfigLabels.name(path.get(path.size() - 1));
-            int width = Math.max(
-                ClientConfigSubScreen.this.font.width(
-                    Component.translatable("options.on").getString()),
-                ClientConfigSubScreen.this.font.width(
-                    Component.translatable("options.off").getString())) + 16;
-            this.cycle = CycleButton.builder(
-                (Boolean b) -> Component.translatable(b ? "options.on" : "options.off"))
-                .withValues(true, false)
-                .withInitialValue(value.get())
-                .displayOnlyValue()
-                .create(0, 0, width, 20, Component.literal(name),
-                    (btn, b) -> {
-                        value.set(b);
-                        ClientConfig.SPEC.save();
-                    });
+            this.name = ConfigLabels.name(key);
+        }
+
+        protected void addWidget(AbstractWidget widget)
+        {
+            widgets.add(widget);
         }
 
         @Override
         public List<? extends GuiEventListener> children()
         {
-            return List.of(cycle);
+            return widgets;
         }
 
         @Override
         public List<? extends NarratableEntry> narratables()
         {
-            return List.of(cycle);
+            return widgets;
         }
 
         @Override
@@ -144,9 +138,11 @@ public class ClientConfigSubScreen extends Screen
                            int height, int mouseX, int mouseY, boolean hovered, float partialTick)
         {
             drawLabel(guiGraphics, left, width, top);
-            cycle.setPosition(left + width - EDGE_PADDING - cycle.getWidth(),
-                top + (ITEM_HEIGHT - 20) / 2);
-            cycle.render(guiGraphics, mouseX, mouseY, partialTick);
+            positionWidgets(left, width, top);
+            for (AbstractWidget widget : widgets)
+            {
+                widget.render(guiGraphics, mouseX, mouseY, partialTick);
+            }
         }
 
         /** 第一列：翻译名，水平居左、单元格内垂直居中，超长自动换行（左列占一半） */
@@ -164,5 +160,83 @@ public class ClientConfigSubScreen extends Screen
                 y += ClientConfigSubScreen.this.font.lineHeight;
             }
         }
+
+        protected abstract void positionWidgets(int left, int width, int top);
+    }
+
+    private final class ClientBoolRow extends Row
+    {
+        ClientBoolRow(ForgeConfigSpec.BooleanValue value)
+        {
+            super(lastPathKey(value));
+            int width = Math.max(
+                ClientConfigSubScreen.this.font.width(
+                    Component.translatable("options.on").getString()),
+                ClientConfigSubScreen.this.font.width(
+                    Component.translatable("options.off").getString())) + 16;
+            CycleButton<Boolean> cycle = CycleButton.builder(
+                (Boolean b) -> Component.translatable(b ? "options.on" : "options.off"))
+                .withValues(true, false)
+                .withInitialValue(value.get())
+                .displayOnlyValue()
+                .create(0, 0, width, 20, Component.literal(name),
+                    (btn, b) -> {
+                        value.set(b);
+                        ClientConfig.SPEC.save();
+                    });
+            addWidget(cycle);
+        }
+
+        @Override
+        protected void positionWidgets(int left, int width, int top)
+        {
+            AbstractWidget widget = widgets.get(0);
+            widget.setPosition(left + width - EDGE_PADDING - widget.getWidth(),
+                top + (ITEM_HEIGHT - 20) / 2);
+        }
+    }
+
+    /** 数值条目：EditBox 数字输入，合法输入即时生效并保存，超范围自动缩减到边界 */
+    private final class ClientIntRow extends Row
+    {
+        ClientIntRow(ForgeConfigSpec.IntValue value, int min, int max)
+        {
+            super(lastPathKey(value));
+            EditBox box = new EditBox(ClientConfigSubScreen.this.font,
+                0, 0, 64, 16, Component.literal(name));
+            box.setValue(String.valueOf(value.get()));
+            box.setMaxLength(8);
+            box.setFilter(text -> text.matches("[0-9]*"));
+            box.setResponder(text ->
+            {
+                if (text == null || text.trim().isEmpty()) return;
+                try
+                {
+                    int parsed = Integer.parseInt(text.trim());
+                    int clamped = Math.max(min, Math.min(max, parsed));
+                    value.set(clamped);
+                    ClientConfig.SPEC.save();
+                }
+                catch (NumberFormatException e)
+                {
+                    // 非法输入忽略，保持当前值
+                }
+            });
+            addWidget(box);
+        }
+
+        @Override
+        protected void positionWidgets(int left, int width, int top)
+        {
+            AbstractWidget widget = widgets.get(0);
+            widget.setPosition(left + width - EDGE_PADDING - widget.getWidth(),
+                top + (ITEM_HEIGHT - 16) / 2);
+        }
+    }
+
+    private static String lastPathKey(ForgeConfigSpec.ConfigValue<?> value)
+    {
+        List<String> path = value.getPath();
+        return path.get(path.size() - 1);
     }
 }

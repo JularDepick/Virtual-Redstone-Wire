@@ -23,13 +23,21 @@ import java.util.Set;
  * v0.3.0 客户端操作任务队列：串行发送，同一时刻至多一个在途请求。
  * 出队判定：收到增量广播且包含自己请求的链路条目（fr/to/fc 与 op 匹配），或收到拒绝响应；
  * 版本号落后（异常）时作废在途请求并触发全量。
+ * v0.4.1 增加来源标记（Origin）：撤销/重做请求（UNDO/REDO）与普通操作（NORMAL）共用队列，
+ * 成功/失败按来源回调 CableUndoRedoManager；UNDO/REDO 失败不触发增量追回。
  * 全量请求节流：5 秒内不得重复发出；60 秒内超过 10 次视为异常，断开连接并提示
  * （不持久标记，断开后可正常重连）。
  */
 public final class CableClientQueue
 {
-    private static final Queue<CableOpPacket> QUEUE = new ArrayDeque<>();
-    private static CableOpPacket inFlight = null;
+    /** 在途请求来源：普通操作 / 撤销 / 重做 */
+    public enum Origin { NORMAL, UNDO, REDO }
+
+    /** 队列元素：请求 + 来源 + 撤销/重做时关联的栈中原始请求 */
+    private record Pending(CableOpPacket packet, Origin origin, CableOpPacket assoc) {}
+
+    private static final Queue<Pending> QUEUE = new ArrayDeque<>();
+    private static Pending inFlight = null;
     private static long lastPullSc = 0;
     private static String lastPullDim = null;
 
@@ -48,7 +56,13 @@ public final class CableClientQueue
 
     public static void enqueue(CableOpPacket packet)
     {
-        QUEUE.add(packet);
+        enqueue(packet, Origin.NORMAL, packet);
+    }
+
+    /** 撤销/重做入队：origin 标记来源，assoc 为栈中关联的原始请求 */
+    public static void enqueue(CableOpPacket packet, Origin origin, CableOpPacket assoc)
+    {
+        QUEUE.add(new Pending(packet, origin, assoc));
         sendNext();
     }
 
@@ -56,12 +70,12 @@ public final class CableClientQueue
     {
         if (inFlight != null || QUEUE.isEmpty()) return;
         inFlight = QUEUE.poll();
-        if (inFlight.isPull())
+        if (inFlight.packet().isPull())
         {
-            lastPullSc = inFlight.since;
-            lastPullDim = inFlight.dimension;
+            lastPullSc = inFlight.packet().since;
+            lastPullDim = inFlight.packet().dimension;
         }
-        CableNetworkChannel.sendToServer(inFlight);
+        CableNetworkChannel.sendToServer(inFlight.packet());
     }
 
     /**
@@ -100,20 +114,26 @@ public final class CableClientQueue
         enqueue(CableOpPacket.pull(0, mc.level.dimension(), mc.player.getName().getString()));
     }
 
-    /** 增量广播（tp 为 d）到达：按内容匹配出队；单条请求确认时反馈结果，批量（线缆剪）不逐条提示 */
+    /**
+     * 增量广播（tp 为 d）到达：按内容匹配出队；
+     * 匹配成功后先回调撤销管理器（撤销/重做提示），再按需显示链路反馈；
+     * 单条请求确认时反馈结果，批量（线缆剪）不逐条提示。
+     */
     public static void onDeltaReceived(List<CableMsgPacket.Change> changes)
     {
-        if (inFlight != null && !inFlight.isPull())
+        if (inFlight != null && !inFlight.packet().isPull())
         {
-            boolean batch = inFlight.links.size() > 1;
-            Set<CableOpPacket.Link> wanted = new HashSet<>(inFlight.links);
+            boolean batch = inFlight.packet().links.size() > 1;
+            Set<CableOpPacket.Link> wanted = new HashSet<>(inFlight.packet().links);
             for (CableMsgPacket.Change c : changes)
             {
                 CableOpPacket.Link l = new CableOpPacket.Link(
                     c.fx(), c.fy(), c.fz(), c.tx(), c.ty(), c.tz(), c.face());
-                if (c.op().equals(inFlight.op) && wanted.contains(l))
+                if (c.op().equals(inFlight.packet().op) && wanted.contains(l))
                 {
+                    Pending done = inFlight;
                     inFlight = null;
+                    CableUndoRedoManager.onOpConfirmed(done.origin(), done.assoc());
                     if (!batch)
                     {
                         showOperationFeedback(c);
@@ -154,12 +174,22 @@ public final class CableClientQueue
         requestFull();
     }
 
-    /** 拒绝响应（tp 为 r）到达：飘浮反馈拒绝原因，按错误码分流 */
+    /** 拒绝响应（tp 为 r）到达：按来源分流，NORMAL 维持既有追回逻辑，UNDO/REDO 不触发追回 */
     public static void onRejectReceived(CableMsgPacket msg)
     {
+        Pending done = inFlight;
         inFlight = null;
         Level level = Minecraft.getInstance().level;
         if (level == null) return;
+
+        // 撤销/重做失败：按类型分流（同 tick 相背放回/状态型移除），不触发追回
+        if (done != null && done.origin() != Origin.NORMAL)
+        {
+            CableUndoRedoManager.onOpRejected(done.origin(), done.assoc(), msg);
+            sendNext();
+            return;
+        }
+
         // 操作结果反馈：聊天栏显示服务端拒绝原因（语言键本地化，错误反馈始终可见，红色）
         if (msg.message != null && !msg.message.isEmpty())
         {

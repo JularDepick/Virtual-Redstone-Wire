@@ -1,5 +1,12 @@
 # 变更日志
 
+## 4e4eac9
+### 维护文档与元数据：作者署名统一，渲染表述对齐实际代码
+
+- 作者署名统一为 JularDepick（mods.toml authors/credits、build.gradle manifest vendor）
+- build.gradle 移除指向不存在文件的 accessTransformer 配置
+- README 中英版移除末尾吐槽段落，资源目录结构补充 block 纹理
+
 ## 062ccba
 ### 实现通信重构：元操作增量同步与版本一致性
 
