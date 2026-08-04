@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire (虚拟红石线缆)
 
-[![Version](https://img.shields.io/badge/Version-0.4.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.4.0)
+[![Version](https://img.shields.io/badge/Version-0.5.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.5.0)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
@@ -19,47 +19,64 @@
 
 本模组高度依赖Forge，但无前置模组依赖，也不绑定任何其他模组或整合包。
 
-当前模组仅支持 Minecraft 1.20.1版本,如需做其他版本兼容适配,请 [提交Issue](https://github.com/JularDepick/Virtual-Redstone-Wire/issues/new) 或 [进行贡献](#贡献指南) 。
+安装：将下载的模组 jar 放入 `.minecraft/mods` 文件夹即可（需要 Forge 1.20.1）。
+
+当前模组仅支持 Minecraft 1.20.1版本，如需做其他版本兼容适配，请 [提交Issue](https://github.com/JularDepick/Virtual-Redstone-Wire/issues/new) 或 [进行贡献](#贡献指南)。
 
 | 物品 | 合成 | 操作 | 特性 |
 |:---:|:---:|:---:|:---:|
-| 线缆 | 红石 + 铁锭 | 右键输入端方块，再右键输出端方块，创建单向红石链路 | 信号强度沿链路传播；再次右键同一方块可取消选中；输入端可连接多个输出端，输出端可接收多个输入端 (取最大信号) |
-| 线缆剪 | 铁锭 + 木棍 x2 | 右键输入端方块，切断其全部出链 | 仅作用于该方块作为输入端(起点)的链路 |
-| 线缆放大镜 | 红石 + 玻璃板 + 木棍 | 手持时高亮显示全部链路（蓝框是输入端，黄框是输出端，红线是链路路径）；潜行右键方块，查看其链路信息；右键方块，快捷栏上方显示其红石信号强度与坐标 |  |
+| 线缆 | 红石 + 铁锭 | 右键输入端方块，再右键输出端方块，创建单向红石链路 | 信号强度沿链路传播；再次右键同一方块可取消选中；输入端可连接多个输出端，输出端可接收多个输入端（取最大信号） |
+| 线缆剪 | 铁锭 + 木棍 x2 | 右键输入端方块，切断其全部出链 | 仅作用于该方块作为输入端（起点）的链路 |
+| 线缆放大镜 | 红石 + 玻璃板 + 木棍 | 手持时高亮显示全部链路（蓝框是输入端，黄框是输出端，红线是链路路径）；潜行右键方块，查看其链路信息；右键方块，快捷栏上方显示其红石信号强度与坐标 | 链路高亮与信号查询 |
 
 ## 红石行为
 
-- 虚拟线缆传输的是红石信号强度 (0-15)
-- 输入端方块检测其所在位置的红石信号 (使用标准红石 API)
-- 信号沿链路传递到输出端, 通过内存网络图查询返回信号强度（无方块占用）
+- 虚拟线缆传输的是红石信号强度（0-15）
+- 输入端方块检测其所在位置的红石信号（使用标准红石 API）
+- 信号沿链路传递到输出端，通过内存网络图查询返回信号强度（无方块占用）
 - 输入端的红石变化会实时反映到输出端
-- 支持一对多广播、多对一合并 (取最大值)
-- 链路有方向: 信号从输出方块的指定面射出 (方向精确), 红石灯放在输出端方块本身上即可点亮
-- 支持先建链后放源: 放置/移除信号源、拨动拉杆等操作会实时刷新链路信号
-- 聊天栏操作反馈默认关闭, 可在游戏内 Mods 菜单或配置文件中启用
+- 支持一对多广播、多对一合并（取最大值）
+- 链路有方向：信号从输出方块的指定面射出（方向精确），红石灯放在输出端方块本身上即可点亮
+- 支持先建链后放源：放置/移除信号源、拨动拉杆等操作会实时刷新链路信号
+- 聊天栏操作反馈默认关闭，可在游戏内 Mods 菜单或配置文件中启用
+
+## 撤销与重做
+
+撤销/重做可回退或重放最近成功的链路操作，避免误操作后手动重建：
+
+- 手持线缆或线缆剪（主手或副手均可）时，按 `Ctrl+Z` 撤销、`Ctrl+Y` 重做（可在游戏 Controls 设置中修改按键绑定）
+- 撤销会取消最近一次成功的链路操作：创建的链路被移除，被移除的链路恢复；重做会重新执行最近一次被撤销的操作
+- 连续按 `Ctrl+Z` 可逐步回退多次操作；撤销后执行新的操作会清空重做历史
+- 操作历史仅保存在客户端内存：撤销/重做双栈共用上限（默认 20，可在游戏内 Mods 菜单客户端配置中调整，范围 10-100），退出游戏清空
+- 无可撤销/重做或操作被拒绝时，聊天栏提示原因（受客户端"撤销/重做提示"开关控制，默认开启；空栈提示后 3 秒内按键不重复响应）
+- 线缆剪批量删除的链路可整体撤销（一次撤销恢复全部被剪链路）
+
+## 使用建议
+
+- 左手（副手）持放大镜，右手（主手）使用线缆或线缆剪：放大镜会持续高亮全部链路（蓝框输入、黄框输出、红线路径），边查看链路布局边建链/删链，操作更直观
 
 # 运行时文件
 
 ## 配置文件
 
-- 客户端配置: `config/virtual_redstone_wire-client.toml`（游戏目录下 config 文件夹，聊天反馈开关等；可在游戏内 Mods 菜单配置）
-- 服务端配置: `<世界文件夹>/serverconfig/virtual_redstone_wire-server.toml`
-  - 单机/局域网: `saves/<存档名>/serverconfig/`
-  - 专用服务器: `<服务器世界文件夹>/serverconfig/`（如 `world/serverconfig/`）
-  - 内容: 链路最大距离/放大镜渲染距离/同步变更表容量/操作日志与请求日志；可在游戏内 Mods 菜单配置（仅存档拥有者）
+- 客户端配置：`config/virtual_redstone_wire-client.toml`（游戏目录下 config 文件夹，聊天反馈开关、撤销/重做历史上限与提示开关等；可在游戏内 Mods 菜单配置）
+- 服务端配置：`<世界文件夹>/serverconfig/virtual_redstone_wire-server.toml`
+  - 单机/局域网：`saves/<存档名>/serverconfig/`
+  - 专用服务器：`<服务器世界文件夹>/serverconfig/`（如 `world/serverconfig/`）
+  - 内容：链路最大距离/放大镜渲染距离/同步变更表容量/操作日志与请求日志；可在游戏内 Mods 菜单配置（仅存档拥有者）
 
 ## 数据文件
 
-- 链路数据按维度独立存储（自动保存，同目录保留 `.dat_old` 备份）:
-  - 主世界: `<世界文件夹>/data/virtual_redstone_wire_network.dat`
-  - 下界: `<世界文件夹>/DIM-1/data/virtual_redstone_wire_network.dat`
-  - 末地: `<世界文件夹>/DIM1/data/virtual_redstone_wire_network.dat`
-  - 其他维度: `<世界文件夹>/<维度子目录>/data/virtual_redstone_wire_network.dat`
+- 链路数据按维度独立存储（自动保存，同目录保留 `.dat_old` 备份）：
+  - 主世界：`<世界文件夹>/data/virtual_redstone_wire_network.dat`
+  - 下界：`<世界文件夹>/DIM-1/data/virtual_redstone_wire_network.dat`
+  - 末地：`<世界文件夹>/DIM1/data/virtual_redstone_wire_network.dat`
+  - 其他维度：`<世界文件夹>/<维度子目录>/data/virtual_redstone_wire_network.dat`
 
 ## 日志文件（世界文件夹根目录，均仅输出不恢复）
 
-- 操作日志: `<世界文件夹>/Virtual_Redstone_Wire-Operations.log`（add/del 执行与拒绝；分割模式为 player/both 时生成 `Virtual_Redstone_Wire-Operations_<玩家名>.log`）
-- 请求日志: `<世界文件夹>/Virtual_Redstone_Wire-Requests.log`（调试级，记录每次收到的原始请求与最终状态码，默认关闭）
+- 操作日志：`<世界文件夹>/Virtual_Redstone_Wire-Operations.log`（add/del 执行与拒绝；分割模式为 player/both 时生成 `Virtual_Redstone_Wire-Operations_<玩家名>.log`）
+- 请求日志：`<世界文件夹>/Virtual_Redstone_Wire-Requests.log`（调试级，记录每次收到的原始请求与最终状态码，默认关闭）
 
 # 技术栈
 
@@ -83,8 +100,9 @@ src/main/java/com/virtualredstonewire/
 ├── RedstoneDiagnostics.java          # 红石信号自动化诊断(调试用)
 ├── client/
 │   ├── ClientCableCache.java         # 客户端链路缓存(版本化,只读)
-│   ├── CableClientQueue.java         # 操作任务队列(单在途)
+│   ├── CableClientQueue.java         # 操作任务队列(单在途/来源标记)
 │   ├── CableClientEvents.java        # 连接/维度切换全量同步
+│   ├── CableUndoRedoManager.java     # 撤销/重做(双栈/快捷键)
 │   ├── CableActionBarHud.java        # 快捷栏上方信号飘浮提示
 │   ├── gui/CableInfoScreen.java      # 线缆信息 GUI 面板
 │   ├── gui/CableInfoScreenOpener.java
@@ -99,7 +117,7 @@ src/main/java/com/virtualredstonewire/
 │   └── VRedTestCommand.java          # /vredtest 诊断命令
 ├── config/
 │   ├── ServerConfig.java             # 服务端配置(距离/变更表/日志)
-│   └── ClientConfig.java             # 客户端配置(聊天反馈)
+│   └── ClientConfig.java             # 客户端配置(聊天反馈/撤销重做)
 ├── data/
 │   ├── CableLink.java                # 链路数据模型(纯渲染载体)
 │   ├── CableNetwork.java             # 电缆网络图(结点索引+存储式信号查询)

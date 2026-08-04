@@ -73,6 +73,12 @@ Virtual Redstone Wire lets you transmit redstone signals between blocks wireless
 
 <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/33.png" alt="Right-click a block to display its redstone signal strength and position above the hotbar" />
 
+### Undo & Redo
+
+While holding a **Virtual Cable** or **Cable Cutter**, press `Ctrl+Z` to undo and `Ctrl+Y` to redo the most recent successful link operation (keybinds can be changed in the Controls settings). Undo cancels the latest operation (a created link is removed, a removed link is restored); redo re-executes it. History is client-side memory only (shared limit 20 by default, adjustable 10-100 in the Mods menu client config) and clears on game exit.
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/41.png" alt="Undo a link creation with Ctrl+Z while holding the Virtual Cable" />
+
 ---
 
 ## Requirements
@@ -220,6 +226,12 @@ The language setting is **client-side**: each player chooses their own language,
 - 右键方块：在快捷栏上方显示其红石信号强度与坐标
 
 <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/33.png" alt="右键方块在快捷栏上方显示红石信号强度与坐标" />
+
+### 撤销与重做
+
+手持**线缆**或**线缆剪**时, 按 `Ctrl+Z` 撤销、`Ctrl+Y` 重做最近一次成功的链路操作（可在游戏 Controls 设置中修改按键绑定）。撤销会取消最近一次操作（创建的链路被移除, 被移除的链路恢复）; 重做会重新执行它。历史仅保存在客户端内存（双栈共用上限默认 20, 可在 Mods 菜单客户端配置调整, 范围 10-100）, 退出游戏清空。
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/41.png" alt="手持线缆按 Ctrl+Z 撤销链路创建" />
 
 ---
 

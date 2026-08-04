@@ -26,14 +26,14 @@ import java.util.ArrayList;
 import java.util.Deque;
 
 /**
- * v0.4.1 客户端撤销/重做管理器。
+ * v0.5.0 客户端撤销/重做管理器。
  * 双栈（撤销栈 A / 重做栈 B）仅存客户端内存，退出游戏清空，无持久化。
  * 撤销/重做请求复用 CableOpPacket 通道（Origin 区分来源），成功/失败判定由
  * CableClientQueue 回调（onOpConfirmed/onOpRejected），失败按类型分流：
  * 同 tick 相背放回原栈可重试，状态型失败从历史移除（均不触发追回）。
  * 空栈提示后进入 3 秒冷却期（撤销/重做共用），冷却期内静默忽略。
  * 全部提示（空栈/成功/失败）受 undoRedoFeedback 配置控制。
- * 实现细节见 docs/v0.4.1-客户端撤销与重做机制-实现方案.md。
+ * 实现细节见 docs/v0.5.0-客户端撤销与重做机制-实现方案.md。
  */
 @Mod.EventBusSubscriber(modid = VirtualRedstoneWire.MOD_ID, value = Dist.CLIENT)
 public final class CableUndoRedoManager
@@ -74,9 +74,13 @@ public final class CableUndoRedoManager
         if (event.phase != TickEvent.Phase.END) return;
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
+        // 无论是否手持都先消费点击：避免未手持时的按键事件在 KeyMapping 内部积压，
+        // 待手持工具后 consumeClick 一次性逐个返还导致大量异常撤销/重做
+        boolean undoPressed = UNDO_KEY.consumeClick();
+        boolean redoPressed = REDO_KEY.consumeClick();
         if (!isHoldingTool(player)) return;
-        if (UNDO_KEY.consumeClick()) undo();
-        if (REDO_KEY.consumeClick()) redo();
+        if (undoPressed) undo();
+        if (redoPressed) redo();
     }
 
     /** 手持条件：主手或副手持线缆/线缆剪 */

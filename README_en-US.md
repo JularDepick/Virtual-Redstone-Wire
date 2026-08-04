@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire
 
-[![Version](https://img.shields.io/badge/Version-0.4.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.4.0)
+[![Version](https://img.shields.io/badge/Version-0.5.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.5.0)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
@@ -21,11 +21,13 @@ This mod heavily depends on Forge, but has no prerequisite mod dependencies and 
 
 Currently supports Minecraft 1.20.1 only. For compatibility with other versions, please [submit an Issue](https://github.com/JularDepick/Virtual-Redstone-Wire/issues/new) or [contribute](#contributing).
 
+Installation: put the downloaded mod jar into your `.minecraft/mods` folder (Forge 1.20.1 required).
+
 | Item | Crafting | Usage | Notes |
 |:---:|:---:|:---:|:---:|
 | Virtual Cable | Redstone + Iron Ingot | Right-click an input block, then an output block, to create a one-way redstone link | Signal strength propagates along the link; right-click the same block again to cancel; one input can feed multiple outputs, one output can take multiple inputs (highest signal wins) |
 | Cable Cutter | Iron Ingot + Stick x2 | Right-click an input block to cut all links originating from it | Only affects links where this block is the input (source) |
-| Cable Magnifier | Redstone + Glass Pane + Stick | While held, highlights all links (blue is input, yellow is output, red is link path); sneak-right-click a block to inspect its links; right-click a block to show its redstone signal strength and position above the hotbar |  |
+| Cable Magnifier | Redstone + Glass Pane + Stick | While held, highlights all links (blue is input, yellow is output, red is link path); sneak-right-click a block to inspect its links; right-click a block to show its redstone signal strength and position above the hotbar | Link highlighting & signal query |
 
 ## Redstone Behavior
 
@@ -38,11 +40,26 @@ Currently supports Minecraft 1.20.1 only. For compatibility with other versions,
 - Works when the source is placed after the link: placing/removing a signal source or flipping a lever refreshes the link signal in real-time
 - Chat feedback is disabled by default; can be enabled in-game from the Mods menu or in the config file
 
+## Undo & Redo
+
+Undo/redo lets you revert or replay your most recent successful link operations:
+
+- While holding a Virtual Cable or Cable Cutter (main or off hand), press `Ctrl+Z` to undo and `Ctrl+Y` to redo (keybinds can be changed in the Controls settings)
+- Undo cancels the most recent successful link operation: a created link is removed, a removed link is restored; redo re-executes the most recently undone operation
+- Press `Ctrl+Z` repeatedly to step back through multiple operations; performing a new operation after undoing clears the redo history
+- Operation history is client-side only: the undo and redo stacks share a size limit (default 20, adjustable 10-100 in the Mods menu client config), cleared on game exit
+- When there is nothing to undo/redo or an operation is rejected, a chat message shows the reason (controlled by the client "Undo/Redo feedback" option, enabled by default; after an empty-stack prompt, further presses are ignored for 3 seconds)
+- Links removed in batch by the Cable Cutter can be undone as a whole (one undo restores all of them)
+
+## Usage Tip
+
+- Hold the Cable Magnifier in your left (off) hand while using the Virtual Cable or Cable Cutter in your right (main) hand: the magnifier keeps all links highlighted (blue input, yellow output, red path), so you can see the link layout while building or removing links
+
 # Runtime Files
 
 ## Config Files
 
-- Client config: `config/virtual_redstone_wire-client.toml` (in the game directory's config folder; chat feedback etc., adjustable in-game from the Mods menu)
+- Client config: `config/virtual_redstone_wire-client.toml` (in the game directory's config folder; chat feedback, undo/redo history limit and feedback toggle, adjustable in-game from the Mods menu)
 - Server config: `<world folder>/serverconfig/virtual_redstone_wire-server.toml`
   - Singleplayer/LAN: `saves/<save name>/serverconfig/`
   - Dedicated server: `<server world folder>/serverconfig/` (e.g. `world/serverconfig/`)
@@ -85,6 +102,7 @@ src/main/java/com/virtualredstonewire/
 │   ├── ClientCableCache.java         # Client-side link cache (versioned, read-only)
 │   ├── CableClientQueue.java         # Operation queue (single in-flight)
 │   ├── CableClientEvents.java        # Full sync on connect/dimension change
+│   ├── CableUndoRedoManager.java     # Undo/redo (dual stacks, keybinds)
 │   ├── CableActionBarHud.java        # Signal popup above the hotbar
 │   ├── gui/CableInfoScreen.java      # Cable info GUI panel
 │   ├── gui/CableInfoScreenOpener.java
@@ -99,7 +117,7 @@ src/main/java/com/virtualredstonewire/
 │   └── VRedTestCommand.java          # /vredtest diagnostics command
 ├── config/
 │   ├── ServerConfig.java             # Server config (distance/change table/log)
-│   └── ClientConfig.java             # Client config (chat feedback)
+│   └── ClientConfig.java             # Client config (chat feedback/undo redo)
 ├── data/
 │   ├── CableLink.java                # Link data model (render-only carrier)
 │   ├── CableNetwork.java             # Network graph (node index + stored signal query)

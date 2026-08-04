@@ -104,7 +104,7 @@ public class CableMsgPacket
                 }
                 else if (isFull())
                 {
-                    // 全量/追回响应到达：撤销/重做历史失效（v0.4.1）
+                    // 全量/追回响应到达：撤销/重做历史失效（v0.5.0）
                     com.virtualredstonewire.client.CableUndoRedoManager.clearHistory();
                     if (expired)
                     {
