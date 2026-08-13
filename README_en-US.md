@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire
 
-[![Version](https://img.shields.io/badge/Version-0.5.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.5.0)
+[![Version](https://img.shields.io/badge/Version-0.5.1-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.5.0)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
@@ -99,7 +99,7 @@ src/main/java/com/virtualredstonewire/
 ├── ServerEventHandler.java           # Server events (world load/save/unload/block update)
 ├── RedstoneDiagnostics.java          # Redstone signal diagnostics (debug only)
 ├── client/
-│   ├── ClientCableCache.java         # Client-side link cache (versioned, read-only)
+│   ├── ClientCableCache.java         # Client-side link cache (versioned, read-only, indexed)
 │   ├── CableClientQueue.java         # Operation queue (single in-flight)
 │   ├── CableClientEvents.java        # Full sync on connect/dimension change
 │   ├── CableUndoRedoManager.java     # Undo/redo (dual stacks, keybinds)

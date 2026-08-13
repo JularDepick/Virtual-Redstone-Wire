@@ -9,33 +9,30 @@ import java.util.*;
 
 /**
  * v0.3.0 客户端只读缓存：唯一渲染数据源，仅由服务端广播（d）与全量/追回响应（f）驱动更新。
- * 客户端不得直接增删改（保持 setLinks 等旧接口仅用于迁移过渡）。
+ * v0.5.1 索引化：保序列表 + 按链路唯一标识索引的映射表，存在性判断/去重/精确移除 O(1)。
+ * 客户端不得直接增删改缓存。
  */
 public class ClientCableCache
 {
     private static final List<CableLink> cachedLinks = new ArrayList<>();
+    private static final Map<String, CableLink> indexById = new HashMap<>();
     private static long version = 0;
-
-    public static void setLinks(Collection<CableLink> links)
-    {
-        cachedLinks.clear();
-        cachedLinks.addAll(links);
-    }
 
     public static void addLink(BlockPos from, BlockPos to, Direction toFace)
     {
         String id = CableLink.generateId(from, to, toFace);
-        for (CableLink link : cachedLinks)
-        {
-            if (link.getId().equals(id)) return;
-        }
-        cachedLinks.add(new CableLink(from, to, toFace));
+        if (indexById.containsKey(id)) return;
+        CableLink link = new CableLink(from, to, toFace);
+        cachedLinks.add(link);
+        indexById.put(id, link);
     }
 
     public static void removeLink(BlockPos from, BlockPos to, Direction toFace)
     {
         String id = CableLink.generateId(from, to, toFace);
-        cachedLinks.removeIf(link -> link.getId().equals(id));
+        CableLink link = indexById.remove(id);
+        if (link == null) return;
+        cachedLinks.remove(link);
     }
 
     public static boolean hasLinkFrom(BlockPos from)
@@ -58,12 +55,7 @@ public class ClientCableCache
 
     public static boolean hasLink(BlockPos from, BlockPos to, Direction face)
     {
-        String id = CableLink.generateId(from, to, face);
-        for (CableLink link : cachedLinks)
-        {
-            if (link.getId().equals(id)) return true;
-        }
-        return false;
+        return indexById.containsKey(CableLink.generateId(from, to, face));
     }
 
     public static List<CableLink> getLinks()
@@ -74,6 +66,7 @@ public class ClientCableCache
     public static void clear()
     {
         cachedLinks.clear();
+        indexById.clear();
         version = 0;
     }
 
@@ -109,6 +102,7 @@ public class ClientCableCache
     public static void applyFull(List<CableMsgPacket.Change> changes, long newVersion)
     {
         cachedLinks.clear();
+        indexById.clear();
         for (CableMsgPacket.Change c : changes)
         {
             if (com.virtualredstonewire.network.CableProtocol.OP_ADD.equals(c.op()))

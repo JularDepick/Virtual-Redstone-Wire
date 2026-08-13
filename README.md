@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire (虚拟红石线缆)
 
-[![Version](https://img.shields.io/badge/Version-0.5.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.5.0)
+[![Version](https://img.shields.io/badge/Version-0.5.1-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.5.0)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
@@ -99,7 +99,7 @@ src/main/java/com/virtualredstonewire/
 ├── ServerEventHandler.java           # 服务端事件(世界加载/保存/卸载/方块更新)
 ├── RedstoneDiagnostics.java          # 红石信号自动化诊断(调试用)
 ├── client/
-│   ├── ClientCableCache.java         # 客户端链路缓存(版本化,只读)
+│   ├── ClientCableCache.java         # 客户端链路缓存(版本化,只读,索引化)
 │   ├── CableClientQueue.java         # 操作任务队列(单在途/来源标记)
 │   ├── CableClientEvents.java        # 连接/维度切换全量同步
 │   ├── CableUndoRedoManager.java     # 撤销/重做(双栈/快捷键)
