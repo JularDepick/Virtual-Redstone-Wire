@@ -39,6 +39,7 @@ Installation: put the downloaded mod jar into your `.minecraft/mods` folder (For
 - Links are directional: the signal exits from the clicked face of the output block (face-accurate); a redstone lamp placed on the output block itself lights up
 - Works when the source is placed after the link: placing/removing a signal source or flipping a lever refreshes the link signal in real-time
 - Chat feedback is disabled by default; can be enabled in-game from the Mods menu or in the config file
+- Link data lookups are index-accelerated (v0.5.1): creating/removing links stays responsive even with many links
 
 ## Undo & Redo
 
