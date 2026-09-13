@@ -11,6 +11,7 @@ build/
 .project
 .settings/
 .vscode/
+.vs/
 
 # OS files
 Thumbs.db

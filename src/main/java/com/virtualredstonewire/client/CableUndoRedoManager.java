@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.virtualredstonewire.VirtualRedstoneWire;
 import com.virtualredstonewire.config.ClientConfig;
 import com.virtualredstonewire.item.CableCutterItem;
+import com.virtualredstonewire.item.CableMagnifierItem;
 import com.virtualredstonewire.item.VirtualCableItem;
 import com.virtualredstonewire.network.CableMsgPacket;
 import com.virtualredstonewire.network.CableOpPacket;
@@ -24,6 +25,7 @@ import org.lwjgl.glfw.GLFW;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 
 /**
  * v0.5.0 客户端撤销/重做管理器。
@@ -52,12 +54,22 @@ public final class CableUndoRedoManager
         InputConstants.Type.KEYSYM,
         GLFW.GLFW_KEY_Y,
         "key.categories.virtual_redstone_wire");
+    public static final KeyMapping HISTORY_KEY = new KeyMapping(
+        "key.virtual_redstone_wire.history",
+        KeyConflictContext.IN_GAME,
+        KeyModifier.CONTROL,
+        InputConstants.Type.KEYSYM,
+        GLFW.GLFW_KEY_A,
+        "key.categories.virtual_redstone_wire");
 
     private static final Deque<CableOpPacket> UNDO_STACK = new ArrayDeque<>();
     private static final Deque<CableOpPacket> REDO_STACK = new ArrayDeque<>();
 
     private static final long EMPTY_COOLDOWN_MS = 3000;
     private static long lastEmptyPromptTime = 0;
+
+    /** 历史浮窗显示状态（手持放大镜时 Ctrl+A 切换） */
+    private static boolean historyVisible = false;
 
     private CableUndoRedoManager() {}
 
@@ -66,6 +78,7 @@ public final class CableUndoRedoManager
     {
         event.register(UNDO_KEY);
         event.register(REDO_KEY);
+        event.register(HISTORY_KEY);
     }
 
     @SubscribeEvent
@@ -78,18 +91,43 @@ public final class CableUndoRedoManager
         // 待手持工具后 consumeClick 一次性逐个返还导致大量异常撤销/重做
         boolean undoPressed = UNDO_KEY.consumeClick();
         boolean redoPressed = REDO_KEY.consumeClick();
+        boolean historyPressed = HISTORY_KEY.consumeClick();
+        // 历史浮窗仅手持放大镜时可用；不再手持放大镜时自动隐藏
+        boolean holdingMagnifier = isHoldingMagnifier(player);
+        if (!holdingMagnifier && historyVisible) historyVisible = false;
+        // 同一时刻仅响应一个本模组快捷键：Ctrl+A 切换后本 tick 不再处理撤销/重做
+        if (historyPressed && holdingMagnifier)
+        {
+            historyVisible = !historyVisible;
+            return;
+        }
         if (!isHoldingTool(player)) return;
         if (undoPressed) undo();
         if (redoPressed) redo();
     }
 
-    /** 手持条件：主手或副手持线缆/线缆剪 */
-    private static boolean isHoldingTool(LocalPlayer player)
+    /** 手持条件：主手或副手持线缆/线缆剪/放大镜任一 */
+    public static boolean isHoldingTool(LocalPlayer player)
     {
         return player.getMainHandItem().getItem() instanceof VirtualCableItem
             || player.getOffhandItem().getItem() instanceof VirtualCableItem
             || player.getMainHandItem().getItem() instanceof CableCutterItem
-            || player.getOffhandItem().getItem() instanceof CableCutterItem;
+            || player.getOffhandItem().getItem() instanceof CableCutterItem
+            || player.getMainHandItem().getItem() instanceof CableMagnifierItem
+            || player.getOffhandItem().getItem() instanceof CableMagnifierItem;
+    }
+
+    /** 手持条件：主手或副手持放大镜（历史浮窗触发条件） */
+    public static boolean isHoldingMagnifier(LocalPlayer player)
+    {
+        return player.getMainHandItem().getItem() instanceof CableMagnifierItem
+            || player.getOffhandItem().getItem() instanceof CableMagnifierItem;
+    }
+
+    /** 历史浮窗当前是否显示 */
+    public static boolean isHistoryVisible()
+    {
+        return historyVisible;
     }
 
     /** 撤销：弹出栈顶原始请求，生成抵消请求（op 取反、links 复制）以 UNDO 来源入队 */
@@ -194,6 +232,19 @@ public final class CableUndoRedoManager
     {
         UNDO_STACK.clear();
         REDO_STACK.clear();
+        historyVisible = false;
+    }
+
+    /** 只读快照：撤销栈从新到旧，供历史浮窗渲染（不修改历史） */
+    public static List<CableOpPacket> getUndoSnapshot()
+    {
+        return new ArrayList<>(UNDO_STACK);
+    }
+
+    /** 只读快照：重做栈从新到旧，供历史浮窗渲染（不修改历史） */
+    public static List<CableOpPacket> getRedoSnapshot()
+    {
+        return new ArrayList<>(REDO_STACK);
     }
 
     /** 入栈并收缩到配置上限：丢弃栈底最旧条目，保留最新操作 */

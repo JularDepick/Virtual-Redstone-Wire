@@ -8,10 +8,10 @@ remove_bg.py - 素材预处理工具(HSV色相去绿版)
   3. 缩放到 512x512 输出
 
 用法:
-  python src/scripts/remove_bg.py
+  python scripts/remove_bg.py
 
-输入:  src/assets/*.png
-输出:  src/assets/processed/*.png(已补齐方形、绿色背景透明、512x512)
+输入:  temp/assets/*.png
+输出:  temp/assets/processed/*.png(已补齐方形、绿色背景透明、512x512)
 """
 
 import os
@@ -19,7 +19,7 @@ from collections import Counter
 from PIL import Image
 
 BASE_DIR    = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-ASSETS_DIR  = os.path.join(BASE_DIR, "assets")
+ASSETS_DIR  = os.path.join(BASE_DIR, "temp", "assets")
 OUTPUT_DIR  = os.path.join(ASSETS_DIR, "processed")
 HUE_MIN     = 35        # 色相下界(黄绿)
 HUE_MAX     = 115       # 色相上界(青绿)

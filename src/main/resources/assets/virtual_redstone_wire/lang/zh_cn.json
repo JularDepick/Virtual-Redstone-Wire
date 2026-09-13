@@ -78,5 +78,12 @@
   "message.virtual_redstone_wire.undo_failed": "撤销失败,建议重试",
   "message.virtual_redstone_wire.redo_failed": "重做失败,建议重试",
   "message.virtual_redstone_wire.undo_failed_state": "撤销失败(状态已变化)",
-  "message.virtual_redstone_wire.redo_failed_state": "重做失败(状态已变化)"
+  "message.virtual_redstone_wire.redo_failed_state": "重做失败(状态已变化)",
+  "key.virtual_redstone_wire.history": "显示/隐藏操作历史",
+  "screen.virtual_redstone_wire.history_title": "操作历史",
+  "screen.virtual_redstone_wire.undo_history": "可撤销",
+  "screen.virtual_redstone_wire.redo_history": "可重做",
+  "screen.virtual_redstone_wire.history_empty": "无历史",
+  "message.virtual_redstone_wire.op_add": "创建链路",
+  "message.virtual_redstone_wire.op_del": "移除链路"
 }
