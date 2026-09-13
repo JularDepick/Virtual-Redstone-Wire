@@ -1,6 +1,7 @@
 package com.virtualredstonewire.client;
 
 import com.virtualredstonewire.VirtualRedstoneWire;
+import com.virtualredstonewire.client.gui.CableUndoRedoHistoryScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -44,6 +45,8 @@ public class CableActionBarHud
     public static void onRenderGui(RenderGuiOverlayEvent.Post event)
     {
         if (event.getOverlay() != VanillaGuiOverlay.HOTBAR.type()) return;
+        // 历史窗口页打开时不渲染本提示，避免遮挡窗口页
+        if (Minecraft.getInstance().screen instanceof CableUndoRedoHistoryScreen) return;
         if (text == null || System.currentTimeMillis() > expireAt)
         {
             text = null;

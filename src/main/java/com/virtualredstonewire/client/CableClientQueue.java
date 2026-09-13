@@ -150,6 +150,8 @@ public final class CableClientQueue
     {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || !ClientConfig.enableChatFeedback.get()) return;
+        // 历史窗口页打开期间不弹聊天栏提示（撤销/重做结果在窗口页内实时可见）
+        if (CableUndoRedoManager.isHistoryScreenOpen()) return;
         mc.player.sendSystemMessage(Component.translatable(
             CableProtocol.OP_ADD.equals(c.op())
                 ? "message.virtual_redstone_wire.link_created"

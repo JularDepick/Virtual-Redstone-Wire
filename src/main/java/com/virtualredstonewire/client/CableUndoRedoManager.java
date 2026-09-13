@@ -2,6 +2,7 @@ package com.virtualredstonewire.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.virtualredstonewire.VirtualRedstoneWire;
+import com.virtualredstonewire.client.gui.CableUndoRedoHistoryScreen;
 import com.virtualredstonewire.config.ClientConfig;
 import com.virtualredstonewire.item.CableCutterItem;
 import com.virtualredstonewire.item.CableMagnifierItem;
@@ -68,9 +69,6 @@ public final class CableUndoRedoManager
     private static final long EMPTY_COOLDOWN_MS = 3000;
     private static long lastEmptyPromptTime = 0;
 
-    /** 历史浮窗显示状态（手持放大镜时 Ctrl+A 切换） */
-    private static boolean historyVisible = false;
-
     private CableUndoRedoManager() {}
 
     /** 按键注册（MOD bus 的 RegisterKeyMappingsEvent，由 ClientSetup 调用） */
@@ -92,13 +90,12 @@ public final class CableUndoRedoManager
         boolean undoPressed = UNDO_KEY.consumeClick();
         boolean redoPressed = REDO_KEY.consumeClick();
         boolean historyPressed = HISTORY_KEY.consumeClick();
-        // 历史浮窗仅手持放大镜时可用；不再手持放大镜时自动隐藏
-        boolean holdingMagnifier = isHoldingMagnifier(player);
-        if (!holdingMagnifier && historyVisible) historyVisible = false;
-        // 同一时刻仅响应一个本模组快捷键：Ctrl+A 切换后本 tick 不再处理撤销/重做
-        if (historyPressed && holdingMagnifier)
+        Minecraft mc = Minecraft.getInstance();
+        // 手持放大镜时 Ctrl+A 打开历史窗口页（打开即释放鼠标，退出由窗口页的按钮/ESC/Ctrl+A 处理）
+        // 同一时刻仅响应一个本模组快捷键：打开窗口页后本 tick 不再处理撤销/重做
+        if (historyPressed && isHoldingMagnifier(player) && mc.screen == null)
         {
-            historyVisible = !historyVisible;
+            mc.setScreen(new CableUndoRedoHistoryScreen());
             return;
         }
         if (!isHoldingTool(player)) return;
@@ -117,17 +114,17 @@ public final class CableUndoRedoManager
             || player.getOffhandItem().getItem() instanceof CableMagnifierItem;
     }
 
-    /** 手持条件：主手或副手持放大镜（历史浮窗触发条件） */
+    /** 历史窗口页当前是否打开（打开期间抑制聊天栏提示，改动在窗口页内可见） */
+    public static boolean isHistoryScreenOpen()
+    {
+        return Minecraft.getInstance().screen instanceof CableUndoRedoHistoryScreen;
+    }
+
+    /** 手持条件：主手或副手持放大镜（历史窗口页触发条件） */
     public static boolean isHoldingMagnifier(LocalPlayer player)
     {
         return player.getMainHandItem().getItem() instanceof CableMagnifierItem
             || player.getOffhandItem().getItem() instanceof CableMagnifierItem;
-    }
-
-    /** 历史浮窗当前是否显示 */
-    public static boolean isHistoryVisible()
-    {
-        return historyVisible;
     }
 
     /** 撤销：弹出栈顶原始请求，生成抵消请求（op 取反、links 复制）以 UNDO 来源入队 */
@@ -232,7 +229,6 @@ public final class CableUndoRedoManager
     {
         UNDO_STACK.clear();
         REDO_STACK.clear();
-        historyVisible = false;
     }
 
     /** 只读快照：撤销栈从新到旧，供历史浮窗渲染（不修改历史） */
@@ -272,6 +268,8 @@ public final class CableUndoRedoManager
     private static void sendMessage(Minecraft mc, String langKey, int color)
     {
         if (!ClientConfig.undoRedoFeedback.get()) return;
+        // 历史窗口页打开期间不弹聊天栏提示（撤销/重做结果在窗口页内实时可见）
+        if (isHistoryScreenOpen()) return;
         if (mc.player != null)
         {
             mc.player.sendSystemMessage(Component.translatable(langKey)

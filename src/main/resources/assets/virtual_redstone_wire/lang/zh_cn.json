@@ -84,6 +84,7 @@
   "screen.virtual_redstone_wire.undo_history": "可撤销",
   "screen.virtual_redstone_wire.redo_history": "可重做",
   "screen.virtual_redstone_wire.history_empty": "无历史",
+  "screen.virtual_redstone_wire.history_exit": "退出",
   "message.virtual_redstone_wire.op_add": "创建链路",
   "message.virtual_redstone_wire.op_del": "移除链路"
 }

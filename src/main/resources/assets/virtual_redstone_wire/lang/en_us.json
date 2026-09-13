@@ -72,6 +72,7 @@
   "screen.virtual_redstone_wire.undo_history": "Undo",
   "screen.virtual_redstone_wire.redo_history": "Redo",
   "screen.virtual_redstone_wire.history_empty": "No history",
+  "screen.virtual_redstone_wire.history_exit": "Exit",
   "message.virtual_redstone_wire.op_add": "Create link",
   "message.virtual_redstone_wire.op_del": "Remove link"
 }
