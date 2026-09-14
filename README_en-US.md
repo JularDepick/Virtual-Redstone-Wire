@@ -68,7 +68,7 @@ While holding the Cable Magnifier, press `Ctrl+A` to open the operation history 
 
 ## Config Files
 
-- Client config: `config/virtual_redstone_wire-client.toml` (in the game directory's config folder; chat feedback, undo/redo history limit and feedback toggle, adjustable in-game from the Mods menu)
+- Client config: `config/virtual_redstone_wire-client.toml` (in the game directory's config folder; chat feedback, undo/redo history limit and feedback toggle, adjustable in-game from the Mods menu; hover a config entry to see its description)
 - Server config: `<world folder>/serverconfig/virtual_redstone_wire-server.toml`
   - Singleplayer/LAN: `saves/<save name>/serverconfig/`
   - Dedicated server: `<server world folder>/serverconfig/` (e.g. `world/serverconfig/`)
@@ -122,6 +122,7 @@ src/main/java/com/virtualredstonewire/
 │   ├── gui/ConfigLabels.java         # Config display-name translation
 │   ├── gui/ConfigScreenTarget.java   # Config response target dispatch
 │   ├── gui/ServerConfigResponseTarget.java # Config response receiver interface
+│   ├── gui/ConfigTooltips.java       # Config entry hover tooltip
 │   └── render/CableRenderer.java     # 3D rendering (tube beams + face dots + lines)
 ├── commands/
 │   └── VRedTestCommand.java          # /vredtest diagnostics command

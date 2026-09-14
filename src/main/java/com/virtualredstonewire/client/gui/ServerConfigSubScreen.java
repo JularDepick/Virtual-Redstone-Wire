@@ -50,6 +50,7 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
     private String message = "";
     private final Map<String, String> values = new LinkedHashMap<>();
     private final Map<String, String> pending = new LinkedHashMap<>();
+    private final ConfigTooltips tooltips = new ConfigTooltips();
     private ConfigList list;
 
     public ServerConfigSubScreen(Screen parent)
@@ -204,6 +205,7 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
     {
+        tooltips.beginFrame();
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, TITLE_Y, 0xFFFFFF);
         if (requested && !allowed)
@@ -217,6 +219,7 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
                 Component.translatable("screen.virtual_redstone_wire.config.loading").getString(),
                 this.width / 2, 120, 0xAAAAAA);
         }
+        tooltips.render(guiGraphics, this.font, mouseX, mouseY);
     }
 
     @Override
@@ -258,11 +261,13 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
 
     private abstract class Row extends ContainerObjectSelectionList.Entry<Row>
     {
+        protected final String key;
         protected final String name;
         protected final List<AbstractWidget> widgets = new ArrayList<>();
 
         Row(String key)
         {
+            this.key = key;
             this.name = ConfigLabels.name(key);
         }
 
@@ -287,6 +292,10 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
         public void render(GuiGraphics guiGraphics, int index, int top, int left, int width,
                            int height, int mouseX, int mouseY, boolean hovered, float partialTick)
         {
+            if (hovered)
+            {
+                ServerConfigSubScreen.this.tooltips.markHovered(key);
+            }
             drawLabel(guiGraphics, left, width, top);
             positionWidgets(left, width, top);
             for (AbstractWidget widget : widgets)

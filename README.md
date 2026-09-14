@@ -68,7 +68,7 @@
 
 ## 配置文件
 
-- 客户端配置：`config/virtual_redstone_wire-client.toml`（游戏目录下 config 文件夹，聊天反馈开关、撤销/重做历史上限与提示开关等；可在游戏内 Mods 菜单配置）
+- 客户端配置：`config/virtual_redstone_wire-client.toml`（游戏目录下 config 文件夹，聊天反馈开关、撤销/重做历史上限与提示开关等；可在游戏内 Mods 菜单配置，悬停配置项可查看该项说明）
 - 服务端配置：`<世界文件夹>/serverconfig/virtual_redstone_wire-server.toml`
   - 单机/局域网：`saves/<存档名>/serverconfig/`
   - 专用服务器：`<服务器世界文件夹>/serverconfig/`（如 `world/serverconfig/`）
@@ -122,6 +122,7 @@ src/main/java/com/virtualredstonewire/
 │   ├── gui/ConfigLabels.java         # 配置项显示名翻译
 │   ├── gui/ConfigScreenTarget.java   # 配置响应目标分发
 │   ├── gui/ServerConfigResponseTarget.java # 配置响应接收接口
+│   ├── gui/ConfigTooltips.java       # 配置项悬浮提示
 │   └── render/CableRenderer.java     # 3D 渲染(方管梁+面亮点+连接线)
 ├── commands/
 │   └── VRedTestCommand.java          # /vredtest 诊断命令

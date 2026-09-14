@@ -1,5 +1,11 @@
 # 变更日志
 
+## df3ec68
+### 清理无引用的方块纹理并同步 README 目录树
+
+- 删除 textures/block/virtual_source.png（ModBlocks 为空注册器，项目无方块注册，该纹理无模型与代码引用）
+- README 中英双版目录树移除对应条目
+
 ## 57ef308
 ### 补全英文配置项语言键并清理客户端缓存遗留接口
 

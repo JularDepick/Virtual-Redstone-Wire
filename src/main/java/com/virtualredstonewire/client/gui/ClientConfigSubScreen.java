@@ -33,6 +33,7 @@ public class ClientConfigSubScreen extends Screen
     private static final int DONE_HEIGHT = 20;
 
     private final Screen parent;
+    private final ConfigTooltips tooltips = new ConfigTooltips();
     private ConfigList list;
 
     public ClientConfigSubScreen(Screen parent)
@@ -80,8 +81,10 @@ public class ClientConfigSubScreen extends Screen
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
     {
+        tooltips.beginFrame();
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, TITLE_Y, 0xFFFFFF);
+        tooltips.render(guiGraphics, this.font, mouseX, mouseY);
     }
 
     // ---------- 滚动条目 ----------
@@ -108,11 +111,13 @@ public class ClientConfigSubScreen extends Screen
 
     private abstract class Row extends ContainerObjectSelectionList.Entry<Row>
     {
+        protected final String key;
         protected final String name;
         protected final List<AbstractWidget> widgets = new ArrayList<>();
 
         Row(String key)
         {
+            this.key = key;
             this.name = ConfigLabels.name(key);
         }
 
@@ -137,6 +142,10 @@ public class ClientConfigSubScreen extends Screen
         public void render(GuiGraphics guiGraphics, int index, int top, int left, int width,
                            int height, int mouseX, int mouseY, boolean hovered, float partialTick)
         {
+            if (hovered)
+            {
+                ClientConfigSubScreen.this.tooltips.markHovered(key);
+            }
             drawLabel(guiGraphics, left, width, top);
             positionWidgets(left, width, top);
             for (AbstractWidget widget : widgets)
