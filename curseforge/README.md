@@ -24,6 +24,7 @@ Virtual Redstone Wire lets you transmit redstone signals between blocks wireless
 - **Zero space occupation** - no block entities, fully vanilla-compatible world
 - **Cable Magnifier** - highlights all links while held (blue input, yellow output, red path); sneak-right-click a block to inspect its links, or right-click a block to show its redstone signal strength and position above the hotbar
 - **Cable Cutter** - removes all outgoing links of an input block at once
+- **Undo / Redo and operation history** - press Ctrl+Z / Ctrl+Y to undo or redo recent link operations; while holding the Cable Magnifier, press Ctrl+A to review the undo/redo history on a dedicated screen
 
 ---
 
@@ -75,9 +76,13 @@ Virtual Redstone Wire lets you transmit redstone signals between blocks wireless
 
 ### Undo & Redo
 
-While holding a **Virtual Cable** or **Cable Cutter**, press `Ctrl+Z` to undo and `Ctrl+Y` to redo the most recent successful link operation (keybinds can be changed in the Controls settings). Undo cancels the latest operation (a created link is removed, a removed link is restored); redo re-executes it. History is client-side memory only (shared limit 20 by default, adjustable 10-100 in the Mods menu client config) and clears on game exit.
+While holding a **Virtual Cable**, **Cable Cutter**, or **Cable Magnifier**, press `Ctrl+Z` to undo and `Ctrl+Y` to redo the most recent successful link operation (keybinds can be changed in the Controls settings). Undo cancels the latest operation (a created link is removed, a removed link is restored); redo re-executes it. History is client-side memory only (shared limit 20 by default, adjustable 10-100 in the Mods menu client config) and clears on game exit.
 
 <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/41.png" alt="Undo a link creation with Ctrl+Z while holding the Virtual Cable" />
+
+While holding the **Cable Magnifier**, press `Ctrl+A` to open the operation history screen, which lists the operations you can currently undo or redo in two columns (operation type and endpoint coordinates); scroll with the mouse wheel when the list overflows. Press `Ctrl+Z` / `Ctrl+Y` inside the screen to undo/redo directly, with results refreshing in real time and chat feedback suppressed while it is open. Close it with the button at the panel's top-right corner, `ESC`, or `Ctrl+A` again.
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/42.png" alt="Operation history screen listing undoable and redoable link operations" />
 
 ---
 
@@ -178,6 +183,7 @@ The language setting is **client-side**: each player chooses their own language,
 - **零空间占用** - 不使用方块实体，完全兼容原版世界
 - **线缆放大镜** - 手持时高亮全部链路（蓝框输入、黄框输出、红线路径）；潜行右键方块查看链路信息，或右键方块在快捷栏上方显示其红石信号强度与坐标
 - **线缆剪** - 一次移除输入端方块的全部出链
+- **撤销/重做与操作历史** - 按 Ctrl+Z / Ctrl+Y 撤销或重做最近的链路操作；手持放大镜时按 Ctrl+A 在窗口页查看可撤销/可重做的操作历史
 
 ---
 
@@ -229,9 +235,13 @@ The language setting is **client-side**: each player chooses their own language,
 
 ### 撤销与重做
 
-手持**线缆**或**线缆剪**时, 按 `Ctrl+Z` 撤销、`Ctrl+Y` 重做最近一次成功的链路操作（可在游戏 Controls 设置中修改按键绑定）。撤销会取消最近一次操作（创建的链路被移除, 被移除的链路恢复）; 重做会重新执行它。历史仅保存在客户端内存（双栈共用上限默认 20, 可在 Mods 菜单客户端配置调整, 范围 10-100）, 退出游戏清空。
+手持**线缆**、**线缆剪**或**放大镜**时, 按 `Ctrl+Z` 撤销、`Ctrl+Y` 重做最近一次成功的链路操作（可在游戏 Controls 设置中修改按键绑定）。撤销会取消最近一次操作（创建的链路被移除, 被移除的链路恢复）; 重做会重新执行它。历史仅保存在客户端内存（双栈共用上限默认 20, 可在 Mods 菜单客户端配置调整, 范围 10-100）, 退出游戏清空。
 
 <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/41.png" alt="手持线缆按 Ctrl+Z 撤销链路创建" />
+
+手持**放大镜**时按 `Ctrl+A` 打开操作历史窗口页, 分两列列出当前可撤销与可重做的操作（操作类型与起终点坐标）, 列表超出时可用鼠标滚轮滚动查看。窗口页内可直接按 `Ctrl+Z` / `Ctrl+Y` 撤销或重做, 结果实时刷新, 且窗口页打开期间不弹出聊天栏提示。退出方式：面板右上角关闭按钮、`ESC`、再次按 `Ctrl+A`。
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/42.png" alt="操作历史窗口页列出可撤销与可重做的链路操作" />
 
 ---
 

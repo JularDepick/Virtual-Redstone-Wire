@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire
 
-[![Version](https://img.shields.io/badge/Version-0.5.2-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.5.0)
+[![Version](https://img.shields.io/badge/Version-0.5.2-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
@@ -39,18 +39,26 @@ Installation: put the downloaded mod jar into your `.minecraft/mods` folder (For
 - Links are directional: the signal exits from the clicked face of the output block (face-accurate); a redstone lamp placed on the output block itself lights up
 - Works when the source is placed after the link: placing/removing a signal source or flipping a lever refreshes the link signal in real-time
 - Chat feedback is disabled by default; can be enabled in-game from the Mods menu or in the config file
-- Link data lookups are index-accelerated (v0.5.1): creating/removing links stays responsive even with many links
+- Link data lookups are index-accelerated: creating/removing links stays responsive even with many links
 
 ## Undo & Redo
 
 Undo/redo lets you revert or replay your most recent successful link operations:
 
-- While holding a Virtual Cable or Cable Cutter (main or off hand), press `Ctrl+Z` to undo and `Ctrl+Y` to redo (keybinds can be changed in the Controls settings)
+- While holding a Virtual Cable, Cable Cutter, or Cable Magnifier (main or off hand), press `Ctrl+Z` to undo and `Ctrl+Y` to redo (keybinds can be changed in the Controls settings)
 - Undo cancels the most recent successful link operation: a created link is removed, a removed link is restored; redo re-executes the most recently undone operation
 - Press `Ctrl+Z` repeatedly to step back through multiple operations; performing a new operation after undoing clears the redo history
 - Operation history is client-side only: the undo and redo stacks share a size limit (default 20, adjustable 10-100 in the Mods menu client config), cleared on game exit
 - When there is nothing to undo/redo or an operation is rejected, a chat message shows the reason (controlled by the client "Undo/Redo feedback" option, enabled by default; after an empty-stack prompt, further presses are ignored for 3 seconds)
 - Links removed in batch by the Cable Cutter can be undone as a whole (one undo restores all of them)
+
+## Operation History
+
+While holding the Cable Magnifier, press `Ctrl+A` to open the operation history screen and review the operations you can currently undo or redo:
+
+- Shows undoable and redoable operations in two columns (operation type and endpoint coordinates); scroll with the mouse wheel when the list overflows
+- Press `Ctrl+Z` / `Ctrl+Y` inside the screen to undo/redo directly; the page refreshes in real time and chat feedback is suppressed while it is open
+- Close with the button at the panel's top-right corner, `ESC`, or `Ctrl+A` again (keybinds can be changed in the Controls settings)
 
 ## Usage Tip
 
@@ -103,10 +111,11 @@ src/main/java/com/virtualredstonewire/
 │   ├── ClientCableCache.java         # Client-side link cache (versioned, read-only, indexed)
 │   ├── CableClientQueue.java         # Operation queue (single in-flight)
 │   ├── CableClientEvents.java        # Full sync on connect/dimension change
-│   ├── CableUndoRedoManager.java     # Undo/redo (dual stacks, keybinds)
+│   ├── CableUndoRedoManager.java     # Undo/redo (dual stacks, keybinds, history screen)
 │   ├── CableActionBarHud.java        # Signal popup above the hotbar
 │   ├── gui/CableInfoScreen.java      # Cable info GUI panel
 │   ├── gui/CableInfoScreenOpener.java
+│   ├── gui/CableUndoRedoHistoryScreen.java # Operation history screen (undoable/redoable)
 │   ├── gui/ClientConfigScreen.java   # Mods menu config index (config file list)
 │   ├── gui/ClientConfigSubScreen.java # Client config file sub-page
 │   ├── gui/ServerConfigSubScreen.java # Server config file sub-page (owner-only)

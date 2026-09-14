@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire (虚拟红石线缆)
 
-[![Version](https://img.shields.io/badge/Version-0.5.2-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v0.5.0)
+[![Version](https://img.shields.io/badge/Version-0.5.2-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
@@ -39,18 +39,26 @@
 - 链路有方向：信号从输出方块的指定面射出（方向精确），红石灯放在输出端方块本身上即可点亮
 - 支持先建链后放源：放置/移除信号源、拨动拉杆等操作会实时刷新链路信号
 - 聊天栏操作反馈默认关闭，可在游戏内 Mods 菜单或配置文件中启用
-- 链路数据查询索引加速（v0.5.1）：链路数量较多时建链/删链操作响应更流畅
+- 链路数据查询已索引加速：链路数量较多时建链/删链操作响应更流畅
 
 ## 撤销与重做
 
 撤销/重做可回退或重放最近成功的链路操作，避免误操作后手动重建：
 
-- 手持线缆或线缆剪（主手或副手均可）时，按 `Ctrl+Z` 撤销、`Ctrl+Y` 重做（可在游戏 Controls 设置中修改按键绑定）
+- 手持线缆、线缆剪或放大镜（主手或副手任一）时，按 `Ctrl+Z` 撤销、`Ctrl+Y` 重做（可在游戏 Controls 设置中修改按键绑定）
 - 撤销会取消最近一次成功的链路操作：创建的链路被移除，被移除的链路恢复；重做会重新执行最近一次被撤销的操作
 - 连续按 `Ctrl+Z` 可逐步回退多次操作；撤销后执行新的操作会清空重做历史
 - 操作历史仅保存在客户端内存：撤销/重做双栈共用上限（默认 20，可在游戏内 Mods 菜单客户端配置中调整，范围 10-100），退出游戏清空
 - 无可撤销/重做或操作被拒绝时，聊天栏提示原因（受客户端"撤销/重做提示"开关控制，默认开启；空栈提示后 3 秒内按键不重复响应）
 - 线缆剪批量删除的链路可整体撤销（一次撤销恢复全部被剪链路）
+
+## 操作历史查看
+
+手持放大镜时按 `Ctrl+A` 打开操作历史窗口页，查看当前可撤销与可重做的链路操作：
+
+- 窗口页分两列显示可撤销、可重做的历史操作（操作类型与起终点坐标），列表超出时可用鼠标滚轮滚动查看
+- 窗口页内可直接按 `Ctrl+Z` 撤销、`Ctrl+Y` 重做，结果在页面内实时刷新；窗口页打开期间不弹出聊天栏提示
+- 退出方式：面板右上角关闭按钮、`ESC`、再次按 `Ctrl+A`（按键可在游戏 Controls 设置中修改）
 
 ## 使用建议
 
@@ -103,10 +111,11 @@ src/main/java/com/virtualredstonewire/
 │   ├── ClientCableCache.java         # 客户端链路缓存(版本化,只读,索引化)
 │   ├── CableClientQueue.java         # 操作任务队列(单在途/来源标记)
 │   ├── CableClientEvents.java        # 连接/维度切换全量同步
-│   ├── CableUndoRedoManager.java     # 撤销/重做(双栈/快捷键)
+│   ├── CableUndoRedoManager.java     # 撤销/重做(双栈/快捷键/历史窗口页)
 │   ├── CableActionBarHud.java        # 快捷栏上方信号飘浮提示
 │   ├── gui/CableInfoScreen.java      # 线缆信息 GUI 面板
 │   ├── gui/CableInfoScreenOpener.java
+│   ├── gui/CableUndoRedoHistoryScreen.java # 操作历史窗口页(可撤销/可重做)
 │   ├── gui/ClientConfigScreen.java   # Mods 菜单配置索引页(配置文件列表)
 │   ├── gui/ClientConfigSubScreen.java # 客户端配置文件子页
 │   ├── gui/ServerConfigSubScreen.java # 服务端配置文件子页(仅拥有者)
