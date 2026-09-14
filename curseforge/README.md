@@ -99,12 +99,12 @@ While holding the **Cable Magnifier**, press `Ctrl+A` to open the operation hist
 
 1. Start the game (or server) once to generate the config files
 2. Open the config file with a text editor:
-   - Server config: `config/virtual_redstone_wire-server.toml` (edit on the machine running the server)
+   - Server config: `<world folder>/serverconfig/virtual_redstone_wire-server.toml` (edit on the machine running the server)
    - Client config: `config/virtual_redstone_wire-client.toml`
 3. Change the values and save the file
 4. Restart the game or server for the changes to take effect
 
-Example (server, `config/virtual_redstone_wire-server.toml`):
+Example (server, `<world folder>/serverconfig/virtual_redstone_wire-server.toml`):
 
 ```toml
 maxLinkDistance = 512
@@ -125,6 +125,8 @@ maxLinkDistance = 512
 ### Client options
 
 - `enableChatFeedback` - chat feedback for operations (default false)
+- `undoHistorySize` - undo/redo history stack size limit (default 20, range 10-100)
+- `undoRedoFeedback` - undo/redo feedback messages (default true)
 - Client options can be changed in-game from the Mods menu (Config), taking effect immediately
 
 ---
@@ -258,12 +260,12 @@ The language setting is **client-side**: each player chooses their own language,
 
 1. 先启动一次游戏（或服务器）以生成配置文件
 2. 用文本编辑器打开配置文件：
-   - 服务端配置：`config/virtual_redstone_wire-server.toml`（请在运行服务器的机器上修改）
+   - 服务端配置：`<世界文件夹>/serverconfig/virtual_redstone_wire-server.toml`（请在运行服务器的机器上修改）
    - 客户端配置：`config/virtual_redstone_wire-client.toml`
 3. 修改数值并保存
 4. 重启游戏或服务器后生效
 
-示例（服务端，`config/virtual_redstone_wire-server.toml`）：
+示例（服务端，`<世界文件夹>/serverconfig/virtual_redstone_wire-server.toml`）：
 
 ```toml
 maxLinkDistance = 512
@@ -284,6 +286,8 @@ maxLinkDistance = 512
 ### 客户端选项
 
 - `enableChatFeedback` - 操作聊天反馈（默认关闭）
+- `undoHistorySize` - 撤销/重做历史上限（默认 20，范围 10-100）
+- `undoRedoFeedback` - 撤销/重做提示（默认开启）
 - 客户端选项可在游戏内 Mods 菜单（Config）修改，即时生效
 
 ---
