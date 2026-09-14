@@ -31,7 +31,7 @@ run/
 AGENTS*.md
 
 # docs for some versions
-v*.md
+v*-*.md
 
 # other
 release*/

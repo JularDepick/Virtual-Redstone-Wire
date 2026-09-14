@@ -172,7 +172,6 @@ src/main/resources/
 │   ├── lang/{en_us,zh_cn}.json
 │   ├── models/item/*.json
 │   └── textures/
-│       ├── block/virtual_source.png
 │       └── item/{virtual_cable,cable_cutter,cable_magnifier}.png
 └── data/virtual_redstone_wire/recipes/
     ├── virtual_cable.json
