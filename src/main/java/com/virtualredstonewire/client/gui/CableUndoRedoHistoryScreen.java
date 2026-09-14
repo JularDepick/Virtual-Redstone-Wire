@@ -5,7 +5,6 @@ import com.virtualredstonewire.network.CableOpPacket;
 import com.virtualredstonewire.network.CableProtocol;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
@@ -16,7 +15,7 @@ import java.util.List;
 /**
  * v0.5.2 撤销/重做历史窗口页。
  * 手持放大镜时按 Ctrl+A 打开（打开即释放鼠标，可点击交互）；
- * 退出方式：底部退出按钮、ESC、再次 Ctrl+A。
+ * 退出方式：面板右上角关闭按钮、ESC、再次 Ctrl+A。
  * 固定全屏面板、两列固定列宽、条目文本超出列宽自动换行；
  * 标题与表头水平居中，双列列表整体支持鼠标滚轮滚动。
  * 只读读取历史栈快照渲染，不修改历史。
@@ -29,25 +28,23 @@ public class CableUndoRedoHistoryScreen extends Screen
     private static final int LINE_HEIGHT = 11;
     private static final int HEADER_HEIGHT = 16;
     private static final int COL_GAP = 8;
-    private static final int FOOTER_HEIGHT = 30;
-    private static final int SCROLLBAR_WIDTH = 4;
-    private static final int SCROLLBAR_GAP = 4;
-    private static final int BG_COLOR = 0xE0101010;
+    private static final int CLOSE_SIZE = 12;
+    private static final int BG_COLOR = 0xF0101010;
     private static final int HEADER_COLOR = 0xFF2A2A2A;
     private static final int DIVIDER_COLOR = 0xFF444444;
     private static final int BORDER_COLOR = 0xFF666666;
     private static final int TITLE_COLOR = 0xCCCCCC;
+    private static final int CLOSE_COLOR = 0xFF888888;
+    private static final int CLOSE_HOVER_COLOR = 0xFFFF4444;
     private static final int UNDO_TITLE_COLOR = 0x55FFFF;
     private static final int REDO_TITLE_COLOR = 0xFFFF55;
     private static final int ENTRY_COLOR = 0xCCCCCC;
     private static final int EMPTY_COLOR = 0x888888;
-    private static final int SCROLL_TRACK_COLOR = 0xFF303030;
-    private static final int SCROLL_THUMB_COLOR = 0xFF888888;
-    /** 渲染层级：高于常规 HUD 与其他界面元素，避免被遮挡 */
-    private static final float RENDER_Z = 1000.0F;
 
     private double scrollOffset;
     private int maxScroll;
+    private int closeX;
+    private int closeY;
 
     public CableUndoRedoHistoryScreen()
     {
@@ -55,32 +52,8 @@ public class CableUndoRedoHistoryScreen extends Screen
     }
 
     @Override
-    protected void init()
-    {
-        int btnH = 20;
-        int btnW = this.font.width(Component.translatable(
-            "screen.virtual_redstone_wire.history_exit").getString()) + 40;
-        addRenderableWidget(Button.builder(
-            Component.translatable("screen.virtual_redstone_wire.history_exit"),
-            b -> this.onClose())
-            .bounds(this.width / 2 - btnW / 2, this.height - MARGIN - btnH, btnW, btnH)
-            .build());
-    }
-
-    /** 全屏半透明背景（世界仍在其后渲染，本界面不暂停游戏） */
-    @Override
-    public void renderBackground(GuiGraphics g)
-    {
-        g.fill(0, 0, this.width, this.height, BG_COLOR);
-    }
-
-    @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick)
     {
-        // 提升渲染层级：本窗口页覆盖其他 UI（HUD、飘浮提示等），避免被遮挡
-        g.pose().pushPose();
-        g.pose().translate(0.0F, 0.0F, RENDER_Z);
-
         super.render(g, mouseX, mouseY, partialTick);
 
         int px = MARGIN;
@@ -88,6 +61,8 @@ public class CableUndoRedoHistoryScreen extends Screen
         int pw = Math.max(80, this.width - MARGIN * 2);
         int ph = Math.max(40, this.height - MARGIN * 2);
 
+        // 面板主体背景（直接绘制，避免依赖背景回调导致主体透明）
+        g.fill(px, py, px + pw, py + ph, BG_COLOR);
         // 头部与边框
         g.fill(px, py, px + pw, py + HEADER_HEIGHT, HEADER_COLOR);
         g.drawCenteredString(this.font, this.title, px + pw / 2, py + 4, TITLE_COLOR);
@@ -97,14 +72,21 @@ public class CableUndoRedoHistoryScreen extends Screen
         g.fill(px, py, px + 1, py + ph, BORDER_COLOR);
         g.fill(px + pw - 1, py, px + pw, py + ph, BORDER_COLOR);
 
-        // 两列固定列宽（面板内宽扣除滚动条与间距后等分）
-        int usable = pw - PADDING * 2 - COL_GAP - SCROLLBAR_WIDTH - SCROLLBAR_GAP;
-        int colW = Math.max(40, usable / 2);
+        // 右上角关闭按钮
+        closeX = px + pw - CLOSE_SIZE - 4;
+        closeY = py + 4;
+        boolean hoveringClose = mouseX >= closeX && mouseX < closeX + CLOSE_SIZE
+            && mouseY >= closeY && mouseY < closeY + CLOSE_SIZE;
+        g.drawString(this.font, "X", closeX, closeY,
+            hoveringClose ? CLOSE_HOVER_COLOR : CLOSE_COLOR);
+
+        // 两列固定列宽（面板内宽等分）
+        int colW = Math.max(40, (pw - PADDING * 2 - COL_GAP) / 2);
         int colX1 = px + PADDING;
         int colX2 = colX1 + colW + COL_GAP;
         int headerY = py + HEADER_HEIGHT + 4;
         int listTop = headerY + LINE_HEIGHT + 2;
-        int listBottom = py + ph - FOOTER_HEIGHT;
+        int listBottom = py + ph - PADDING;
 
         String emptyText = Component.translatable(
             "screen.virtual_redstone_wire.history_empty").getString();
@@ -125,18 +107,25 @@ public class CableUndoRedoHistoryScreen extends Screen
         renderColumn(g, colX2, colW, headerY, listTop, listBottom,
             Component.translatable("screen.virtual_redstone_wire.redo_history").getString(),
             REDO_TITLE_COLOR, redoLines, emptyText);
-
-        renderScrollbar(g, px + pw - SCROLLBAR_GAP - SCROLLBAR_WIDTH, listTop, listBottom);
-
-        g.pose().popPose();
     }
 
-    /** 鼠标滚轮滚动双列列表 */
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollY)
     {
         scrollOffset = Math.max(0, Math.min(scrollOffset - scrollY * LINE_HEIGHT * 2, maxScroll));
         return true;
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button)
+    {
+        if (mouseX >= closeX && mouseX < closeX + CLOSE_SIZE
+            && mouseY >= closeY && mouseY < closeY + CLOSE_SIZE)
+        {
+            this.onClose();
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     /** 窗口页内快捷键：Ctrl+A 关闭（与打开键一致）；Ctrl+Z / Ctrl+Y 直接撤销/重做并实时刷新本页 */
@@ -188,17 +177,6 @@ public class CableUndoRedoHistoryScreen extends Screen
             }
         }
         g.disableScissor();
-    }
-
-    /** 滚动条（仅内容超出可视区时显示） */
-    private void renderScrollbar(GuiGraphics g, int x, int top, int bottom)
-    {
-        if (maxScroll <= 0) return;
-        int trackH = Math.max(1, bottom - top);
-        g.fill(x, top, x + SCROLLBAR_WIDTH, bottom, SCROLL_TRACK_COLOR);
-        int thumbH = Math.max(16, (int) ((long) trackH * trackH / (trackH + maxScroll)));
-        int thumbY = top + (int) ((long) (trackH - thumbH) * scrollOffset / maxScroll);
-        g.fill(x, thumbY, x + SCROLLBAR_WIDTH, thumbY + thumbH, SCROLL_THUMB_COLOR);
     }
 
     /** 折行全部条目，返回每条目对应的多行结果 */
