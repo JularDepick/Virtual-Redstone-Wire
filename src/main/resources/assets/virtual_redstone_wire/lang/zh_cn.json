@@ -29,7 +29,6 @@
   "message.virtual_redstone_wire.link_removed": "链路已移除: [%d,%d,%d] -> [%d,%d,%d,%s]",
   "message.virtual_redstone_wire.cutter_removed": "已切断 [%d,%d,%d] 的全部输出链路",
   "config.virtual_redstone_wire.maxLinkDistance": "最大链路距离",
-  "config.virtual_redstone_wire.maxLinkDistance.tooltip": "虚拟线缆连接的最大距离 (方块单位)",
   "config.virtual_redstone_wire.magnifierRenderDistance": "放大镜渲染距离",
   "config.virtual_redstone_wire.networkChangeLogSize": "同步变更表容量",
   "config.virtual_redstone_wire.operationLogEnabled": "操作日志",

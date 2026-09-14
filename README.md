@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire (虚拟红石线缆)
 
-[![Version](https://img.shields.io/badge/Version-0.5.2-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases)
+[![Version](https://img.shields.io/badge/Version-0.5.3-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 

@@ -27,6 +27,7 @@ gradle/*
 run/
 
 # Agent Tool
+.workbuddy/
 AGENTS*.md
 
 # docs for some versions

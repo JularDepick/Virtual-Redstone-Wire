@@ -18,7 +18,8 @@ public class ClientCableCache
     private static final Map<String, CableLink> indexById = new HashMap<>();
     private static long version = 0;
 
-    public static void addLink(BlockPos from, BlockPos to, Direction toFace)
+    /** 内部更新入口：仅供增量/全量应用调用，外部只读 */
+    private static void addLink(BlockPos from, BlockPos to, Direction toFace)
     {
         String id = CableLink.generateId(from, to, toFace);
         if (indexById.containsKey(id)) return;
@@ -27,30 +28,13 @@ public class ClientCableCache
         indexById.put(id, link);
     }
 
-    public static void removeLink(BlockPos from, BlockPos to, Direction toFace)
+    /** 内部更新入口：仅供增量应用调用，外部只读 */
+    private static void removeLink(BlockPos from, BlockPos to, Direction toFace)
     {
         String id = CableLink.generateId(from, to, toFace);
         CableLink link = indexById.remove(id);
         if (link == null) return;
         cachedLinks.remove(link);
-    }
-
-    public static boolean hasLinkFrom(BlockPos from)
-    {
-        for (CableLink link : cachedLinks)
-        {
-            if (link.getFrom().equals(from)) return true;
-        }
-        return false;
-    }
-
-    public static boolean hasLinkAt(BlockPos pos)
-    {
-        for (CableLink link : cachedLinks)
-        {
-            if (link.getFrom().equals(pos) || link.getTo().equals(pos)) return true;
-        }
-        return false;
     }
 
     public static boolean hasLink(BlockPos from, BlockPos to, Direction face)
