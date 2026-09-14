@@ -227,11 +227,15 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
     {
         this.allowed = allowed;
         this.message = message == null ? "" : message;
+        // 仅全量响应或权限状态变化时重建行；单项响应（set 回执）只更新值，
+        // 避免重建列表导致滚动位置与输入暂存被重置
+        boolean reload = !allowed || this.values.isEmpty();
         if (values != null && !values.isEmpty())
         {
+            reload |= values.size() > 1;
             this.values.putAll(values);
         }
-        if (this.minecraft != null && this.minecraft.screen == this)
+        if (reload && this.minecraft != null && this.minecraft.screen == this)
         {
             rebuild();
         }
