@@ -1,5 +1,12 @@
 # 变更日志
 
+## 7070194
+### v0.5.3 [更新 CurseForge 发布描述与变更日志]
+
+- CurseForge 发布描述：服务端配置路径更正为 `<世界文件夹>/serverconfig/`（中英双版）
+- CurseForge 发布描述：客户端选项补齐 undoHistorySize 与 undoRedoFeedback（中英双版）
+- 移除 CHANGELOG 中的孤立分隔线
+
 ## 113b145
 ### 优化配置项提示的分行与自动隐藏，修复操作后列表回顶
 

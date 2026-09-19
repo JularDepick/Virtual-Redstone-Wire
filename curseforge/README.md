@@ -1,7 +1,7 @@
 # Virtual Redstone Wire
 
 [English]
-| [[简体中文]](#虚拟红石线缆)
+| [简体中文](#虚拟红石线缆)
 
 A Minecraft mod for long-distance redstone signal transmission that does not rely on physical redstone blocks, supporting one-to-one, one-to-many, and many-to-one connections.
 
@@ -22,7 +22,7 @@ Virtual Redstone Wire lets you transmit redstone signals between blocks wireless
 - **Many-to-one merge** - multiple inputs can feed one output (highest signal wins)
 - **Works after building** - place the signal source, flip a lever, or remove a source at any time; links refresh in real time
 - **Zero space occupation** - no block entities, fully vanilla-compatible world
-- **Cable Magnifier** - highlights all links while held (blue input, yellow output, red path); sneak-right-click a block to inspect its links, or right-click a block to show its redstone signal strength and position above the hotbar
+- **Cable Magnifier** - highlights all links while held (blue input, yellow output, red path); right-click a block to show its redstone signal strength and position above the hotbar, or sneak-right-click a block to inspect its links
 - **Cable Cutter** - removes all outgoing links of an input block at once
 - **Undo / Redo and operation history** - press Ctrl+Z / Ctrl+Y to undo or redo recent link operations; while holding the Cable Magnifier, press Ctrl+A to review the undo/redo history on a dedicated screen
 
@@ -42,21 +42,23 @@ Virtual Redstone Wire lets you transmit redstone signals between blocks wireless
 
 ### Virtual Cable
 
-1. Hold a **Virtual Cable** and right-click an input block to select it
+- Hold a **Virtual Cable** and right-click an input block to select it
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/11.png" alt="Right-click an input block with Virtual Cable to select it" />
+  <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/11.png" alt="Right-click an input block with Virtual Cable to select it" />
 
-2. Right-click an output block to create the one-way link (right-click the same block again to cancel)
+- Right-click an output block to create the one-way link (right-click the same block again to cancel)
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/12.png" alt="Right-click an output block to create a one-way link" />
+  <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/12.png" alt="Right-click an output block to create a one-way link" />
 
-3. Power the input block with any redstone source; the output block delivers the signal from the clicked face
+- Power the input block with any redstone source; the output block delivers the signal from the clicked face
 
 ### Cable Cutter
 
 - Right-click an input block to remove all links originating from it (only affects links where the block is the input/source)
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/21.png" alt="Cable Cutter used on an input block before removing links" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/21.png" alt="Using the Cable Cutter on an input block to remove all links originating from it" />
+
+- Afterwards, that input block has no outgoing links
 
 <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/22.png" alt="Cable Cutter after removing all outgoing links from the input block" />
 
@@ -66,21 +68,26 @@ Virtual Redstone Wire lets you transmit redstone signals between blocks wireless
 
 <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/31.png" alt="Cable Magnifier highlighting all links with blue input, yellow output, and red path" />
 
-- Sneak-right-click a block: open its link information panel
-
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/32.png" alt="Sneak-right-click a block to open the link information panel" />
-
 - Right-click a block: show its redstone signal strength and position above the hotbar
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/33.png" alt="Right-click a block to display its redstone signal strength and position above the hotbar" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/32.png" alt="Right-click a block with the Cable Magnifier to show its redstone signal strength and position above the hotbar" />
+
+- Sneak-right-click a block: open its link information panel
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/33.png" alt="Sneak-right-click a block with the Cable Magnifier to open the link information panel" />
 
 ### Undo & Redo
 
-While holding a **Virtual Cable**, **Cable Cutter**, or **Cable Magnifier**, press `Ctrl+Z` to undo and `Ctrl+Y` to redo the most recent successful link operation (keybinds can be changed in the Controls settings). Undo cancels the latest operation (a created link is removed, a removed link is restored); redo re-executes it. History is client-side memory only (shared limit 20 by default, adjustable 10-100 in the Mods menu client config) and clears on game exit.
+- While holding a **Virtual Cable**, **Cable Cutter**, or **Cable Magnifier**, press `Ctrl+Z` to undo and `Ctrl+Y` to redo the most recent successful link operation (keybinds can be changed in the Controls settings)
+- Undo cancels the latest operation: a created link is removed, a removed link is restored; redo re-executes it
+- History is client-side memory only (shared limit 20 by default, adjustable 10-100 in the Mods menu client config) and clears on game exit
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/41.png" alt="Undo a link creation with Ctrl+Z while holding the Virtual Cable" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/41.png" alt="Undo or redo a link creation with Ctrl+Z / Ctrl+Y while holding a mod item" />
 
-While holding the **Cable Magnifier**, press `Ctrl+A` to open the operation history screen, which lists the operations you can currently undo or redo in two columns (operation type and endpoint coordinates); scroll with the mouse wheel when the list overflows. Press `Ctrl+Z` / `Ctrl+Y` inside the screen to undo/redo directly, with results refreshing in real time and chat feedback suppressed while it is open. Close it with the button at the panel's top-right corner, `ESC`, or `Ctrl+A` again.
+- While holding the **Cable Magnifier**, press `Ctrl+A` to open the operation history screen
+- The screen lists the operations you can currently undo or redo in two columns (operation type and endpoint coordinates); scroll with the mouse wheel when the list overflows
+- Press `Ctrl+Z` / `Ctrl+Y` inside the screen to undo/redo directly, with results refreshing in real time and chat feedback suppressed while it is open
+- Close it with the button at the panel's top-right corner, `ESC`, or `Ctrl+A` again
 
 <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/42.png" alt="Operation history screen listing undoable and redoable link operations" />
 
@@ -88,6 +95,7 @@ While holding the **Cable Magnifier**, press `Ctrl+A` to open the operation hist
 
 ## Requirements
 
+- Minecraft 1.20.1
 - Forge 47.4.22+
 - No other mod dependencies
 
@@ -97,12 +105,12 @@ While holding the **Cable Magnifier**, press `Ctrl+A` to open the operation hist
 
 ### How to configure
 
-1. Start the game (or server) once to generate the config files
-2. Open the config file with a text editor:
-   - Server config: `<world folder>/serverconfig/virtual_redstone_wire-server.toml` (edit on the machine running the server)
-   - Client config: `config/virtual_redstone_wire-client.toml`
-3. Change the values and save the file
-4. Restart the game or server for the changes to take effect
+- Start the game (or server) once to generate the config files
+- Open the config file with a text editor:
+  - Server config: `<world folder>/serverconfig/virtual_redstone_wire-server.toml` (edit on the machine running the server)
+  - Client config: `config/virtual_redstone_wire-client.toml`
+- Change the values and save the file
+- Restart the game or server for the changes to take effect
 
 Example (server, `<world folder>/serverconfig/virtual_redstone_wire-server.toml`):
 
@@ -142,9 +150,9 @@ The in-game text (item tooltips, information panel, chat feedback, etc.) follows
 
 ### How to switch language
 
-1. Open the game and go to **Options -> Language**
-2. Select **简体中文 (China)** or **English (US)**
-3. Confirm; the mod text switches immediately
+- Open the game and go to **Options -> Language**
+- Select **简体中文 (China)** or **English (US)**
+- Confirm; the mod text switches immediately
 
 The language setting is **client-side**: each player chooses their own language, and the server needs no configuration.
 
@@ -161,7 +169,7 @@ The language setting is **client-side**: each player chooses their own language,
 
 # 虚拟红石线缆
 
-[[English]](#virtual-redstone-wire)
+[English](#virtual-redstone-wire)
 | [简体中文]
 
 用于红石信号远程传递的 Minecraft 模组，不依赖实体红石方块，支持一对一、一对多、多对一连接。
@@ -183,7 +191,7 @@ The language setting is **client-side**: each player chooses their own language,
 - **多对一合并** - 多个输入端可连接一个输出端（取最大信号）
 - **建链后仍可调整** - 随时放置信号源、拨动拉杆或移除信号源，链路实时刷新
 - **零空间占用** - 不使用方块实体，完全兼容原版世界
-- **线缆放大镜** - 手持时高亮全部链路（蓝框输入、黄框输出、红线路径）；潜行右键方块查看链路信息，或右键方块在快捷栏上方显示其红石信号强度与坐标
+- **线缆放大镜** - 手持时高亮全部链路（蓝框输入、黄框输出、红线路径）；右键方块在快捷栏上方显示其红石信号强度与坐标，潜行右键方块查看链路信息
 - **线缆剪** - 一次移除输入端方块的全部出链
 - **撤销/重做与操作历史** - 按 Ctrl+Z / Ctrl+Y 撤销或重做最近的链路操作；手持放大镜时按 Ctrl+A 在窗口页查看可撤销/可重做的操作历史
 
@@ -203,21 +211,23 @@ The language setting is **client-side**: each player chooses their own language,
 
 ### 虚拟线缆
 
-1. 手持**虚拟线缆**右键输入端方块以选中
+- 手持**虚拟线缆**右键输入端方块以选中
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/11.png" alt="手持虚拟线缆右键输入端方块以选中" />
+  <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/11.png" alt="手持虚拟线缆右键输入端方块以选中" />
 
-2. 右键输出端方块创建单向链路（再次右键同一方块可取消选中）
+- 右键输出端方块创建单向链路（再次右键同一方块可取消选中）
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/12.png" alt="右键输出端方块创建单向链路" />
+  <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/12.png" alt="右键输出端方块创建单向链路" />
 
-3. 用任意红石源为输入端方块供能，输出端方块将从指定面射出信号
+- 用任意红石源为输入端方块供能，输出端方块将从指定面射出信号
 
 ### 线缆剪
 
 - 右键输入端方块，移除以其为起点的全部链路（仅作用于该方块作为输入端/起点的链路）
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/21.png" alt="线缆剪使用前，输入端方块仍有链路" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/21.png" alt="线缆剪使用：右键输入端方块，移除以其为起点的全部链路" />
+
+- 使用后，该输入端方块不再有出链
 
 <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/22.png" alt="线缆剪使用后，输入端方块的全部出链被移除" />
 
@@ -227,21 +237,26 @@ The language setting is **client-side**: each player chooses their own language,
 
 <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/31.png" alt="手持线缆放大镜高亮全部链路，蓝框为输入，黄框为输出，红线为路径" />
 
-- 潜行右键方块：打开其链路信息面板
-
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/32.png" alt="潜行右键方块打开链路信息面板" />
-
 - 右键方块：在快捷栏上方显示其红石信号强度与坐标
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/33.png" alt="右键方块在快捷栏上方显示红石信号强度与坐标" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/32.png" alt="手持线缆放大镜右键方块，在快捷栏上方显示红石信号强度与坐标" />
+
+- 潜行右键方块：打开其链路信息面板
+
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/33.png" alt="手持线缆放大镜潜行右键方块，打开链路信息面板" />
 
 ### 撤销与重做
 
-手持**线缆**、**线缆剪**或**放大镜**时, 按 `Ctrl+Z` 撤销、`Ctrl+Y` 重做最近一次成功的链路操作（可在游戏 Controls 设置中修改按键绑定）。撤销会取消最近一次操作（创建的链路被移除, 被移除的链路恢复）; 重做会重新执行它。历史仅保存在客户端内存（双栈共用上限默认 20, 可在 Mods 菜单客户端配置调整, 范围 10-100）, 退出游戏清空。
+- 手持**线缆**、**线缆剪**或**放大镜**时，按 `Ctrl+Z` 撤销、`Ctrl+Y` 重做最近一次成功的链路操作（可在游戏 Controls 设置中修改按键绑定）
+- 撤销会取消最近一次操作：创建的链路被移除，被移除的链路恢复；重做会重新执行它
+- 历史仅保存在客户端内存（双栈共用上限默认 20，可在 Mods 菜单客户端配置调整，范围 10-100），退出游戏清空
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/41.png" alt="手持线缆按 Ctrl+Z 撤销链路创建" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/41.png" alt="手持模组物品按 Ctrl+Z/Y 撤销或重做链路创建" />
 
-手持**放大镜**时按 `Ctrl+A` 打开操作历史窗口页, 分两列列出当前可撤销与可重做的操作（操作类型与起终点坐标）, 列表超出时可用鼠标滚轮滚动查看。窗口页内可直接按 `Ctrl+Z` / `Ctrl+Y` 撤销或重做, 结果实时刷新, 且窗口页打开期间不弹出聊天栏提示。退出方式：面板右上角关闭按钮、`ESC`、再次按 `Ctrl+A`。
+- 手持**放大镜**时按 `Ctrl+A` 打开操作历史窗口页
+- 窗口页分两列列出当前可撤销与可重做的操作（操作类型与起终点坐标），列表超出时可用鼠标滚轮滚动查看
+- 窗口页内可直接按 `Ctrl+Z` / `Ctrl+Y` 撤销或重做，结果实时刷新，且窗口页打开期间不弹出聊天栏提示
+- 退出方式：面板右上角关闭按钮、`ESC`、再次按 `Ctrl+A`
 
 <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/42.png" alt="操作历史窗口页列出可撤销与可重做的链路操作" />
 
@@ -249,6 +264,7 @@ The language setting is **client-side**: each player chooses their own language,
 
 ## 环境要求
 
+- Minecraft 1.20.1
 - Forge 47.4.22+
 - 无其他模组依赖
 
@@ -258,12 +274,12 @@ The language setting is **client-side**: each player chooses their own language,
 
 ### 配置方法
 
-1. 先启动一次游戏（或服务器）以生成配置文件
-2. 用文本编辑器打开配置文件：
-   - 服务端配置：`<世界文件夹>/serverconfig/virtual_redstone_wire-server.toml`（请在运行服务器的机器上修改）
-   - 客户端配置：`config/virtual_redstone_wire-client.toml`
-3. 修改数值并保存
-4. 重启游戏或服务器后生效
+- 先启动一次游戏（或服务器）以生成配置文件
+- 用文本编辑器打开配置文件：
+  - 服务端配置：`<世界文件夹>/serverconfig/virtual_redstone_wire-server.toml`（请在运行服务器的机器上修改）
+  - 客户端配置：`config/virtual_redstone_wire-client.toml`
+- 修改数值并保存
+- 重启游戏或服务器后生效
 
 示例（服务端，`<世界文件夹>/serverconfig/virtual_redstone_wire-server.toml`）：
 
@@ -303,9 +319,9 @@ maxLinkDistance = 512
 
 ### 切换方法
 
-1. 进入游戏后打开 **选项 -> 语言**
-2. 选择 **简体中文** 或 **English (US)**
-3. 确认后模组文本立即切换
+- 进入游戏后打开 **选项 -> 语言**
+- 选择 **简体中文** 或 **English (US)**
+- 确认后模组文本立即切换
 
 语言设置为**客户端级**：每位玩家可自选语言，服务端无需任何配置。
 
