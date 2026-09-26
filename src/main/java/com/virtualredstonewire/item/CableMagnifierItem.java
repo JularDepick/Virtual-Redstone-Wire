@@ -50,8 +50,19 @@ public class CableMagnifierItem extends Item
         return true;
     }
 
+    /**
+     * 保留原版的完整判定链(命中方块类型, 主手优先, onItemUseFirst, 方块自身 use 等),
+     * 只在这里做"按下沿压制": 长按期间原版每 4 tick 会重新走到这里, 非本次按下的后续调用直接放行给原版。
+     */
     @Override
     public InteractionResult useOn(UseOnContext context)
+    {
+        if (!com.virtualredstonewire.client.CableInteractGate.shouldFireOnce()) return InteractionResult.PASS;
+        return performRightClick(context);
+    }
+
+    /** 右键方块动作: 下蹲打开信息面板 / 未下蹲飘浮显示信号强度 */
+    public InteractionResult performRightClick(UseOnContext context)
     {
         Level level = context.getLevel();
         Player player = context.getPlayer();
