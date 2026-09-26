@@ -29,6 +29,8 @@
 | 线缆剪 | 铁锭 + 木棍 x2 | 右键输入端方块，切断其全部出链 | 仅作用于该方块作为输入端（起点）的链路 |
 | 线缆放大镜 | 红石 + 玻璃板 + 木棍 | 手持时高亮显示全部链路（蓝框是输入端，黄框是输出端，红线是链路路径）；潜行右键方块，查看其链路信息；右键方块，快捷栏上方显示其红石信号强度与坐标 | 链路高亮与信号查询 |
 
+> 上表的右键操作在按下时触发一次，按住不放不会重复触发（松开后可再次触发）；未瞄准方块时不触发；左键不触发任何操作。
+
 ## 红石行为
 
 - 虚拟线缆传输的是红石信号强度（0-15）
@@ -92,7 +94,7 @@
 | 组件 | 版本 |
 |:---:|:---:|
 | Minecraft | 1.20.1 |
-| Forge | 47.4.22 |
+| Forge | 47.4.23 |
 | JDK | 17 |
 | Gradle | 8.14.3 |
 | ForgeGradle | 6.x |
@@ -109,6 +111,8 @@ src/main/java/com/virtualredstonewire/
 ├── RedstoneDiagnostics.java          # 红石信号自动化诊断(调试用)
 ├── client/
 │   ├── ClientCableCache.java         # 客户端链路缓存(版本化,只读,索引化)
+│   ├── CableFullSyncBuffer.java      # 全量/追回响应分片缓冲(收齐后一次性应用)
+│   ├── CableInteractGate.java        # 三物品右键按下沿闸门(长按不重复触发)
 │   ├── CableClientQueue.java         # 操作任务队列(单在途/来源标记)
 │   ├── CableClientEvents.java        # 连接/维度切换全量同步
 │   ├── CableUndoRedoManager.java     # 撤销/重做(双栈/快捷键/历史窗口页)
@@ -160,7 +164,9 @@ src/main/java/com/virtualredstonewire/
 
 ```
 src/main/java/com/virtualredstonewire/util/
-└── TooltipLines.java                 # 物品提示多行工具
+├── TooltipLines.java                 # 物品提示多行工具
+├── FaceNames.java                    # 输出面名称本地化工具
+└── PressEdgeLatch.java               # 按下沿锁存(按住期间只放行一次)
 ```
 
 ```
@@ -188,7 +194,7 @@ src/main/resources/
 |:---:|:---:|
 | JDK | 17 (推荐 Eclipse Temurin / Adoptium) |
 | Gradle | 8.14.3 |
-| Minecraft | 1.20.1 (Forge 47.4.22) |
+| Minecraft | 1.20.1 (Forge 47.4.23) |
 
 验证环境：
 

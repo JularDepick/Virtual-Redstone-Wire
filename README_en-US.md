@@ -29,6 +29,8 @@ Installation: put the downloaded mod jar into your `.minecraft/mods` folder (For
 | Cable Cutter | Iron Ingot + Stick x2 | Right-click an input block to cut all links originating from it | Only affects links where this block is the input (source) |
 | Cable Magnifier | Redstone + Glass Pane + Stick | While held, highlights all links (blue is input, yellow is output, red is link path); sneak-right-click a block to inspect its links; right-click a block to show its redstone signal strength and position above the hotbar | Link highlighting & signal query |
 
+> The right-click actions listed above trigger once when the button is pressed; holding it down does not repeat them (release and press again to trigger again). They do not trigger when no block is targeted, and the left button triggers nothing.
+
 ## Redstone Behavior
 
 - Virtual cables transmit redstone signal strength (0-15)
@@ -92,7 +94,7 @@ While holding the Cable Magnifier, press `Ctrl+A` to open the operation history 
 | Component | Version |
 |:---:|:---:|
 | Minecraft | 1.20.1 |
-| Forge | 47.4.22 |
+| Forge | 47.4.23 |
 | JDK | 17 |
 | Gradle | 8.14.3 |
 | ForgeGradle | 6.x |
@@ -109,6 +111,8 @@ src/main/java/com/virtualredstonewire/
 ├── RedstoneDiagnostics.java          # Redstone signal diagnostics (debug only)
 ├── client/
 │   ├── ClientCableCache.java         # Client-side link cache (versioned, read-only, indexed)
+│   ├── CableFullSyncBuffer.java      # Chunked full/recatch-up response buffer (applied once complete)
+│   ├── CableInteractGate.java        # Press-edge gate for the three items' right click (no repeat while held)
 │   ├── CableClientQueue.java         # Operation queue (single in-flight)
 │   ├── CableClientEvents.java        # Full sync on connect/dimension change
 │   ├── CableUndoRedoManager.java     # Undo/redo (dual stacks, keybinds, history screen)
@@ -160,7 +164,9 @@ src/main/java/com/virtualredstonewire/
 
 ```
 src/main/java/com/virtualredstonewire/util/
-└── TooltipLines.java                 # Multi-line item tooltip helper
+├── TooltipLines.java                 # Multi-line item tooltip helper
+├── FaceNames.java                    # Localized output-face name helper
+└── PressEdgeLatch.java               # Press-edge latch (fires once per hold)
 ```
 
 ```
@@ -188,7 +194,7 @@ Make sure the environment meets these requirements:
 |:---:|:---:|
 | JDK | 17 (Eclipse Temurin / Adoptium recommended) |
 | Gradle | 8.14.3 |
-| Minecraft | 1.20.1 (Forge 47.4.22) |
+| Minecraft | 1.20.1 (Forge 47.4.23) |
 
 Verify the environment:
 

@@ -96,7 +96,7 @@ Virtual Redstone Wire lets you transmit redstone signals between blocks wireless
 ## Requirements
 
 - Minecraft 1.20.1
-- Forge 47.4.22+
+- Forge 47.4.23+
 - No other mod dependencies
 
 ---
@@ -161,6 +161,7 @@ The language setting is **client-side**: each player chooses their own language,
 ## Notes
 
 - Chat feedback is disabled by default and can be enabled in the client config
+- Right-click actions trigger once when the button is pressed; holding the button down does not repeat them (release and press again to trigger again). They do not trigger when no block is targeted, and the left button triggers nothing
 - This mod is inspired by Drive-By-Wire cable logic and works in a vanilla world with no mod dependencies
 - **For support on more Minecraft versions, or to report issues and request features, visit the GitHub repository**: [https://github.com/JularDepick/Virtual-Redstone-Wire](https://github.com/JularDepick/Virtual-Redstone-Wire)
 
@@ -265,7 +266,7 @@ The language setting is **client-side**: each player chooses their own language,
 ## 环境要求
 
 - Minecraft 1.20.1
-- Forge 47.4.22+
+- Forge 47.4.23+
 - 无其他模组依赖
 
 ---
@@ -330,5 +331,6 @@ maxLinkDistance = 512
 ## 附注
 
 - 聊天反馈默认关闭，可在客户端配置中启用
+- 右键操作在按下时触发一次，按住不放不会重复触发（松开后可再次触发）；未瞄准方块时不触发；左键不触发任何操作
 - 本模组受 Drive-By-Wire 线缆逻辑启发，可在原版世界使用，无模组依赖
 - **如需更多游戏版本支持、反馈问题或建议功能，请前往 GitHub 仓库**：[https://github.com/JularDepick/Virtual-Redstone-Wire](https://github.com/JularDepick/Virtual-Redstone-Wire)

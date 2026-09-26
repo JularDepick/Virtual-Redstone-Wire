@@ -13,7 +13,7 @@ def mcVersion = '1.20.1'
 // MC 兼容上界与 Forge 主版本：mods.toml 的 versionRange / loaderVersion 占位符共用
 def mcNextVersion = '1.21'
 def forgeMajor = '47'
-def forgeVersion = '47.4.22'
+def forgeVersion = '47.4.23'
 
 // 版本号单源化：build.gradle 的 version 为唯一来源，
 // processResources 将 mods.toml 中的 ${version} 等占位替换为实际版本
