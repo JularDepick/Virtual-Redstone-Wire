@@ -3,7 +3,6 @@ package com.virtualredstonewire;
 import com.virtualredstonewire.data.CableNetwork;
 import com.virtualredstonewire.data.CableNetworkManager;
 import com.virtualredstonewire.data.CableNetworkSavedData;
-import com.virtualredstonewire.item.VirtualCableItem;
 import com.virtualredstonewire.network.CableServerQueue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -12,7 +11,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
@@ -76,6 +74,9 @@ public class ServerEventHandler
         {
             ResourceKey<Level> dimension = serverLevel.dimension();
             CableNetworkManager.onDimensionUnload(dimension);
+            // v1.0.0：同时清掉该维度尚未处理的排队请求，避免常驻离线玩家引用，
+            // 以及单人同 JVM 切换存档时旧请求在新存档执行
+            CableServerQueue.clearPending(dimension);
             VirtualRedstoneWire.LOGGER.info("Cable network unloaded for dimension: {}",
                 dimension.location());
         }
@@ -125,9 +126,9 @@ public class ServerEventHandler
         network.setSource(level, pos, CableNetwork.WORLD_CHANNEL, signal);
     }
 
-    @SubscribeEvent
-    public static void onPlayerLogOut(PlayerEvent.PlayerLoggedOutEvent event)
-    {
-        VirtualCableItem.clearSelectedInput((net.minecraft.world.entity.player.Player) event.getEntity());
-    }
+    /**
+     * v1.0.0：原先在此清空线缆起点选中态，但该静态表属于客户端状态，
+     * 由服务端登出事件清理只在单人同 JVM 下"碰巧"生效（分层泄漏）；
+     * 客户端已在 {@code CableClientEvents.onLoggingOut} 中自行清理，故此处移除。
+     */
 }

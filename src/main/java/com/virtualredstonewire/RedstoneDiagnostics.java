@@ -37,9 +37,12 @@ public final class RedstoneDiagnostics
     {
         if (!"true".equalsIgnoreCase(System.getProperty(TEST_PROPERTY, "false"))) return;
         VirtualRedstoneWire.LOGGER.info("[VREDTEST] system property detected, running redstone diagnostics");
-        for (ServerLevel level : server.getAllLevels())
+        // v1.0.0：只对主世界执行一次破坏性自动测试。
+        // 原实现遍历全部维度各跑一次，会在每个维度写入/清空方块并删除玩家已有链路
+        ServerLevel overworld = server.overworld();
+        if (overworld != null)
         {
-            runTest(level);
+            runTest(overworld);
         }
         VirtualRedstoneWire.LOGGER.info("[VREDTEST] diagnostics finished");
     }

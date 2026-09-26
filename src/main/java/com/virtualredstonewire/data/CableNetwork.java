@@ -42,6 +42,7 @@ public class CableNetwork
 
     public boolean toggleLink(BlockPos from, BlockPos to, Direction toFace, Level level)
     {
+        if (toFace == null) return false;
         CableNode inputNode = getOrCreateNode(from);
         CableNode outputNode = getOrCreateNode(to);
 
@@ -50,8 +51,9 @@ public class CableNetwork
             inputNode.removeOutgoing(to, toFace);
             outputNode.removeIncoming(from, toFace);
 
-            // DBW 语义：删链后将该输出端存储信号清零，并立即触发邻居更新让灯熄灭
-            setChannelSignal(level, to, toFace, WORLD_CHANNEL, 0);
+            // v1.0.0：删链后按该输出面剩余输入重算（无输入时清零并触发邻居更新让灯熄灭）
+            refreshOutputFace(level, to, toFace);
+            updateNeighbors(level, from);
 
             if (outputNode.getIncomingCount() == 0 && outputNode.getOutgoingCount() == 0)
             {
@@ -74,10 +76,11 @@ public class CableNetwork
     }
 
     /**
-     * v0.3.0 元操作 add：创建单条链路。链路已存在返回 false，否则建链并刷新信号。
+     * v0.3.0 元操作 add：创建单条链路。链路已存在或输出面非法返回 false，否则建链并刷新信号。
      */
     public boolean addLink(BlockPos from, BlockPos to, Direction toFace, Level level)
     {
+        if (toFace == null) return false;
         CableNode inputNode = getOrCreateNode(from);
         CableNode outputNode = getOrCreateNode(to);
         if (inputNode.hasOutgoingFace(to, toFace))
@@ -89,16 +92,17 @@ public class CableNetwork
         if (level != null)
         {
             refreshSource(level, from);
-            level.updateNeighborsAt(from, level.getBlockState(from).getBlock());
+            updateNeighbors(level, from);
         }
         return true;
     }
 
     /**
-     * v0.3.0 元操作 del：删除单条链路。链路不存在返回 false，否则删链并清零输出信号。
+     * v0.3.0 元操作 del：删除单条链路。链路不存在或输出面非法返回 false。
      */
     public boolean removeLink(BlockPos from, BlockPos to, Direction toFace, Level level)
     {
+        if (toFace == null) return false;
         CableNode inputNode = getNode(from);
         if (inputNode == null || !inputNode.hasOutgoingFace(to, toFace))
         {
@@ -112,9 +116,10 @@ public class CableNetwork
         }
         if (level != null)
         {
-            // 清零输出端存储信号并触发邻居更新（灯熄灭）
-            setChannelSignal(level, to, toFace, WORLD_CHANNEL, 0);
-            level.updateNeighborsAt(from, level.getBlockState(from).getBlock());
+            // v1.0.0：按该输出面剩余输入重算存储信号（无输入时清零并触发邻居更新让灯熄灭）。
+            // 原实现无条件清零，会让同一输出面上仍连接的其他源一并失效且不自愈
+            refreshOutputFace(level, to, toFace);
+            updateNeighbors(level, from);
         }
         if (outputNode != null && outputNode.getIncomingCount() == 0 && outputNode.getOutgoingCount() == 0)
         {
@@ -125,6 +130,32 @@ public class CableNetwork
             removeNode(from);
         }
         return true;
+    }
+
+    /**
+     * v1.0.0：按输出面 (to, toFace) 当前仍存在的输入源重算存储信号；
+     * 已无输入时清零。删链后调用，保证共享该输出面的其他源不被误清零。
+     */
+    private void refreshOutputFace(Level level, BlockPos to, Direction toFace)
+    {
+        if (level == null || toFace == null) return;
+        Set<BlockPos> inputs = getInputsForOutput(to, toFace);
+        if (inputs.isEmpty())
+        {
+            setChannelSignal(level, to, toFace, WORLD_CHANNEL, 0);
+            return;
+        }
+        for (BlockPos src : inputs)
+        {
+            refreshSource(level, src);
+        }
+    }
+
+    /** v1.0.0：仅在目标区块已加载时触发邻居更新，避免被远端坐标强制加载区块 */
+    private static void updateNeighbors(Level level, BlockPos pos)
+    {
+        if (level == null || pos == null || !level.isLoaded(pos)) return;
+        level.updateNeighborsAt(pos, level.getBlockState(pos).getBlock());
     }
 
     public boolean toggleLink(BlockPos from, BlockPos to, Direction toFace)
@@ -152,8 +183,8 @@ public class CableNetwork
                     removeNode(toPos);
                 }
             }
-            // DBW 语义：删链后清零该输出端存储信号并触发邻居更新
-            setChannelSignal(level, toPos, toFace, WORLD_CHANNEL, 0);
+            // v1.0.0：按该输出面剩余输入重算（原实现无条件清零，会误伤共享该面的其他源）
+            refreshOutputFace(level, toPos, toFace);
             count++;
         }
         node.clearAllOutgoing();
@@ -219,6 +250,7 @@ public class CableNetwork
     public boolean setChannelSignal(Level level, BlockPos out, Direction side,
                                     String channel, int signal)
     {
+        if (out == null || side == null) return false;
         BlockPos key = out.immutable();
 
         // 先只读检查旧值，避免 0→0 时创建空容器（轻微内存泄漏）
@@ -255,8 +287,7 @@ public class CableNetwork
 
         if (level != null)
         {
-            level.updateNeighborsAt(out.relative(side),
-                level.getBlockState(out.relative(side)).getBlock());
+            updateNeighbors(level, out.relative(side));
         }
         return true;
     }

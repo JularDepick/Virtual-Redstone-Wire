@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.virtualredstonewire.client.CableClientQueue;
+import com.virtualredstonewire.client.CableFullSyncBuffer;
 import com.virtualredstonewire.client.CableUndoRedoManager;
 import com.virtualredstonewire.client.ClientCableCache;
 import com.virtualredstonewire.data.CableNetworkManager;
@@ -27,6 +28,9 @@ import java.util.function.Supplier;
  * 客户端按报文的 dm 校验维度，增量追回不再清空撤销/重做双栈，改为按缓存状态定向失效。
  * v1.0.0 修复（维度隔离失效）：拒绝响应同样携带 dm 并按维度校验；缓存残留其他维度内容时
  * 整体作废并强制全量重拉；版本号相等的重复广播仍需结算在途请求（否则队列会永久停摆）。
+ * v1.0.0 修复（全量审计）：全量与追回响应按 ci/cc 分片，避免单包超过 writeUtf 的 32767 字符上限；
+ * 增量广播附带本批请求者名（pl 数组），客户端只在请求者包含自己时结算在途请求，
+ * 避免把其他玩家对同一链路的成功操作误当成本机确认。
  */
 public class CableMsgPacket
 {
@@ -47,10 +51,16 @@ public class CableMsgPacket
     public final Concurrent lastOp;
     /** 全量与追回响应回显的请求追回起点（0 为全量，大于 0 为增量追回） */
     public final long since;
+    /** v1.0.0：全量/追回响应分片序号与总分片数（未分片时为 0 与 1） */
+    public final int chunkIndex;
+    public final int chunkCount;
+    /** v1.0.0：增量广播本批请求者名单（空表示未知，客户端按内容结算） */
+    public final List<String> requesters;
 
     private CableMsgPacket(String type, long version, List<Change> lines, String dimension,
                            boolean expired, String requestJson, int code, String message,
-                           Concurrent lastOp, long since)
+                           Concurrent lastOp, long since, int chunkIndex, int chunkCount,
+                           List<String> requesters)
     {
         this.type = type;
         this.version = version;
@@ -62,20 +72,32 @@ public class CableMsgPacket
         this.message = message;
         this.lastOp = lastOp;
         this.since = since;
+        this.chunkIndex = chunkIndex;
+        this.chunkCount = chunkCount < 1 ? 1 : chunkCount;
+        this.requesters = requesters == null ? new ArrayList<>() : requesters;
     }
 
-    public static CableMsgPacket delta(long version, List<Change> lines, String dimension)
+    /** v1.0.0：增量广播携带本批请求者名单，客户端据此判定是否为本机请求的确认 */
+    public static CableMsgPacket delta(long version, List<Change> lines, String dimension,
+                                       List<String> requesters)
     {
         return new CableMsgPacket(CableProtocol.TYPE_DELTA, version, lines, dimension,
-            false, null, 0, null, null, 0);
+            false, null, 0, null, null, 0, 0, 1, requesters);
     }
 
     /** v1.0.0：since 回显请求的追回起点，供客户端判定全量（0）与增量追回（大于 0） */
     public static CableMsgPacket full(long version, List<Change> lines, String dimension,
                                       boolean expired, long since)
     {
+        return fullChunk(version, lines, dimension, expired, since, 0, 1);
+    }
+
+    /** v1.0.0：分片版全量/追回响应（ci 从 0 起，cc 为总片数） */
+    public static CableMsgPacket fullChunk(long version, List<Change> lines, String dimension,
+                                           boolean expired, long since, int chunkIndex, int chunkCount)
+    {
         return new CableMsgPacket(CableProtocol.TYPE_FULL, version, lines, dimension,
-            expired, null, 0, null, null, since);
+            expired, null, 0, null, null, since, chunkIndex, chunkCount, null);
     }
 
     /** v1.0.0：拒绝响应携带该批请求所属维度（客户端按 dm 校验，避免跨维度顶掉在途请求） */
@@ -89,12 +111,13 @@ public class CableMsgPacket
                                         String dimension)
     {
         return new CableMsgPacket(CableProtocol.TYPE_REJECT, 0, null, dimension,
-            false, requestJson, code, message, lastOp, 0);
+            false, requestJson, code, message, lastOp, 0, 0, 1, null);
     }
 
     /**
      * v1.0.0：由服务端最近成功操作摘要构造 lx 载荷；
-     * 无摘要、或该批参与者包含请求者本人（不算其他客户端操作）时返回 null。
+     * 无摘要、该批参与者包含请求者本人（不算其他客户端操作）、
+     * 或摘要内链路缺失输出面（异常数据）时返回 null。
      */
     public static Concurrent concurrentOf(CableNetworkManager.LastOperation last, String requesterName)
     {
@@ -102,9 +125,11 @@ public class CableMsgPacket
         List<Change> changes = new ArrayList<>();
         for (CableNetworkManager.LastOperation.LinkEntry e : last.links())
         {
+            if (e.from() == null || e.to() == null || e.face() == null) continue;
             changes.add(new Change(last.op(), e.from().getX(), e.from().getY(), e.from().getZ(),
                 e.to().getX(), e.to().getY(), e.to().getZ(), e.face().getName()));
         }
+        if (changes.isEmpty()) return null;
         return new Concurrent(last.player(), last.version(), last.op(), changes);
     }
 
@@ -135,7 +160,8 @@ public class CableMsgPacket
     private CableMsgPacket(CableMsgPacket other)
     {
         this(other.type, other.version, other.lines, other.dimension,
-            other.expired, other.requestJson, other.code, other.message, other.lastOp, other.since);
+            other.expired, other.requestJson, other.code, other.message, other.lastOp, other.since,
+            other.chunkIndex, other.chunkCount, other.requesters);
     }
 
     public void encode(FriendlyByteBuf buf)
@@ -172,7 +198,7 @@ public class CableMsgPacket
                     else if (version > ClientCableCache.getVersion())
                     {
                         ClientCableCache.applyDelta(dimension, lines, version);
-                        CableClientQueue.onDeltaReceived(lines);
+                        CableClientQueue.onDeltaReceived(lines, requesters);
                     }
                     else if (version < ClientCableCache.getVersion())
                     {
@@ -182,7 +208,7 @@ public class CableMsgPacket
                     {
                         // v1.0.0：版本号相等属重复广播，不写缓存，但必须按内容结算在途请求，
                         // 否则 sendNext 会因在途未解除而永久停摆
-                        CableClientQueue.onDeltaReceived(lines);
+                        CableClientQueue.onDeltaReceived(lines, requesters);
                     }
                 }
                 else if (isFull())
@@ -190,8 +216,21 @@ public class CableMsgPacket
                     if (!isCurrentDimension(dimension))
                     {
                         // v1.0.0：非当前维度的响应不改动缓存与历史，仅复位在途并推进队列
+                        CableFullSyncBuffer.reset();
                         CableClientQueue.onForeignDimension();
                         return;
+                    }
+                    // v1.0.0：大响应按 ci/cc 分片，收齐后再应用；未收齐直接返回
+                    List<Change> payload = lines;
+                    if (chunkCount > 1)
+                    {
+                        payload = CableFullSyncBuffer.accept(dimension, version, expired, since,
+                            chunkIndex, chunkCount, lines);
+                        if (payload == null) return;
+                    }
+                    else
+                    {
+                        CableFullSyncBuffer.reset();
                     }
                     // v1.0.0：按报文回显的 sc 判定全量与增量追回，不再依赖客户端在途请求状态
                     boolean fullPull = since == 0;
@@ -210,13 +249,13 @@ public class CableMsgPacket
                     }
                     else if (fullPull)
                     {
-                        ClientCableCache.applyFull(dimension, lines, version);
+                        ClientCableCache.applyFull(dimension, payload, version);
                         CableClientQueue.onFullReceived();
                     }
                     else
                     {
                         // 增量追回：应用变更后按缓存状态定向失效，保留其余历史（v1.0.0）
-                        ClientCableCache.applyDelta(dimension, lines, version);
+                        ClientCableCache.applyDelta(dimension, payload, version);
                         CableUndoRedoManager.invalidateByState();
                         CableClientQueue.onFullReceived();
                     }
@@ -270,10 +309,23 @@ public class CableMsgPacket
             root.addProperty(CableProtocol.KEY_VERSION, version);
             root.addProperty(CableProtocol.KEY_DIMENSION, dimension);
             root.add(CableProtocol.KEY_LINES, changesToJson(lines));
+            if (isDelta() && !requesters.isEmpty())
+            {
+                // v1.0.0：增量广播附带本批请求者名单，客户端据此判定是否为本机请求的确认
+                JsonArray pl = new JsonArray();
+                for (String name : requesters) pl.add(name);
+                root.add(CableProtocol.KEY_PLAYER, pl);
+            }
             if (isFull())
             {
                 root.addProperty(CableProtocol.KEY_EXPIRED, expired);
                 root.addProperty(CableProtocol.KEY_SINCE, since);
+                if (chunkCount > 1)
+                {
+                    // v1.0.0：仅在分片时写入 ci/cc，单片响应与旧形状保持一致
+                    root.addProperty(CableProtocol.KEY_CHUNK_INDEX, chunkIndex);
+                    root.addProperty(CableProtocol.KEY_CHUNK_COUNT, chunkCount);
+                }
             }
         }
         else if (isReject())
@@ -325,14 +377,27 @@ public class CableMsgPacket
         if (element == null || !element.isJsonArray()) return changes;
         for (JsonElement e : element.getAsJsonArray())
         {
-            JsonObject o = e.getAsJsonObject();
-            JsonArray fr = o.getAsJsonArray(CableProtocol.KEY_FROM);
-            JsonArray to = o.getAsJsonArray(CableProtocol.KEY_TO);
-            changes.add(new Change(
-                o.get(CableProtocol.KEY_OP).getAsString(),
-                fr.get(0).getAsInt(), fr.get(1).getAsInt(), fr.get(2).getAsInt(),
-                to.get(0).getAsInt(), to.get(1).getAsInt(), to.get(2).getAsInt(),
-                o.get(CableProtocol.KEY_FACE).getAsString()));
+            // v1.0.0：条目残缺或输出面非法时跳过该条，避免解码路径抛异常或写入 null 输出面
+            try
+            {
+                JsonObject o = e.getAsJsonObject();
+                JsonArray fr = o.getAsJsonArray(CableProtocol.KEY_FROM);
+                JsonArray to = o.getAsJsonArray(CableProtocol.KEY_TO);
+                if (fr == null || to == null || fr.size() < 3 || to.size() < 3) continue;
+                if (!o.has(CableProtocol.KEY_OP)) continue;
+                String face = o.has(CableProtocol.KEY_FACE)
+                    ? o.get(CableProtocol.KEY_FACE).getAsString() : null;
+                if (face == null || net.minecraft.core.Direction.byName(face) == null) continue;
+                changes.add(new Change(
+                    o.get(CableProtocol.KEY_OP).getAsString(),
+                    fr.get(0).getAsInt(), fr.get(1).getAsInt(), fr.get(2).getAsInt(),
+                    to.get(0).getAsInt(), to.get(1).getAsInt(), to.get(2).getAsInt(),
+                    face));
+            }
+            catch (RuntimeException ignored)
+            {
+                // 单条残缺不影响其余条目
+            }
         }
         return changes;
     }
@@ -367,7 +432,7 @@ public class CableMsgPacket
             return new CableMsgPacket(type, 0, null, dm, false, rq,
                 root.get(CableProtocol.KEY_CODE).getAsInt(),
                 root.has(CableProtocol.KEY_MESSAGE) ? root.get(CableProtocol.KEY_MESSAGE).getAsString() : null,
-                last, 0);
+                last, 0, 0, 1, null);
         }
         long v = root.get(CableProtocol.KEY_VERSION).getAsLong();
         String dm = root.get(CableProtocol.KEY_DIMENSION).getAsString();
@@ -376,8 +441,29 @@ public class CableMsgPacket
             && root.has(CableProtocol.KEY_EXPIRED) && root.get(CableProtocol.KEY_EXPIRED).getAsBoolean();
         long sc = isFullType && root.has(CableProtocol.KEY_SINCE)
             ? root.get(CableProtocol.KEY_SINCE).getAsLong() : 0;
+        // v1.0.0：分片字段缺失时按单片处理（ci=0, cc=1），旧形状报文无需改动
+        int ci = root.has(CableProtocol.KEY_CHUNK_INDEX)
+            ? root.get(CableProtocol.KEY_CHUNK_INDEX).getAsInt() : 0;
+        int cc = root.has(CableProtocol.KEY_CHUNK_COUNT)
+            ? root.get(CableProtocol.KEY_CHUNK_COUNT).getAsInt() : 1;
+        List<String> requesters = new ArrayList<>();
+        if (root.has(CableProtocol.KEY_PLAYER))
+        {
+            JsonElement pl = root.get(CableProtocol.KEY_PLAYER);
+            if (pl.isJsonArray())
+            {
+                for (JsonElement e : pl.getAsJsonArray())
+                {
+                    if (!e.isJsonNull() && e.isJsonPrimitive()) requesters.add(e.getAsString());
+                }
+            }
+            else if (pl.isJsonPrimitive())
+            {
+                requesters.add(pl.getAsString());
+            }
+        }
         List<Change> changes = root.has(CableProtocol.KEY_LINES)
             ? changesFromJson(root.get(CableProtocol.KEY_LINES)) : new ArrayList<>();
-        return new CableMsgPacket(type, v, changes, dm, ex, null, 0, null, null, sc);
+        return new CableMsgPacket(type, v, changes, dm, ex, null, 0, null, null, sc, ci, cc, requesters);
     }
 }

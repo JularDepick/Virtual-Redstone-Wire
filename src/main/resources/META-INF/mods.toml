@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[47,)"
+loaderVersion="[${forgeMajor},)"
 
 license="MIT"
 
@@ -17,13 +17,13 @@ A Minecraft mod for long-distance redstone signal transmission that does not rel
 [[dependencies.virtual_redstone_wire]]
     modId="forge"
     mandatory=true
-    versionRange="[47,)"
+    versionRange="[${forgeMajor},)"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.virtual_redstone_wire]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.20.1,1.21)"
+    versionRange="[${mcVersion},${mcNextVersion})"
     ordering="NONE"
     side="BOTH"

@@ -84,15 +84,48 @@ public final class CableChangeLog
         int dot = file.lastIndexOf('.');
         String base = dot > 0 ? file.substring(0, dot) : file;
         String ext = dot > 0 ? file.substring(dot) : "";
-        return base + "_" + player + ext;
+        return base + "_" + sanitizeForFileName(player) + ext;
+    }
+
+    /**
+     * v1.0.0：文件名净化。玩家名与配置项值都直接参与日志路径拼装，
+     * 剥离路径分隔符与控制字符，避免写出世界目录（路径穿越）。
+     */
+    private static String sanitizeForFileName(String raw)
+    {
+        if (raw == null) return "unnamed";
+        StringBuilder sb = new StringBuilder(raw.length());
+        for (int i = 0; i < raw.length(); i++)
+        {
+            char c = raw.charAt(i);
+            if (c == '/' || c == '\\' || c == ':' || c == '*' || c == '?'
+                || c == '"' || c == '<' || c == '>' || c == '|' || c < ' ')
+            {
+                sb.append('_');
+            }
+            else
+            {
+                sb.append(c);
+            }
+        }
+        String s = sb.toString().trim();
+        return s.isEmpty() ? "unnamed" : s;
     }
 
     private static void writeLine(ServerLevel level, String fileName, String line)
     {
         try
         {
-            Path path = level.getServer().getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT)
-                .resolve(fileName);
+            Path root = level.getServer()
+                .getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT)
+                .toAbsolutePath().normalize();
+            Path path = root.resolve(sanitizeForFileName(fileName)).normalize();
+            if (!path.startsWith(root))
+            {
+                // v1.0.0：解析后越出世界目录的路径直接拒绝写入
+                VirtualRedstoneWire.LOGGER.warn("Refused to write cable server log outside world dir: {}", fileName);
+                return;
+            }
             try (Writer w = Files.newBufferedWriter(path, StandardCharsets.UTF_8,
                 StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE))
             {

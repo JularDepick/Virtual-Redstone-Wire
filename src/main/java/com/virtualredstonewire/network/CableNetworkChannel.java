@@ -80,4 +80,10 @@ public class CableNetworkChannel
     {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), packet);
     }
+
+    /** v1.0.0：向全部在线玩家投递（服务端配置变更后的同步广播） */
+    public static void sendToAllPlayers(Object packet)
+    {
+        CHANNEL.send(PacketDistributor.ALL.noArg(), packet);
+    }
 }

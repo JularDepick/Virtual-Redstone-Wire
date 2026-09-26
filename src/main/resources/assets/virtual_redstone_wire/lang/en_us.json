@@ -95,5 +95,21 @@
   "screen.virtual_redstone_wire.redo_history": "Redo",
   "screen.virtual_redstone_wire.history_empty": "No history",
   "message.virtual_redstone_wire.op_add": "Create link",
-  "message.virtual_redstone_wire.op_del": "Remove link"
+  "message.virtual_redstone_wire.op_del": "Remove link",
+  "screen.virtual_redstone_wire.face.north": "North",
+  "screen.virtual_redstone_wire.face.south": "South",
+  "screen.virtual_redstone_wire.face.east": "East",
+  "screen.virtual_redstone_wire.face.west": "West",
+  "screen.virtual_redstone_wire.face.up": "Up",
+  "screen.virtual_redstone_wire.face.down": "Down",
+  "message.virtual_redstone_wire.reject_invalid_face": "Invalid output face",
+  "message.virtual_redstone_wire.reject_duplicate_link": "Duplicate link in the same request",
+  "message.virtual_redstone_wire.reject_pull_too_frequent": "Too many requests, try again later",
+  "message.virtual_redstone_wire.reject_queue_full": "Server has too many pending requests, try again later",
+  "message.virtual_redstone_wire.query_wrong_dimension": "Dimension changed, query again",
+  "message.virtual_redstone_wire.batch_created": "Created %d links",
+  "message.virtual_redstone_wire.batch_removed_count": "Removed %d links",
+  "message.virtual_redstone_wire.cut_too_many": "This source has more than %d outgoing links, cut not executed",
+  "message.virtual_redstone_wire.undo_failed_dimension": "Undo failed (that operation belongs to another dimension)",
+  "message.virtual_redstone_wire.redo_failed_dimension": "Redo failed (that operation belongs to another dimension)"
 }

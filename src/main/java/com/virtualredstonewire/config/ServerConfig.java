@@ -74,4 +74,61 @@ public class ServerConfig
 
         SPEC = BUILDER.build();
     }
+
+    /**
+     * v1.0.0：把服务端广播来的配置值写入本进程的服务端配置 spec（客户端用于渲染距离与本地预检）。
+     * 与 Forge 登录握手时的配置同步一致：只改内存值，不写客户端本地文件。
+     * 未知键、非法数值与越界值一律忽略。
+     */
+    public static void applyFromMap(java.util.Map<String, String> values)
+    {
+        if (values == null || values.isEmpty()) return;
+        for (java.util.Map.Entry<String, String> e : values.entrySet())
+        {
+            String key = e.getKey();
+            String raw = e.getValue();
+            if (key == null || raw == null) continue;
+            try
+            {
+                switch (key)
+                {
+                    case "maxLinkDistance":
+                        setIfInRange(maxLinkDistance, raw, 1, 1024);
+                        break;
+                    case "magnifierRenderDistance":
+                        setIfInRange(magnifierRenderDistance, raw, 64, 1024);
+                        break;
+                    case "networkChangeLogSize":
+                        setIfInRange(networkChangeLogSize, raw, 200, 1000);
+                        break;
+                    case "operationLogEnabled":
+                        operationLogEnabled.set(Boolean.parseBoolean(raw));
+                        break;
+                    case "requestLogEnabled":
+                        requestLogEnabled.set(Boolean.parseBoolean(raw));
+                        break;
+                    case "operationLogSplit":
+                        operationLogSplit.set(OperationLogSplit.valueOf(raw.toUpperCase(java.util.Locale.ROOT)));
+                        break;
+                    case "operationLogFile":
+                    case "requestLogFile":
+                        // 文件名项不下发（面板不开放配置），忽略
+                        break;
+                    default:
+                        break;
+                }
+            }
+            catch (RuntimeException ignored)
+            {
+                // 单个键异常不影响其余键
+            }
+        }
+    }
+
+    private static void setIfInRange(ForgeConfigSpec.IntValue value, String raw, int min, int max)
+    {
+        int parsed = Integer.parseInt(raw.trim());
+        if (parsed < min || parsed > max) return;
+        value.set(parsed);
+    }
 }

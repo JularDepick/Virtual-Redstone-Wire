@@ -25,6 +25,7 @@ public class CableNode
 
     public boolean addOutgoing(BlockPos toPos, Direction toFace)
     {
+        if (toFace == null) return false; // v1.0.0：输出面非法不入表
         BlockPos key = toPos.immutable();
         Set<Direction> faces = toWho.computeIfAbsent(key, k -> new HashSet<>());
         return faces.add(toFace);
@@ -94,6 +95,7 @@ public class CableNode
 
     public void addIncoming(BlockPos fromPos, Direction toFace)
     {
+        if (toFace == null) return; // v1.0.0：输出面非法不入表
         fromWho.computeIfAbsent(fromPos.immutable(), k -> new HashSet<>()).add(toFace);
     }
 
@@ -169,6 +171,7 @@ public class CableNode
             BlockPos from = entry.getKey();
             for (Direction face : entry.getValue())
             {
+                if (face == null) continue; // v1.0.0：防御异常数据（CableLink 构造要求合法面）
                 result.add(new CableLink(from, self, face));
             }
         }
@@ -183,6 +186,7 @@ public class CableNode
         {
             for (Direction face : entry.getValue())
             {
+                if (face == null) continue; // v1.0.0：防御异常数据（CableLink 构造要求合法面）
                 result.add(new CableLink(self, entry.getKey(), face));
             }
         }
@@ -198,6 +202,7 @@ public class CableNode
         {
             for (Direction face : faces)
             {
+                if (face == null) continue; // v1.0.0：防御异常数据（CableLink 构造要求合法面）
                 result.add(new CableLink(self, toPos, face));
             }
         }
@@ -220,6 +225,7 @@ public class CableNode
             JsonArray faces = new JsonArray();
             for (Direction d : entry.getValue())
             {
+                if (d == null) continue; // v1.0.0：异常面不落盘（原实现会在保存时抛 NPE）
                 faces.add(d.getName());
             }
             edge.add("faces", faces);
@@ -237,6 +243,7 @@ public class CableNode
             JsonArray faces = new JsonArray();
             for (Direction d : entry.getValue())
             {
+                if (d == null) continue; // v1.0.0：异常面不落盘（原实现会在保存时抛 NPE）
                 faces.add(d.getName());
             }
             edge.add("faces", faces);

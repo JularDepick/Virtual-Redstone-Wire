@@ -19,6 +19,12 @@ import java.util.Set;
  * v0.3.0 服务端操作队列：按 tick 边界收集 add/del 请求，统一处理。
  * 同 tick 冲突规则：目标与类型相同合并执行一次；目标相同但类型相背全部不执行；
  * 不同目标的合法请求各自独立执行，各自占一个版本号并各自广播。
+ * v1.0.0 修复（全量审计）：
+ *   - 排队表增加每维度数量上限，超限拒绝入队（防单客户端刷包）；
+ *   - 相背判定按"链路集合相交"进行，部分重叠的 add/del 批次同样整批拒绝（与规范口径一致）；
+ *   - 执行中途失败时回滚已写入的链路，使"整批原子"名实相符；
+ *   - 增量广播附带本批全部请求者名，客户端据此判定是否为本机请求的确认；
+ *   - 合并批次按全部参与者写日志，不再只记首位发起者。
  */
 public final class CableServerQueue
 {
@@ -28,9 +34,22 @@ public final class CableServerQueue
 
     private CableServerQueue() {}
 
-    public static void enqueue(ResourceKey<Level> dim, ServerPlayer player, CableOpPacket packet)
+    /** v1.0.0：入队；超过 PENDING_QUEUE_LIMIT 时返回 false（调用方按 429 拒绝） */
+    public static boolean enqueue(ResourceKey<Level> dim, ServerPlayer player, CableOpPacket packet)
     {
-        PENDING.computeIfAbsent(dim, k -> new ArrayList<>()).add(new QueuedOp(player, packet));
+        List<QueuedOp> list = PENDING.computeIfAbsent(dim, k -> new ArrayList<>());
+        if (list.size() >= CableProtocol.PENDING_QUEUE_LIMIT)
+        {
+            return false;
+        }
+        list.add(new QueuedOp(player, packet));
+        return true;
+    }
+
+    /** v1.0.0：维度卸载时清理排队表，避免常驻离线玩家引用与跨存档串包 */
+    public static void clearPending(ResourceKey<Level> dim)
+    {
+        PENDING.remove(dim);
     }
 
     /** 服务端每 tick 调用：处理该维度本 tick 收集的请求 */
@@ -47,6 +66,24 @@ public final class CableServerQueue
             groups.computeIfAbsent(new HashSet<>(op.packet().links), k -> new ArrayList<>()).add(op);
         }
 
+        // v1.0.0：相交即视为同目标 —— 同一链路在不同分组间出现 add 与 del 时，涉及的分组整批不执行
+        Set<CableOpPacket.Link> conflicted = new HashSet<>();
+        Map<CableOpPacket.Link, String> opByLink = new HashMap<>();
+        for (List<QueuedOp> members : groups.values())
+        {
+            for (QueuedOp m : members)
+            {
+                for (CableOpPacket.Link l : m.packet().links)
+                {
+                    String seen = opByLink.putIfAbsent(l, m.packet().op);
+                    if (seen != null && !seen.equals(m.packet().op))
+                    {
+                        conflicted.add(l);
+                    }
+                }
+            }
+        }
+
         for (List<QueuedOp> members : groups.values())
         {
             String op0 = members.get(0).packet().op;
@@ -55,7 +92,7 @@ public final class CableServerQueue
             {
                 if (!m.packet().op.equals(op0)) { mixed = true; break; }
             }
-            if (mixed)
+            if (mixed || intersects(members.get(0).packet().links, conflicted))
             {
                 // 相背：全部不执行
                 for (QueuedOp op : members)
@@ -73,8 +110,9 @@ public final class CableServerQueue
             if (CableProtocol.OP_ADD.equals(op0))
             {
                 boolean exists = req.links.stream().anyMatch(l ->
-                    network.getNode(l.from()) != null
-                        && network.getNode(l.from()).hasOutgoingFace(l.to(), l.faceDir()));
+                    l.faceDir() == null
+                        || (network.getNode(l.from()) != null
+                            && network.getNode(l.from()).hasOutgoingFace(l.to(), l.faceDir())));
                 if (exists)
                 {
                     for (QueuedOp op : members)
@@ -88,7 +126,8 @@ public final class CableServerQueue
             else
             {
                 boolean missing = req.links.stream().anyMatch(l ->
-                    network.getNode(l.from()) == null
+                    l.faceDir() == null
+                        || network.getNode(l.from()) == null
                         || !network.getNode(l.from()).hasOutgoingFace(l.to(), l.faceDir()));
                 if (missing)
                 {
@@ -101,7 +140,8 @@ public final class CableServerQueue
                 }
             }
 
-            // 执行（整批原子）
+            // 执行（整批原子：中途失败回滚已写入的链路，避免服务端与客户端缓存永久分叉）
+            List<CableOpPacket.Link> applied = new ArrayList<>();
             boolean allOk = true;
             for (CableOpPacket.Link l : req.links)
             {
@@ -113,9 +153,22 @@ public final class CableServerQueue
                     allOk = false;
                     break;
                 }
+                applied.add(l);
             }
             if (!allOk)
             {
+                for (int i = applied.size() - 1; i >= 0; i--)
+                {
+                    CableOpPacket.Link l = applied.get(i);
+                    if (CableProtocol.OP_ADD.equals(op0))
+                    {
+                        network.removeLink(l.from(), l.to(), l.faceDir(), level);
+                    }
+                    else
+                    {
+                        network.addLink(l.from(), l.to(), l.faceDir(), level);
+                    }
+                }
                 // 已校验通过仍失败，防御性拒绝
                 for (QueuedOp op : members)
                 {
@@ -129,6 +182,11 @@ public final class CableServerQueue
             long v = CableNetworkManager.nextVersion(dim);
             CableNetworkManager.markDirty(level);
             String playerName = members.get(0).player.getName().getString();
+            Set<String> participants = new HashSet<>();
+            for (QueuedOp m : members)
+            {
+                participants.add(m.player().getName().getString());
+            }
             List<CableMsgPacket.Change> changes = new ArrayList<>();
             for (CableOpPacket.Link l : req.links)
             {
@@ -138,9 +196,15 @@ public final class CableServerQueue
                     v, playerName, op0, l.from(), l.to(), l.faceDir()));
             }
             CableNetworkChannel.sendToAll(level,
-                CableMsgPacket.delta(v, changes, dim.location().toString()));
-            CableChangeLog.logOperation(level, playerName, op0, req.links, "success");
-            CableChangeLog.logRequest(level, req.toJson(), CableProtocol.CODE_OK);
+                CableMsgPacket.delta(v, changes, dim.location().toString(),
+                    new ArrayList<>(participants)));
+            // v1.0.0：合并批次按全部参与者写日志（此前只记首位发起者，会让日志取证失真）
+            for (QueuedOp m : members)
+            {
+                CableChangeLog.logOperation(level, m.player().getName().getString(), op0,
+                    m.packet().links, "success");
+                CableChangeLog.logRequest(level, m.packet().toJson(), CableProtocol.CODE_OK);
+            }
             // v1.0.0：记录该维度最近一次成功操作摘要（协议拒绝响应 lx 字段的数据源）
             List<CableNetworkManager.LastOperation.LinkEntry> entries = new ArrayList<>();
             for (CableOpPacket.Link l : req.links)
@@ -148,15 +212,20 @@ public final class CableServerQueue
                 entries.add(new CableNetworkManager.LastOperation.LinkEntry(
                     l.from(), l.to(), l.faceDir()));
             }
-            // 参与者集合：同 tick 合并执行的批次包含全部发起者，避免摘要把并发提示误指向其中一位
-            Set<String> participants = new HashSet<>();
-            for (QueuedOp m : members)
-            {
-                participants.add(m.player().getName().getString());
-            }
             CableNetworkManager.recordLastOperation(dim,
                 new CableNetworkManager.LastOperation(v, playerName, op0, participants, entries));
         }
+    }
+
+    /** 给定链路集合是否与另一集合相交 */
+    private static boolean intersects(List<CableOpPacket.Link> links, Set<CableOpPacket.Link> other)
+    {
+        if (other.isEmpty()) return false;
+        for (CableOpPacket.Link l : links)
+        {
+            if (other.contains(l)) return true;
+        }
+        return false;
     }
 
     /** 拒绝响应：level 取该批请求所属维度（不取处理时刻玩家所在维度，避免跨维度错配） */

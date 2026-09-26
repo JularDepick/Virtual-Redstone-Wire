@@ -27,6 +27,9 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.joml.Matrix4f;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Mod.EventBusSubscriber(modid = VirtualRedstoneWire.MOD_ID, value = Dist.CLIENT)
 public class CableRenderer
 {
@@ -73,7 +76,9 @@ public class CableRenderer
         ItemStack offHand = player.getOffhandItem();
         boolean holdingCable = mainHand.getItem() instanceof VirtualCableItem
             || offHand.getItem() instanceof VirtualCableItem;
-        boolean holdingCutter = mainHand.getItem() instanceof CableCutterItem;
+        // v1.0.0：线缆剪同样判定双手，与线缆/放大镜以及撤销快捷键的手持口径一致
+        boolean holdingCutter = mainHand.getItem() instanceof CableCutterItem
+            || offHand.getItem() instanceof CableCutterItem;
         boolean holdingMagnifier = mainHand.getItem() instanceof CableMagnifierItem
             || offHand.getItem() instanceof CableMagnifierItem;
 
@@ -107,6 +112,9 @@ public class CableRenderer
             return;
         }
 
+        // v1.0.0：同一方块每帧只描边一次（原实现按链路重复提交同一几何，枢纽方块会放大顶点量）
+        Set<BlockPos> outlined = new HashSet<>();
+
         for (CableLink link : ClientCableCache.getLinks())
         {
             double fromX = link.getFrom().getX(), fromY = link.getFrom().getY(), fromZ = link.getFrom().getZ();
@@ -122,32 +130,50 @@ public class CableRenderer
 
             if (holdingMagnifier)
             {
-                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), COLOR_INPUT, level, cx, cy, cz);
+                if (outlined.add(link.getFrom()))
+                {
+                    renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), COLOR_INPUT, level, cx, cy, cz);
+                }
                 renderFaceOutline(poseStack, bufferSource,
                     link.getTo(), link.getToFace(), COLOR_OUTPUT, cx, cy, cz);
                 renderCableBeam(poseStack, bufferSource, fromCenter, cableEnd, COLOR_LINE);
             }
             else if (holdingCable && isFromSelected)
             {
-                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), COLOR_INPUT_SELECTED, level, cx, cy, cz);
+                if (outlined.add(link.getFrom()))
+                {
+                    renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), COLOR_INPUT_SELECTED, level, cx, cy, cz);
+                }
                 renderFaceOutline(poseStack, bufferSource,
                     link.getTo(), link.getToFace(), COLOR_OUTPUT, cx, cy, cz);
                 renderCableBeam(poseStack, bufferSource, fromCenter, cableEnd, COLOR_LINE);
             }
             else if (holdingCable || holdingCutter)
             {
-                renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), COLOR_INPUT, level, cx, cy, cz);
+                if (outlined.add(link.getFrom()))
+                {
+                    renderBlockOutlineBeams(poseStack, bufferSource, link.getFrom(), COLOR_INPUT, level, cx, cy, cz);
+                }
             }
         }
 
-        if (selectedInput != null)
+        if (selectedInput != null && !outlined.contains(selectedInput))
         {
-            renderBlockOutlineBeams(poseStack, bufferSource, selectedInput, COLOR_INPUT_SELECTED, level, cx, cy, cz);
+            // v1.0.0：选中起点尚未被上面的链路描边覆盖时才补画（含是否有链路的两种情况），
+            // 并补上渲染距离判断（原实现无条件绘制，远处选中框也会画出来）
+            double sdx = selectedInput.getX() + 0.5 - cx;
+            double sdy = selectedInput.getY() + 0.5 - cy;
+            double sdz = selectedInput.getZ() + 0.5 - cz;
+            if (sdx * sdx + sdy * sdy + sdz * sdz <= renderDistSq)
+            {
+                renderBlockOutlineBeams(poseStack, bufferSource, selectedInput, COLOR_INPUT_SELECTED, level, cx, cy, cz);
+            }
         }
 
+        // v1.0.0：只提交本模组自己使用的 debugQuads 批次；
+        // 原实现额外 endBatch(RenderType.LINES)（本模组不使用该类型，每次只会新建并丢弃一个空批次）
+        // 与无参 endBatch()（会把共享 buffer source 中其他模组尚未提交的几何一并刷出，影响绘制时序）
         bufferSource.endBatch(RenderType.debugQuads());
-        bufferSource.endBatch(RenderType.LINES);
-        bufferSource.endBatch();
 
         poseStack.popPose();
     }

@@ -80,6 +80,8 @@ public final class CableClientQueue
         {
             lastPullSc = inFlight.packet().since;
             lastPullDim = inFlight.packet().dimension;
+            // v1.0.0：发起新的拉取前丢弃上一批未收齐的分片，避免跨请求拼接
+            CableFullSyncBuffer.reset();
         }
         CableNetworkChannel.sendToServer(inFlight.packet());
     }
@@ -104,33 +106,59 @@ public final class CableClientQueue
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
 
-        long now = System.currentTimeMillis();
-        if (!force)
+        if (!force && !allowPullRequest())
         {
-            if (now - lastFullRequestTime < FULL_COOLDOWN_MS)
-            {
-                return; // 冷却期内丢弃
-            }
-            while (!FULL_REQUEST_TIMES.isEmpty() && now - FULL_REQUEST_TIMES.peekFirst() > 60000)
-            {
-                FULL_REQUEST_TIMES.pollFirst();
-            }
-            if (FULL_REQUEST_TIMES.size() >= FULL_MAX_PER_MINUTE)
-            {
-                // 异常：断开连接并提示，重置计数保证重连正常
-                FULL_REQUEST_TIMES.clear();
-                lastFullRequestTime = 0;
-                if (mc.player.connection != null)
-                {
-                    mc.player.connection.getConnection().disconnect(Component.translatable(
-                        "message.virtual_redstone_wire.full_request_throttle"));
-                }
-                return;
-            }
-            FULL_REQUEST_TIMES.addLast(now);
+            return; // 冷却期内丢弃（既有定案：不重试）
         }
-        lastFullRequestTime = now;
+        lastFullRequestTime = System.currentTimeMillis();
         enqueue(CableOpPacket.pull(0, mc.level.dimension(), mc.player.getName().getString()));
+    }
+
+    /**
+     * v1.0.0：带节流的增量追回请求（sc 为当前缓存版本）。
+     * 普通操作被拒后的缓存纠正走本入口，使"5 秒冷却 + 每分钟 10 次断开"这套
+     * 风暴保护真正覆盖非强制路径（此前该路径直接 enqueue，节流形同虚设）。
+     */
+    public static boolean requestIncrementalPull()
+    {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null) return false;
+        if (!allowPullRequest()) return false;
+        lastFullRequestTime = System.currentTimeMillis();
+        enqueue(CableOpPacket.pull(ClientCableCache.getVersion(), mc.level.dimension(),
+            mc.player.getName().getString()));
+        return true;
+    }
+
+    /**
+     * 节流判定（全量与增量追回共用）：5 秒冷却内拒绝；
+     * 60 秒内超过 10 次视为异常，断开连接并提示后重置计数（不标记用户，可正常重连）。
+     */
+    private static boolean allowPullRequest()
+    {
+        Minecraft mc = Minecraft.getInstance();
+        long now = System.currentTimeMillis();
+        if (now - lastFullRequestTime < FULL_COOLDOWN_MS)
+        {
+            return false;
+        }
+        while (!FULL_REQUEST_TIMES.isEmpty() && now - FULL_REQUEST_TIMES.peekFirst() > 60000)
+        {
+            FULL_REQUEST_TIMES.pollFirst();
+        }
+        if (FULL_REQUEST_TIMES.size() >= FULL_MAX_PER_MINUTE)
+        {
+            FULL_REQUEST_TIMES.clear();
+            lastFullRequestTime = 0;
+            if (mc.player != null && mc.player.connection != null)
+            {
+                mc.player.connection.getConnection().disconnect(Component.translatable(
+                    "message.virtual_redstone_wire.full_request_throttle"));
+            }
+            return false;
+        }
+        FULL_REQUEST_TIMES.addLast(now);
+        return true;
     }
 
     /**
@@ -158,6 +186,7 @@ public final class CableClientQueue
     {
         QUEUE.clear();
         inFlight = null;
+        CableFullSyncBuffer.reset();
     }
 
     /**
@@ -172,16 +201,19 @@ public final class CableClientQueue
         lastPullDim = null;
         lastFullRequestTime = 0;
         FULL_REQUEST_TIMES.clear();
+        CableFullSyncBuffer.reset();
     }
 
     /**
      * 增量广播（tp 为 d）到达：按内容匹配出队；
      * 匹配成功后先回调撤销管理器（撤销/重做提示），再按需显示链路反馈；
-     * 单条请求确认时反馈结果，批量（线缆剪）不逐条提示。
+     * 单条请求确认时反馈结果，批量（线缆剪）给出一条汇总反馈。
+     * v1.0.0：广播携带请求者名单时，只有自己在该名单内才结算在途请求，
+     * 避免把其他玩家对同一链路的成功操作误当成本机请求的确认。
      */
-    public static void onDeltaReceived(List<CableMsgPacket.Change> changes)
+    public static void onDeltaReceived(List<CableMsgPacket.Change> changes, List<String> requesters)
     {
-        if (inFlight != null && !inFlight.packet().isPull())
+        if (inFlight != null && !inFlight.packet().isPull() && isOwnBatch(requesters))
         {
             boolean batch = inFlight.packet().links.size() > 1;
             Set<CableOpPacket.Link> wanted = new HashSet<>(inFlight.packet().links);
@@ -198,7 +230,11 @@ public final class CableClientQueue
                     {
                         CableUndoRedoManager.onOpConfirmed(done.origin(), done.assoc());
                     }
-                    if (!batch)
+                    if (batch)
+                    {
+                        if (done.origin() == Origin.NORMAL) showBatchFeedback(done.packet());
+                    }
+                    else
                     {
                         showOperationFeedback(c);
                     }
@@ -207,6 +243,47 @@ public final class CableClientQueue
             }
         }
         sendNext();
+    }
+
+    /** v1.0.0：请求者名单为空（旧数据）时按内容结算；否则要求自己在该名单内 */
+    private static boolean isOwnBatch(List<String> requesters)
+    {
+        if (requesters == null || requesters.isEmpty()) return true;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return true;
+        return requesters.contains(mc.player.getName().getString());
+    }
+
+    /** 批量操作（线缆剪等）在服务端确认后给出汇总反馈，替代操作时的提前提示 */
+    private static void showBatchFeedback(CableOpPacket packet)
+    {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || !ClientConfig.enableChatFeedback.get()) return;
+        if (CableUndoRedoManager.isHistoryScreenOpen()) return;
+        if (packet.links.isEmpty()) return;
+        CableOpPacket.Link first = packet.links.get(0);
+        if (CableProtocol.OP_ADD.equals(packet.op))
+        {
+            mc.player.sendSystemMessage(Component.translatable(
+                "message.virtual_redstone_wire.batch_created", packet.links.size())
+                .withStyle(style -> style.withColor(0x55FF55)));
+            return;
+        }
+        boolean sameFrom = true;
+        for (CableOpPacket.Link l : packet.links)
+        {
+            if (l.fx() != first.fx() || l.fy() != first.fy() || l.fz() != first.fz())
+            {
+                sameFrom = false;
+                break;
+            }
+        }
+        net.minecraft.network.chat.MutableComponent text = sameFrom
+            ? Component.translatable("message.virtual_redstone_wire.cutter_removed",
+                first.fx(), first.fy(), first.fz())
+            : Component.translatable("message.virtual_redstone_wire.batch_removed_count",
+                packet.links.size());
+        mc.player.sendSystemMessage(text.withStyle(style -> style.withColor(0x00AA00)));
     }
 
     /** 操作成功反馈：聊天栏显示链路创建/移除结果（含输出端接收面，受聊天反馈开关） */
@@ -220,7 +297,8 @@ public final class CableClientQueue
             CableProtocol.OP_ADD.equals(c.op())
                 ? "message.virtual_redstone_wire.link_created"
                 : "message.virtual_redstone_wire.link_removed",
-            c.fx(), c.fy(), c.fz(), c.tx(), c.ty(), c.tz(), c.face())
+            c.fx(), c.fy(), c.fz(), c.tx(), c.ty(), c.tz(),
+            com.virtualredstonewire.util.FaceNames.of(c.face()))
             .withStyle(style -> style.withColor(
                 CableProtocol.OP_ADD.equals(c.op()) ? 0x55FF55 : 0x00AA00)));
     }
@@ -290,9 +368,9 @@ public final class CableClientQueue
             }
             else
             {
-                // 状态不一致：增量追回纠正缓存（追回响应按缓存状态定向失效，不再清空全部历史）
-                enqueue(CableOpPacket.pull(ClientCableCache.getVersion(), level.dimension(),
-                    Minecraft.getInstance().player.getName().getString()));
+                // 状态不一致：增量追回纠正缓存（追回响应按缓存状态定向失效，不再清空全部历史）；
+                // v1.0.0：改走带节流的追回入口，使风暴保护覆盖非强制路径
+                requestIncrementalPull();
             }
         }
         // 422/400：直接放弃或记录（由上层提示）

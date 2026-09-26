@@ -2,12 +2,15 @@ package com.virtualredstonewire.client.gui;
 
 import com.virtualredstonewire.client.ClientCableCache;
 import com.virtualredstonewire.data.CableLink;
+import com.virtualredstonewire.item.CableMagnifierItem;
 import com.virtualredstonewire.network.CableInfoRequestPacket;
 import com.virtualredstonewire.network.CableNetworkChannel;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +36,13 @@ public class CableInfoScreen extends Screen
     private int closeX, closeY, closeW = 12, closeH = 12;
     private double scrollOffset;
     private int maxScroll;
+
+    // v1.0.0：折行布局缓存（行内容变化时置脏重建，避免长坐标行被水平裁剪）
+    private List<List<FormattedCharSequence>> wrappedRows = new ArrayList<>();
+    private List<Integer> wrappedSourceLine = new ArrayList<>();
+    private boolean[] sourceIsOut = new boolean[0];
+    private boolean[] sourceIsIn = new boolean[0];
+    private boolean layoutDirty = true;
 
     public CableInfoScreen(BlockPos pos)
     {
@@ -63,12 +73,14 @@ public class CableInfoScreen extends Screen
             if (link.getFrom().equals(pos))
             {
                 out.add(arrowOut + " [" + link.getTo().getX() + "," + link.getTo().getY()
-                    + "," + link.getTo().getZ() + "] " + link.getToFace().getName());
+                    + "," + link.getTo().getZ() + "] "
+                    + com.virtualredstonewire.util.FaceNames.of(link.getToFace()));
             }
             if (link.getTo().equals(pos))
             {
                 in.add(arrowIn + " [" + link.getFrom().getX() + "," + link.getFrom().getY()
-                    + "," + link.getFrom().getZ() + "] " + link.getToFace().getName());
+                    + "," + link.getFrom().getZ() + "] "
+                    + com.virtualredstonewire.util.FaceNames.of(link.getToFace()));
             }
         }
         if (out.isEmpty())
@@ -106,11 +118,13 @@ public class CableInfoScreen extends Screen
 
         activeScreen = this;
 
-        // 请求服务端查询该方块当前的红石信号强度（含虚拟链路信号），同方块 1 秒节流
-        if (com.virtualredstonewire.item.CableMagnifierItem.tryStartQuery(queryPos))
-        {
-            CableNetworkChannel.sendToServer(new CableInfoRequestPacket(queryPos));
-        }
+        // 请求服务端查询该方块当前的红石信号强度（含虚拟链路信号）。
+        // v1.0.0：面板查询走强制通道（force=true），否则命中放大镜交互节流时不会发出请求，
+        // 面板会永久停在"等待服务端返回"。
+        String dimension = Minecraft.getInstance().level == null ? null
+            : Minecraft.getInstance().level.dimension().location().toString();
+        CableMagnifierItem.tryStartQuery(queryPos, dimension, true);
+        CableNetworkChannel.sendToServer(new CableInfoRequestPacket(queryPos, false, dimension));
     }
 
     public static CableInfoScreen getActiveScreen()
@@ -130,6 +144,7 @@ public class CableInfoScreen extends Screen
         {
             lines.set(signalLineIndex, Component.translatable(
                 "screen.virtual_redstone_wire.cable_info.signal", received).getString());
+            layoutDirty = true;
         }
     }
 
@@ -143,6 +158,20 @@ public class CableInfoScreen extends Screen
         super.onClose();
     }
 
+    /**
+     * v1.0.0：原版 Minecraft.setScreen 只调用 removed() 不调用 onClose()，
+     * 断线/死亡/程序化换屏时静态引用会残留（有界泄漏）并让响应写进不可见面板。
+     */
+    @Override
+    public void removed()
+    {
+        if (activeScreen == this)
+        {
+            activeScreen = null;
+        }
+        super.removed();
+    }
+
     @Override
     protected void init()
     {
@@ -154,22 +183,61 @@ public class CableInfoScreen extends Screen
         }
         panelWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, maxTextW));
 
-        int panelHeight = Math.min(height - 10, Math.max(60, height / 2));
+        int panelHeight = panelHeight();
         panelLeft = (width - panelWidth) / 2;
         panelTop = (height - panelHeight) / 2;
         closeX = panelLeft + panelWidth - 14;
         closeY = panelTop + 3;
+        layoutDirty = true;
+    }
+
+    /** v1.0.0：按当前面板宽度折行，长坐标行不再被 scissor 水平裁掉 */
+    private void rebuildLayout()
+    {
+        wrappedRows = new ArrayList<>();
+        wrappedSourceLine = new ArrayList<>();
+        sourceIsOut = new boolean[lines.size()];
+        sourceIsIn = new boolean[lines.size()];
+        for (int idx : outEntryLines)
+        {
+            if (idx >= 0 && idx < sourceIsOut.length) sourceIsOut[idx] = true;
+        }
+        for (int idx : inEntryLines)
+        {
+            if (idx >= 0 && idx < sourceIsIn.length) sourceIsIn[idx] = true;
+        }
+        int textWidth = Math.max(16, panelWidth - 4);
+        for (int i = 0; i < lines.size(); i++)
+        {
+            List<FormattedCharSequence> row = font.split(Component.literal(lines.get(i)), textWidth);
+            if (row.isEmpty()) row = List.of(FormattedCharSequence.EMPTY);
+            wrappedRows.add(row);
+            for (int j = 0; j < row.size(); j++)
+            {
+                wrappedSourceLine.add(i);
+            }
+        }
+        layoutDirty = false;
+    }
+
+    private int totalRows()
+    {
+        int rows = 0;
+        for (List<FormattedCharSequence> row : wrappedRows) rows += row.size();
+        return rows;
     }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta)
     {
+        if (layoutDirty) rebuildLayout();
+
         int panelBottom = panelTop + panelHeight();
         int contentTop = panelTop + HEADER_HEIGHT + 4;
-        int contentBottom = panelBottom - 2;
-        int visibleHeight = contentBottom - contentTop;
+        int contentBottom = Math.max(contentTop + 1, panelBottom - 2);
+        int visibleHeight = Math.max(1, contentBottom - contentTop);
 
-        int totalContentH = lines.size() * LINE_HEIGHT;
+        int totalContentH = totalRows() * LINE_HEIGHT;
         maxScroll = Math.max(0, totalContentH - visibleHeight);
         scrollOffset = Math.max(0, Math.min(scrollOffset, maxScroll));
 
@@ -190,16 +258,19 @@ public class CableInfoScreen extends Screen
         graphics.enableScissor(panelLeft, contentTop, panelLeft + panelWidth, contentBottom);
 
         int y = contentTop - (int) scrollOffset;
-        for (int i = 0; i < lines.size(); i++)
+        for (int r = 0; r < wrappedRows.size(); r++)
         {
-            String line = lines.get(i);
+            int sourceLine = wrappedSourceLine.get(r);
             int color = 0x888888;
-            if (i == 0) color = 0x55AAFF;
-            else if (i == signalLineIndex) color = signal > 0 ? 0x55FF55 : 0x888888;
-            else if (outEntryLines.contains(i)) color = 0x55FFFF;
-            else if (inEntryLines.contains(i)) color = 0xFFFF55;
-            graphics.drawString(font, Component.literal(line), panelLeft + 2, y, color);
-            y += LINE_HEIGHT;
+            if (sourceLine == 0) color = 0x55AAFF;
+            else if (sourceLine == signalLineIndex) color = signal > 0 ? 0x55FF55 : 0x888888;
+            else if (sourceLine >= 0 && sourceLine < sourceIsOut.length && sourceIsOut[sourceLine]) color = 0x55FFFF;
+            else if (sourceLine >= 0 && sourceLine < sourceIsIn.length && sourceIsIn[sourceLine]) color = 0xFFFF55;
+            for (FormattedCharSequence row : wrappedRows.get(r))
+            {
+                graphics.drawString(font, row, panelLeft + 2, y, color);
+                y += LINE_HEIGHT;
+            }
         }
 
         graphics.disableScissor();
@@ -235,9 +306,10 @@ public class CableInfoScreen extends Screen
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
+    /** v1.0.0：面板高度取正并留出最小可用高度，避免极端缩放下 scissor 参数倒置 */
     private int panelHeight()
     {
-        return Math.min(height - 10, Math.max(60, height / 2));
+        return Math.max(20, Math.min(Math.max(20, height - 10), Math.max(60, height / 2)));
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.virtualredstonewire.client.gui;
 
+import com.virtualredstonewire.client.CableUndoRedoManager;
 import com.virtualredstonewire.config.ClientConfig;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -20,7 +21,10 @@ import java.util.List;
 /**
  * 客户端配置文件子页（virtual_redstone_wire-client.toml 条目）：
  * 两列无边框表格——第一列显示名（语言翻译，超长自动换行），
- * 第二列 CycleButton 开关 / EditBox 数值输入，修改即时生效并保存。
+ * 第二列 CycleButton 开关 / EditBox 数值输入，修改即时生效。
+ * v1.0.0：数值项不再每次按键都写盘（改为离开界面时统一保存），
+ * 越界输入会把输入框文本回写为钳制后的值（不再"显示 5 实际 10"），
+ * 并且上限调小时立即收缩撤销/重做双栈。
  */
 public class ClientConfigSubScreen extends Screen
 {
@@ -34,6 +38,8 @@ public class ClientConfigSubScreen extends Screen
 
     private final Screen parent;
     private final ConfigTooltips tooltips = new ConfigTooltips();
+    private final List<ClientIntRow> intRows = new ArrayList<>();
+    private boolean configDirty;
     private ConfigList list;
 
     public ClientConfigSubScreen(Screen parent)
@@ -51,6 +57,12 @@ public class ClientConfigSubScreen extends Screen
     @Override
     public void onClose()
     {
+        // v1.0.0：数值项在离开界面时统一落盘（原先每次按键都同步写文件）
+        if (configDirty)
+        {
+            configDirty = false;
+            ClientConfig.SPEC.save();
+        }
         this.minecraft.setScreen(this.parent);
     }
 
@@ -64,6 +76,7 @@ public class ClientConfigSubScreen extends Screen
     private void rebuild()
     {
         clearWidgets();
+        intRows.clear();
         list = new ConfigList(this.width, this.height, LIST_Y0,
             this.height - DONE_HEIGHT - 12, ITEM_HEIGHT);
         list.addRow(new ClientBoolRow(ClientConfig.enableChatFeedback));
@@ -85,6 +98,11 @@ public class ClientConfigSubScreen extends Screen
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, TITLE_Y, 0xFFFFFF);
         tooltips.render(guiGraphics, this.font, mouseX, mouseY);
+        // v1.0.0：越界输入把输入框文本回写为钳制后的值（在 responder 之外纠正，避免递归）
+        for (ClientIntRow row : intRows)
+        {
+            row.clampDisplay();
+        }
     }
 
     // ---------- 滚动条目 ----------
@@ -160,7 +178,7 @@ public class ClientConfigSubScreen extends Screen
             int colX0 = left + EDGE_PADDING;
             int colX1 = left + width / 2 - MID_GAP;
             List<FormattedCharSequence> lines = ClientConfigSubScreen.this.font.split(
-                Component.literal(name), colX1 - colX0);
+                Component.literal(name), Math.max(8, colX1 - colX0));
             int totalHeight = lines.size() * ClientConfigSubScreen.this.font.lineHeight;
             int y = top + (ITEM_HEIGHT - totalHeight) / 2;
             for (FormattedCharSequence line : lines)
@@ -205,13 +223,21 @@ public class ClientConfigSubScreen extends Screen
         }
     }
 
-    /** 数值条目：EditBox 数字输入，合法输入即时生效并保存，超范围自动缩减到边界 */
+    /** 数值条目：EditBox 数字输入，合法输入即时生效（钳制到边界），离开界面时统一保存 */
     private final class ClientIntRow extends Row
     {
+        private final ForgeConfigSpec.IntValue value;
+        private final int min;
+        private final int max;
+        private final EditBox box;
+
         ClientIntRow(ForgeConfigSpec.IntValue value, int min, int max)
         {
             super(lastPathKey(value));
-            EditBox box = new EditBox(ClientConfigSubScreen.this.font,
+            this.value = value;
+            this.min = min;
+            this.max = max;
+            this.box = new EditBox(ClientConfigSubScreen.this.font,
                 0, 0, 64, 16, Component.literal(name));
             box.setValue(String.valueOf(value.get()));
             box.setMaxLength(8);
@@ -224,7 +250,12 @@ public class ClientConfigSubScreen extends Screen
                     int parsed = Integer.parseInt(text.trim());
                     int clamped = Math.max(min, Math.min(max, parsed));
                     value.set(clamped);
-                    ClientConfig.SPEC.save();
+                    configDirty = true;
+                    if ("undoHistorySize".equals(key))
+                    {
+                        // v1.0.0：上限调小时立即收缩双栈
+                        CableUndoRedoManager.trimToLimit();
+                    }
                 }
                 catch (NumberFormatException e)
                 {
@@ -232,6 +263,31 @@ public class ClientConfigSubScreen extends Screen
                 }
             });
             addWidget(box);
+            intRows.add(this);
+        }
+
+        /** 输入框文本超出范围时回写为钳制值，保证显示与实际生效值一致 */
+        void clampDisplay()
+        {
+            String text = box.getValue();
+            if (text == null || text.trim().isEmpty()) return;
+            try
+            {
+                int parsed = Integer.parseInt(text.trim());
+                int clamped = Math.max(min, Math.min(max, parsed));
+                if (clamped != parsed)
+                {
+                    String s = String.valueOf(clamped);
+                    if (!s.equals(text))
+                    {
+                        box.setValue(s);
+                    }
+                }
+            }
+            catch (NumberFormatException ignored)
+            {
+                // 非法输入交给 responder 处理
+            }
         }
 
         @Override

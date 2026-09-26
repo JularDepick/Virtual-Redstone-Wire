@@ -64,18 +64,21 @@ public class CableCutterItem extends Item
             }
             if (batch.size() > CableProtocol.BATCH_LIMIT)
             {
+                // v1.0.0：超批量不再静默返回（原实现无任何提示，玩家会以为已经切断）
+                if (ClientConfig.enableChatFeedback.get())
+                {
+                    player.sendSystemMessage(
+                        Component.translatable("message.virtual_redstone_wire.cut_too_many",
+                            CableProtocol.BATCH_LIMIT)
+                            .withStyle(style -> style.withColor(0xFF5555)));
+                }
                 return InteractionResult.PASS;
             }
             CableClientQueue.enqueue(
                 CableOpPacket.del(batch, level.dimension(), player.getName().getString()));
 
-            if (ClientConfig.enableChatFeedback.get())
-            {
-                player.sendSystemMessage(
-                    Component.translatable("message.virtual_redstone_wire.cutter_removed",
-                        pos.getX(), pos.getY(), pos.getZ())
-                        .withStyle(style -> style.withColor(0x00AA00)));
-            }
+            // v1.0.0：结果反馈改由服务端确认后的广播驱动（CableClientQueue 的批量汇总提示），
+            // 不再在发送前就提示"已切断"（服务端可能拒绝，届时提示会与事实相反）
             return InteractionResult.SUCCESS;
         }
 

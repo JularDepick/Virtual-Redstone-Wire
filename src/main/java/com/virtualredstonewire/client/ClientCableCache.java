@@ -49,7 +49,8 @@ public class ClientCableCache
 
     public static List<CableLink> getLinks()
     {
-        return cachedLinks;
+        // v1.0.0：对外只读视图，避免调用方误改内部结构与遍历中出现并发修改
+        return Collections.unmodifiableList(cachedLinks);
     }
 
     /** 缓存内容所属维度；无有效数据时为 null */
@@ -93,6 +94,7 @@ public class ClientCableCache
             BlockPos fr = new BlockPos(c.fx(), c.fy(), c.fz());
             BlockPos to = new BlockPos(c.tx(), c.ty(), c.tz());
             Direction face = Direction.byName(c.face());
+            if (face == null) continue; // v1.0.0：非法输出面丢弃该条，避免写入 null 面
             if (com.virtualredstonewire.network.CableProtocol.OP_ADD.equals(c.op()))
             {
                 addLink(fr, to, face);
@@ -105,18 +107,22 @@ public class ClientCableCache
         version = newVersion;
     }
 
-    /** 覆盖缓存（sc 为 0 的全量响应） */
+    /** 覆盖缓存（sc 为 0 的全量响应）；v1.0.0：同维度内旧版本快照不覆盖较新缓存 */
     public static void applyFull(String dim, List<CableMsgPacket.Change> changes, long newVersion)
     {
+        boolean sameDimension = dim != null && dim.equals(dimension);
         syncDimension(dim);
+        if (sameDimension && newVersion < version) return;
         cachedLinks.clear();
         indexById.clear();
         for (CableMsgPacket.Change c : changes)
         {
             if (com.virtualredstonewire.network.CableProtocol.OP_ADD.equals(c.op()))
             {
+                Direction face = Direction.byName(c.face());
+                if (face == null) continue; // v1.0.0：非法输出面丢弃该条
                 addLink(new BlockPos(c.fx(), c.fy(), c.fz()),
-                    new BlockPos(c.tx(), c.ty(), c.tz()), Direction.byName(c.face()));
+                    new BlockPos(c.tx(), c.ty(), c.tz()), face);
             }
         }
         version = newVersion;

@@ -51,6 +51,15 @@ public class CableUndoRedoHistoryScreen extends Screen
         super(Component.translatable("screen.virtual_redstone_wire.history_title"));
     }
 
+    /** v1.0.0：关闭按钮命中框在 init 中确定，避免首帧渲染前命中框残留在 (0,0) */
+    @Override
+    protected void init()
+    {
+        int pw = Math.max(80, this.width - MARGIN * 2);
+        closeX = MARGIN + pw - CLOSE_SIZE - 4;
+        closeY = MARGIN + 4;
+    }
+
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick)
     {
@@ -238,15 +247,20 @@ public class CableUndoRedoHistoryScreen extends Screen
             String type = CableProtocol.OP_ADD.equals(p.op)
                 ? Component.translatable("message.virtual_redstone_wire.op_add").getString()
                 : Component.translatable("message.virtual_redstone_wire.op_del").getString();
+            // v1.0.0：条目所属维度与缓存维度不一致时在行尾标注，说明该条目为何不可回放
+            String dimSuffix = p.dimension != null
+                && !p.dimension.equals(com.virtualredstonewire.client.ClientCableCache.getDimension())
+                ? " @" + p.dimension : "";
             if (p.links.size() == 1)
             {
                 CableOpPacket.Link l = p.links.get(0);
                 lines.add(type + " [" + l.fx() + "," + l.fy() + "," + l.fz() + "] -> ["
-                    + l.tx() + "," + l.ty() + "," + l.tz() + "] " + l.face());
+                    + l.tx() + "," + l.ty() + "," + l.tz() + "] "
+                    + com.virtualredstonewire.util.FaceNames.of(l.face()) + dimSuffix);
             }
             else
             {
-                lines.add(type + " x" + p.links.size());
+                lines.add(type + " x" + p.links.size() + dimSuffix);
             }
         }
         return lines;

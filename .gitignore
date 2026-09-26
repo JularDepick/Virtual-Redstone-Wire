@@ -1,7 +1,11 @@
 # Build outputs
 build/
 *.log
-
+*.log.gz
+logs/
+bin/
+out/
+mcmodsrepo/
 # IDE files
 .idea/
 *.iml
@@ -12,29 +16,23 @@ build/
 .settings/
 .vscode/
 .vs/
-
 # OS files
 Thumbs.db
 *.swp
 *~
-
 # Gradle cache
 .gradle/
 gradle/*
 !gradle/wrapper/
-
 # Forge runtime (Minecraft instance, worlds, logs)
 run/
-
 # Agent Tool
 .workbuddy/
 .agent/
 .agents/
 AGENTS*.md
-
 # docs for some versions
 v*-*.md
-
 # other
 release*/
 reference/

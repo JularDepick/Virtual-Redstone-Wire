@@ -10,13 +10,20 @@ archivesBaseName = 'VirtualRedstoneWire'
 
 // MC 版本单源化：mappings、forge 依赖、产物文件名共用
 def mcVersion = '1.20.1'
+// MC 兼容上界与 Forge 主版本：mods.toml 的 versionRange / loaderVersion 占位符共用
+def mcNextVersion = '1.21'
+def forgeMajor = '47'
+def forgeVersion = '47.4.22'
 
 // 版本号单源化：build.gradle 的 version 为唯一来源，
-// processResources 将 mods.toml 中的 ${version} 占位替换为实际版本
+// processResources 将 mods.toml 中的 ${version} 等占位替换为实际版本
 processResources {
     inputs.property 'version', project.version
     filesMatching('META-INF/mods.toml') {
-        expand 'version': project.version
+        expand 'version': project.version,
+               'mcVersion': mcVersion,
+               'mcNextVersion': mcNextVersion,
+               'forgeMajor': forgeMajor
     }
 }
 
@@ -50,8 +57,13 @@ minecraft {
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
             property 'forge.enabledGameTestNamespaces', 'virtual_redstone_wire'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            // dev 环境靠下面的 -mixin.config 加载 mixin；产环境靠 jar 的 MANIFEST MixinConfigs。
+            // 当前 mixin 只有普通方法覆写（不依赖 refmap），故不声明 mixin.env.remapRefMap 与
+            // refMapRemappingFile（原先指向不存在的 output.srg，属误导性配置）。
+            // 若后续引入 @Inject/@Redirect 等注入器，必须先补 refmap：
+            //   1) 加 annotationProcessor 参数 -AoutRefMapFile=...
+            //   2) 在 mixins.virtual_redstone_wire.json 中声明 "refmap"
+            //   3) 恢复 mixin.env.remapRefMap=true 与 refMapRemappingFile
             arg '-mixin.config=mixins.virtual_redstone_wire.json'
             mods {
                 virtualredstonewire {
@@ -65,8 +77,6 @@ minecraft {
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
             property 'forge.enabledGameTestNamespaces', 'virtual_redstone_wire'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             arg '-mixin.config=mixins.virtual_redstone_wire.json'
             mods {
                 virtualredstonewire {
@@ -78,7 +88,7 @@ minecraft {
 }
 
 dependencies {
-    minecraft "net.minecraftforge:forge:${mcVersion}-47.4.22"
+    minecraft "net.minecraftforge:forge:${mcVersion}-${forgeVersion}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }

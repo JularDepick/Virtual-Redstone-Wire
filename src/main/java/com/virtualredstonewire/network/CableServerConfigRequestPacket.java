@@ -8,6 +8,7 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 /**
@@ -15,21 +16,38 @@ import java.util.function.Supplier;
  * action 为 get（不带 key，拉取全部配置值）或 set（带 key + value）。
  * 仅存档拥有者（单机/局域网主机玩家，或专用服务器 op 权限 4）可 set，
  * 修改后立即生效并落盘（ServerConfig.SPEC.save()）。
+ * v1.0.0：请求携带自增 requestId，服务端在响应中回显，客户端据此丢弃非本次请求的回执；
+ * 成功修改后服务端向全部在线玩家广播新配置（sync），使已连接客户端的渲染距离与本地预检即时更新。
  */
 public class CableServerConfigRequestPacket
 {
     public static final String ACTION_GET = "get";
     public static final String ACTION_SET = "set";
 
+    /** v1.0.0：客户端请求标识自增源（同一连接内唯一即可） */
+    private static final AtomicInteger NEXT_ID = new AtomicInteger(1);
+
     private final String action;
     private final String key;
     private final String value;
+    private final int requestId;
 
     public CableServerConfigRequestPacket(String action, String key, String value)
+    {
+        this(action, key, value, NEXT_ID.getAndIncrement());
+    }
+
+    public CableServerConfigRequestPacket(String action, String key, String value, int requestId)
     {
         this.action = action;
         this.key = key == null ? "" : key;
         this.value = value == null ? "" : value;
+        this.requestId = requestId;
+    }
+
+    public int getRequestId()
+    {
+        return requestId;
     }
 
     public CableServerConfigRequestPacket(FriendlyByteBuf buf)
@@ -37,6 +55,7 @@ public class CableServerConfigRequestPacket
         this.action = buf.readUtf(16);
         this.key = buf.readUtf(64);
         this.value = buf.readUtf(256);
+        this.requestId = buf.readVarInt();
     }
 
     public void encode(FriendlyByteBuf buf)
@@ -44,6 +63,7 @@ public class CableServerConfigRequestPacket
         buf.writeUtf(action);
         buf.writeUtf(key);
         buf.writeUtf(value);
+        buf.writeVarInt(requestId);
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx)
@@ -62,11 +82,13 @@ public class CableServerConfigRequestPacket
                 {
                     CableNetworkChannel.sendToPlayer(sender,
                         new CableServerConfigResponsePacket(false,
-                            "message.virtual_redstone_wire.config_owner_only_view", null));
+                            "message.virtual_redstone_wire.config_owner_only_view", null,
+                            false, requestId, false, null));
                     return;
                 }
                 CableNetworkChannel.sendToPlayer(sender,
-                    new CableServerConfigResponsePacket(true, null, collect()));
+                    new CableServerConfigResponsePacket(true, null, collect(),
+                        true, requestId, false, null));
                 return;
             }
 
@@ -74,31 +96,38 @@ public class CableServerConfigRequestPacket
             {
                 CableNetworkChannel.sendToPlayer(sender,
                     new CableServerConfigResponsePacket(false,
-                        "message.virtual_redstone_wire.config_unknown_action", null));
+                        "message.virtual_redstone_wire.config_unknown_action", null,
+                        false, requestId, false, null));
                 return;
             }
             if (!owner)
             {
                 CableNetworkChannel.sendToPlayer(sender,
                     new CableServerConfigResponsePacket(false,
-                        "message.virtual_redstone_wire.config_owner_only_set", null));
+                        "message.virtual_redstone_wire.config_owner_only_set", null,
+                        false, requestId, false, null));
                 return;
             }
             String error = apply(key, value);
             if (error != null)
             {
-                // 错误响应携带出错配置键的当前值，供客户端按范围参数本地化显示
+                // 错误响应携带出错配置键与其当前值，供客户端按该键的范围参数本地化显示
                 Map<String, String> single = new LinkedHashMap<>();
                 single.put(key, currentValue(key));
                 CableNetworkChannel.sendToPlayer(sender,
-                    new CableServerConfigResponsePacket(false, error, single));
+                    new CableServerConfigResponsePacket(true, error, single,
+                        false, requestId, false, key));
                 return;
             }
             ServerConfig.SPEC.save();
             Map<String, String> single = new LinkedHashMap<>();
             single.put(key, currentValue(key));
             CableNetworkChannel.sendToPlayer(sender,
-                new CableServerConfigResponsePacket(true, null, single));
+                new CableServerConfigResponsePacket(true, null, single,
+                    true, requestId, false, null));
+            // v1.0.0：向全部在线玩家广播新配置，使已连接客户端立即采用新值
+            CableNetworkChannel.sendToAllPlayers(
+                new CableServerConfigResponsePacket(true, null, collect(), true, 0, true, null));
         });
         ctx.get().setPacketHandled(true);
     }

@@ -142,8 +142,9 @@ public final class CableUndoRedoManager
         CableOpPacket p = UNDO_STACK.pop();
         if (!isCurrentDimension(p))
         {
-            // v1.0.0：条目属于其他维度：不回放（回放会把该维度坐标写成当前维度），按状态型失败处理
-            sendMessage(mc, "message.virtual_redstone_wire.undo_failed_state", 0xFF5555);
+            // v1.0.0：条目属于其他维度：不回放（回放会把该维度坐标写成当前维度），
+            // 按维度不符专用提示（原提示"状态已变化"误导原因）
+            sendMessage(mc, "message.virtual_redstone_wire.undo_failed_dimension", 0xFF5555);
             return;
         }
         CableClientQueue.enqueue(cancelOf(mc, p), CableClientQueue.Origin.UNDO, p);
@@ -162,8 +163,9 @@ public final class CableUndoRedoManager
         CableOpPacket p = REDO_STACK.pop();
         if (!isCurrentDimension(p))
         {
-            // v1.0.0：条目属于其他维度：不回放（回放会把该维度坐标写成当前维度），按状态型失败处理
-            sendMessage(mc, "message.virtual_redstone_wire.redo_failed_state", 0xFF5555);
+            // v1.0.0：条目属于其他维度：不回放（回放会把该维度坐标写成当前维度），
+            // 按维度不符专用提示（原提示"状态已变化"误导原因）
+            sendMessage(mc, "message.virtual_redstone_wire.redo_failed_dimension", 0xFF5555);
             return;
         }
         CableClientQueue.enqueue(rebuilt(mc, p), CableClientQueue.Origin.REDO, p);
@@ -311,12 +313,29 @@ public final class CableUndoRedoManager
     /** 入栈并收缩到配置上限：丢弃栈底最旧条目，保留最新操作 */
     private static void pushWithLimit(Deque<CableOpPacket> stack, CableOpPacket packet)
     {
-        int limit = ClientConfig.undoHistorySize.get();
+        int limit = Math.max(1, ClientConfig.undoHistorySize.get());
         while (stack.size() >= limit)
         {
             stack.pollLast();
         }
         stack.push(packet);
+    }
+
+    /**
+     * v1.0.0：配置上限被调小时立即收缩双栈。
+     * 原先只在下次入栈时收缩，导致"显示上限"与"实际栈长"短期不一致。
+     */
+    public static void trimToLimit()
+    {
+        int limit = Math.max(1, ClientConfig.undoHistorySize.get());
+        while (UNDO_STACK.size() > limit)
+        {
+            UNDO_STACK.pollLast();
+        }
+        while (REDO_STACK.size() > limit)
+        {
+            REDO_STACK.pollLast();
+        }
     }
 
     /** 空栈提示 + 3 秒冷却：冷却期内撤销/重做均静默忽略 */

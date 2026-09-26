@@ -27,6 +27,9 @@ import java.util.Map;
  * 第二列 CycleButton/EditBox；EditBox 无确定按钮，修改暂存，
  * 点击底部"完成"统一提交生效（布尔/枚举点击即生效）。
  * 非拥有者仅显示拒绝原因，不渲染修改控件。
+ * v1.0.0：未连接时不发送请求（避免标题界面打开时 NPE）；请求带回执标识并在超时后有限重试；
+ * 权限（allowed）与本次操作结果（success）分离，失败回执不再清空面板；
+ * 服务端配置变更广播（sync）会刷新非暂存项的显示值。
  */
 public class ServerConfigSubScreen extends Screen implements ServerConfigResponseTarget
 {
@@ -37,6 +40,8 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
     private static final int EDGE_PADDING = 0;
     private static final int MID_GAP = 8;
     private static final int DONE_HEIGHT = 20;
+    private static final long GET_TIMEOUT_MS = 3000L;
+    private static final int GET_MAX_ATTEMPTS = 3;
 
     /** 数值配置项范围（键名 -> [最小值, 最大值]），面板提交时自动缩减到边界 */
     private static final Map<String, int[]> NUMERIC_RANGES = Map.of(
@@ -47,7 +52,13 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
     private final Screen parent;
     private boolean requested;
     private boolean allowed;
+    private boolean lastSuccess = true;
     private String message = "";
+    private String errorKey = null;
+    private boolean requestPending;
+    private int attempts;
+    private long requestTime;
+    private final List<Integer> sentRequestIds = new ArrayList<>();
     private final Map<String, String> values = new LinkedHashMap<>();
     private final Map<String, String> pending = new LinkedHashMap<>();
     private final ConfigTooltips tooltips = new ConfigTooltips();
@@ -66,11 +77,42 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
         if (!requested)
         {
             requested = true;
-            CableNetworkChannel.sendToServer(
-                new CableServerConfigRequestPacket(
-                    CableServerConfigRequestPacket.ACTION_GET, "", ""));
+            sendGet();
         }
         rebuild();
+    }
+
+    /** v1.0.0：仅在存在服务器连接时发送请求 */
+    private void sendGet()
+    {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.getConnection() == null) return;
+        CableServerConfigRequestPacket packet =
+            new CableServerConfigRequestPacket(CableServerConfigRequestPacket.ACTION_GET, "", "");
+        trackRequest(packet);
+        CableNetworkChannel.sendToServer(packet);
+    }
+
+    private void trackRequest(CableServerConfigRequestPacket packet)
+    {
+        sentRequestIds.add(packet.getRequestId());
+        if (sentRequestIds.size() > 16) sentRequestIds.remove(0);
+        requestPending = true;
+        attempts++;
+        requestTime = System.currentTimeMillis();
+    }
+
+    /** v1.0.0：请求超时有限重试，避免一次丢包导致子页永久停留在"加载中" */
+    private void maybeRetryGet()
+    {
+        if (!requestPending) return;
+        if (System.currentTimeMillis() - requestTime < GET_TIMEOUT_MS) return;
+        if (attempts >= GET_MAX_ATTEMPTS)
+        {
+            requestPending = false;
+            return;
+        }
+        sendGet();
     }
 
     @Override
@@ -147,9 +189,10 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
 
     private void sendSet(String key, String value)
     {
-        CableNetworkChannel.sendToServer(
-            new CableServerConfigRequestPacket(
-                CableServerConfigRequestPacket.ACTION_SET, key, value));
+        CableServerConfigRequestPacket packet = new CableServerConfigRequestPacket(
+            CableServerConfigRequestPacket.ACTION_SET, key, value);
+        trackRequest(packet);
+        CableNetworkChannel.sendToServer(packet);
     }
 
     /** 底部完成：提交全部暂存修改（数值项超范围自动缩减到边界并提示）后返回主页 */
@@ -192,19 +235,21 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
     {
         if ("message.virtual_redstone_wire.config_range".equals(message))
         {
-            String key = values.keySet().stream().findFirst().orElse("");
-            int[] range = NUMERIC_RANGES.get(key);
+            // v1.0.0：按服务端回执的出错键取范围（不再取 values 的第一个键）
+            int[] range = errorKey == null ? null : NUMERIC_RANGES.get(errorKey);
             if (range != null)
             {
                 return Component.translatable(message, range[0], range[1]).getString();
             }
         }
+        if (message == null || message.isEmpty()) return "";
         return Component.translatable(message).getString();
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
     {
+        maybeRetryGet();
         tooltips.beginFrame();
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, TITLE_Y, 0xFFFFFF);
@@ -212,6 +257,11 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
         {
             guiGraphics.drawCenteredString(this.font, localizedMessage(),
                 this.width / 2, 120, 0xAAAAAA);
+        }
+        else if (requested && !lastSuccess)
+        {
+            guiGraphics.drawCenteredString(this.font, localizedMessage(),
+                this.width / 2, 120, 0xFFAA00);
         }
         else if (requested && values.isEmpty())
         {
@@ -223,18 +273,38 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
     }
 
     @Override
-    public void onServerConfigResponse(boolean allowed, String message, Map<String, String> values)
+    public void onServerConfigResponse(int requestId, boolean allowed, String message,
+                                       Map<String, String> values, boolean sync, String errorKey,
+                                       boolean success)
     {
+        if (sync)
+        {
+            // v1.0.0：服务端配置变更广播：更新非暂存项；无暂存修改时重建行以反映新值
+            if (values != null)
+            {
+                for (Map.Entry<String, String> e : values.entrySet())
+                {
+                    if (!pending.containsKey(e.getKey())) this.values.put(e.getKey(), e.getValue());
+                }
+            }
+            if (pending.isEmpty() && this.minecraft != null && this.minecraft.screen == this)
+            {
+                rebuild();
+            }
+            return;
+        }
+        if (requestId != 0 && !sentRequestIds.contains(requestId)) return; // 非本次请求的回执
+        requestPending = false;
         this.allowed = allowed;
+        this.lastSuccess = success;
         this.message = message == null ? "" : message;
-        // 仅全量响应或权限状态变化时重建行；单项响应（set 回执）只更新值，
-        // 避免重建列表导致滚动位置与输入暂存被重置
-        boolean reload = !allowed || this.values.isEmpty();
+        this.errorKey = errorKey;
         if (values != null && !values.isEmpty())
         {
-            reload |= values.size() > 1;
             this.values.putAll(values);
         }
+        boolean reload = !allowed || this.values.isEmpty()
+            || (values != null && values.size() > 1);
         if (reload && this.minecraft != null && this.minecraft.screen == this)
         {
             rebuild();
@@ -314,7 +384,7 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
             int colX0 = left + EDGE_PADDING;
             int colX1 = left + width / 2 - MID_GAP;
             List<FormattedCharSequence> lines = ServerConfigSubScreen.this.font.split(
-                Component.literal(name), colX1 - colX0);
+                Component.literal(name), Math.max(8, colX1 - colX0));
             int totalHeight = lines.size() * ServerConfigSubScreen.this.font.lineHeight;
             int y = top + (ITEM_HEIGHT - totalHeight) / 2;
             for (FormattedCharSequence line : lines)

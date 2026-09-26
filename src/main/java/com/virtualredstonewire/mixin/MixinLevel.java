@@ -4,7 +4,6 @@ import com.virtualredstonewire.data.CableNetwork;
 import com.virtualredstonewire.data.CableNetworkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.SignalGetter;
 import net.minecraft.world.level.block.state.BlockState;
@@ -42,7 +41,9 @@ public abstract class MixinLevel implements SignalGetter
 
         // DBW 语义：查询 pos 对面节点 (pos.relative(direction.getOpposite()), direction)
         BlockPos target = pos.relative(direction.getOpposite());
-        CableNetwork network = CableNetworkManager.get((ServerLevel) self);
+        // v1.0.0：直接传 Level（CableNetworkManager.get 接受 Level），
+        // 原先强转 ServerLevel 在自定义 Level 子类上会 ClassCastException 且无任何收益
+        CableNetwork network = CableNetworkManager.get(self);
         if (network != null)
         {
             int cable = network.getSignalAt(target, direction);
