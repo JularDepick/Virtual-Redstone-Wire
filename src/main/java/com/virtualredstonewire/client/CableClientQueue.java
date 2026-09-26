@@ -27,17 +27,21 @@ import java.util.Set;
  * 成功/失败按来源回调 CableUndoRedoManager；UNDO/REDO 失败不触发增量追回。
  * 全量请求节流：5 秒内不得重复发出；60 秒内超过 10 次视为异常，断开连接并提示
  * （不持久标记，断开后可正常重连）。
+ * v1.0.0：历史清空时递增历史代次并丢弃排队中的撤销/重做请求；非当前维度的报文
+ * 只作废在途请求并推进队列，不改动缓存与历史。
  */
 public final class CableClientQueue
 {
     /** 在途请求来源：普通操作 / 撤销 / 重做 */
     public enum Origin { NORMAL, UNDO, REDO }
 
-    /** 队列元素：请求 + 来源 + 撤销/重做时关联的栈中原始请求 */
-    private record Pending(CableOpPacket packet, Origin origin, CableOpPacket assoc) {}
+    /** 队列元素：请求 + 来源 + 撤销/重做时关联的栈中原始请求 + 入队时的历史代次 */
+    private record Pending(CableOpPacket packet, Origin origin, CableOpPacket assoc, int generation) {}
 
     private static final Queue<Pending> QUEUE = new ArrayDeque<>();
     private static Pending inFlight = null;
+    // v1.0.0：历史代次。历史清空时递增，使清空前入队的历史请求不再回写历史
+    private static int generation = 0;
     private static long lastPullSc = 0;
     private static String lastPullDim = null;
 
@@ -62,7 +66,7 @@ public final class CableClientQueue
     /** 撤销/重做入队：origin 标记来源，assoc 为栈中关联的原始请求 */
     public static void enqueue(CableOpPacket packet, Origin origin, CableOpPacket assoc)
     {
-        QUEUE.add(new Pending(packet, origin, assoc));
+        QUEUE.add(new Pending(packet, origin, assoc, generation));
         sendNext();
     }
 
@@ -115,6 +119,23 @@ public final class CableClientQueue
     }
 
     /**
+     * v1.0.0 历史清空联动：作废尚未发出的撤销/重做请求，并使在途的历史请求在响应到达时不再回写历史。
+     * 已发往服务端的操作仍然生效（不撤回），缓存由后续广播自然修正。
+     */
+    public static void onHistoryCleared()
+    {
+        generation++;
+        QUEUE.removeIf(p -> p.origin() != Origin.NORMAL);
+    }
+
+    /** v1.0.0：收到非当前维度的报文：作废在途请求并推进队列，不改动缓存与历史 */
+    public static void onForeignDimension()
+    {
+        inFlight = null;
+        sendNext();
+    }
+
+    /**
      * 增量广播（tp 为 d）到达：按内容匹配出队；
      * 匹配成功后先回调撤销管理器（撤销/重做提示），再按需显示链路反馈；
      * 单条请求确认时反馈结果，批量（线缆剪）不逐条提示。
@@ -133,7 +154,11 @@ public final class CableClientQueue
                 {
                     Pending done = inFlight;
                     inFlight = null;
-                    CableUndoRedoManager.onOpConfirmed(done.origin(), done.assoc());
+                    // v1.0.0：历史清空后到达的历史请求响应不再回写历史
+                    if (done.generation() == generation)
+                    {
+                        CableUndoRedoManager.onOpConfirmed(done.origin(), done.assoc());
+                    }
                     if (!batch)
                     {
                         showOperationFeedback(c);
@@ -187,7 +212,11 @@ public final class CableClientQueue
         // 撤销/重做失败：按类型分流（同 tick 相背放回/状态型移除），不触发追回
         if (done != null && done.origin() != Origin.NORMAL)
         {
-            CableUndoRedoManager.onOpRejected(done.origin(), done.assoc(), msg);
+            // v1.0.0：历史清空后到达的历史请求拒绝响应不再改动历史
+            if (done.generation() == generation)
+            {
+                CableUndoRedoManager.onOpRejected(done.origin(), done.assoc(), msg);
+            }
             sendNext();
             return;
         }

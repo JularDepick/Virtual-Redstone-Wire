@@ -120,12 +120,12 @@ public class CableOpPacketHandler
                     link.getToFace().getName()));
             }
             return CableMsgPacket.full(CableNetworkManager.currentVersion(dimension), changes,
-                dimension.location().toString(), false);
+                dimension.location().toString(), false, since);
         }
         if (rows == null)
         {
             return CableMsgPacket.full(CableNetworkManager.currentVersion(dimension),
-                new java.util.ArrayList<>(), dimension.location().toString(), true);
+                new java.util.ArrayList<>(), dimension.location().toString(), true, since);
         }
         List<CableMsgPacket.Change> changes = new java.util.ArrayList<>();
         for (CableNetworkManager.ChangeRecord rec : rows)
@@ -136,6 +136,6 @@ public class CableOpPacketHandler
                 rec.face().getName()));
         }
         return CableMsgPacket.full(CableNetworkManager.currentVersion(dimension), changes,
-            dimension.location().toString(), false);
+            dimension.location().toString(), false, since);
     }
 }

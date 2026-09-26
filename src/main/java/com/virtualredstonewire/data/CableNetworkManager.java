@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class CableNetworkManager
 {
@@ -27,8 +28,9 @@ public class CableNetworkManager
     public record ChangeRecord(long version, String player, String op,
                                BlockPos from, BlockPos to, Direction face) {}
 
-    /** v1.0.0 最近一次成功操作摘要：版本号、操作者、操作类型与涉及链路 */
-    public record LastOperation(long version, String player, String op, List<LinkEntry> links)
+    /** v1.0.0 最近一次成功操作摘要：版本号、记录者、操作类型、参与者集合与涉及链路 */
+    public record LastOperation(long version, String player, String op,
+                                Set<String> participants, List<LinkEntry> links)
     {
         /** 摘要内的单条链路 */
         public record LinkEntry(BlockPos from, BlockPos to, Direction face) {}

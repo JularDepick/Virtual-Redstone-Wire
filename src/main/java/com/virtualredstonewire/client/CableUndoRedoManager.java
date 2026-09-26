@@ -242,6 +242,8 @@ public final class CableUndoRedoManager
     {
         UNDO_STACK.clear();
         REDO_STACK.clear();
+        // v1.0.0：联动取消排队中的撤销/重做请求，避免其成功后被回写进清空后的新历史
+        CableClientQueue.onHistoryCleared();
     }
 
     /**

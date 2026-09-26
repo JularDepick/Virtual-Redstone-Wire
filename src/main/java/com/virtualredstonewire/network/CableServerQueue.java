@@ -148,8 +148,14 @@ public final class CableServerQueue
                 entries.add(new CableNetworkManager.LastOperation.LinkEntry(
                     l.from(), l.to(), l.faceDir()));
             }
+            // 参与者集合：同 tick 合并执行的批次包含全部发起者，避免摘要把并发提示误指向其中一位
+            Set<String> participants = new HashSet<>();
+            for (QueuedOp m : members)
+            {
+                participants.add(m.player().getName().getString());
+            }
             CableNetworkManager.recordLastOperation(dim,
-                new CableNetworkManager.LastOperation(v, playerName, op0, entries));
+                new CableNetworkManager.LastOperation(v, playerName, op0, participants, entries));
         }
     }
 
