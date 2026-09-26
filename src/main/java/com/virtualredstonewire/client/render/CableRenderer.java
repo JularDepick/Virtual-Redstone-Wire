@@ -99,6 +99,14 @@ public class CableRenderer
 
         var level = player.level();
 
+        // v1.0.0：缓存内容不属于当前维度时（换维度守卫最长 1 tick 的窗口）不渲染，
+        // 避免把其他维度的链路与选中框画到当前维度
+        if (!ClientCableCache.isCurrentFor(level))
+        {
+            poseStack.popPose();
+            return;
+        }
+
         for (CableLink link : ClientCableCache.getLinks())
         {
             double fromX = link.getFrom().getX(), fromY = link.getFrom().getY(), fromZ = link.getFrom().getZ();

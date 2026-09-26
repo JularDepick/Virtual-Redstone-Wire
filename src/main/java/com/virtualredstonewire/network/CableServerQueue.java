@@ -171,7 +171,8 @@ public final class CableServerQueue
                 CableNetworkManager.getLastOperation(level.dimension()), playerName);
         }
         CableNetworkChannel.sendToPlayer(op.player(),
-            CableMsgPacket.reject(op.packet().toJson(), code, message, lastOp));
+            CableMsgPacket.reject(op.packet().toJson(), code, message, lastOp,
+                level.dimension().location().toString()));
         CableChangeLog.logOperation(level, playerName,
             op.packet().op, op.packet().links, "rejected");
         CableChangeLog.logRequest(level, op.packet().toJson(), code);

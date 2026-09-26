@@ -39,6 +39,13 @@ public class CableCutterItem extends Item
 
         if (level.isClientSide)
         {
+            // v1.0.0：缓存内容不属于当前维度时（换维度守卫最长 1 tick 的窗口）不提交删除，
+            // 避免拿他维度缓存的坐标当成本维度的删除目标
+            if (!ClientCableCache.isCurrentFor(level))
+            {
+                return InteractionResult.PASS;
+            }
+
             // v0.3.0：剪刀转换为删除该起点全部出链的单个 del 批量请求，加入任务队列
             List<CableOpPacket.Link> batch = new ArrayList<>();
             for (CableLink link : ClientCableCache.getLinks())

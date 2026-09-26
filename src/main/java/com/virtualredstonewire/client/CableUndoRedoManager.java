@@ -140,6 +140,12 @@ public final class CableUndoRedoManager
             return;
         }
         CableOpPacket p = UNDO_STACK.pop();
+        if (!isCurrentDimension(p))
+        {
+            // v1.0.0：条目属于其他维度：不回放（回放会把该维度坐标写成当前维度），按状态型失败处理
+            sendMessage(mc, "message.virtual_redstone_wire.undo_failed_state", 0xFF5555);
+            return;
+        }
         CableClientQueue.enqueue(cancelOf(mc, p), CableClientQueue.Origin.UNDO, p);
     }
 
@@ -154,6 +160,12 @@ public final class CableUndoRedoManager
             return;
         }
         CableOpPacket p = REDO_STACK.pop();
+        if (!isCurrentDimension(p))
+        {
+            // v1.0.0：条目属于其他维度：不回放（回放会把该维度坐标写成当前维度），按状态型失败处理
+            sendMessage(mc, "message.virtual_redstone_wire.redo_failed_state", 0xFF5555);
+            return;
+        }
         CableClientQueue.enqueue(rebuilt(mc, p), CableClientQueue.Origin.REDO, p);
     }
 
@@ -265,12 +277,23 @@ public final class CableUndoRedoManager
     private static boolean isStateValid(CableOpPacket p, boolean undoAction)
     {
         if (p == null || p.links.isEmpty()) return false;
+        // v1.0.0：条目所属维度与缓存维度不一致时，缓存状态对该条目无意义，直接判为失效
+        if (ClientCableCache.getDimension() == null
+            || !ClientCableCache.getDimension().equals(p.dimension)) return false;
         boolean expectExists = CableProtocol.OP_ADD.equals(p.op) == undoAction;
         for (CableOpPacket.Link l : p.links)
         {
             if (ClientCableCache.hasLink(l.from(), l.to(), l.faceDir()) != expectExists) return false;
         }
         return true;
+    }
+
+    /** v1.0.0：条目所属维度是否与客户端当前维度一致（跨维度条目一律不回放） */
+    private static boolean isCurrentDimension(CableOpPacket p)
+    {
+        Minecraft mc = Minecraft.getInstance();
+        return p.dimension != null && mc.level != null
+            && p.dimension.equals(mc.level.dimension().location().toString());
     }
 
     /** 只读快照：撤销栈从新到旧，供历史浮窗渲染（不修改历史） */

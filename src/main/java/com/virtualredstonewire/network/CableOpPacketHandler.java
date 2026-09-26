@@ -30,13 +30,13 @@ public class CableOpPacketHandler
             // 格式与身份校验（400）
             if (!level.dimension().location().toString().equals(packet.dimension))
             {
-                reject(sender, packet, CableProtocol.CODE_BAD_REQUEST,
+                reject(sender, level, packet, CableProtocol.CODE_BAD_REQUEST,
                     "message.virtual_redstone_wire.reject_dimension_mismatch");
                 return;
             }
             if (!sender.getName().getString().equals(packet.player))
             {
-                reject(sender, packet, CableProtocol.CODE_BAD_REQUEST,
+                reject(sender, level, packet, CableProtocol.CODE_BAD_REQUEST,
                     "message.virtual_redstone_wire.reject_player_mismatch");
                 return;
             }
@@ -52,7 +52,7 @@ public class CableOpPacketHandler
             String semanticError = validateSemantic(packet, level, sender);
             if (semanticError != null)
             {
-                reject(sender, packet, CableProtocol.CODE_UNPROCESSABLE, semanticError);
+                reject(sender, level, packet, CableProtocol.CODE_UNPROCESSABLE, semanticError);
                 return;
             }
 
@@ -97,15 +97,26 @@ public class CableOpPacketHandler
         return null;
     }
 
-    private static void reject(ServerPlayer sender, CableOpPacket packet, int code, String message)
+    /** 拒绝响应：v1.0.0 起携带该批请求所属维度（此处即发送者当前维度），供客户端按 dm 校验 */
+    private static void reject(ServerPlayer sender, ServerLevel level, CableOpPacket packet,
+                               int code, String message)
     {
-        CableNetworkChannel.sendToPlayer(sender, CableMsgPacket.reject(packet.toJson(), code, message));
-        CableChangeLog.logRequest(sender.serverLevel(), packet.toJson(), code);
+        CableNetworkChannel.sendToPlayer(sender, CableMsgPacket.reject(packet.toJson(), code, message,
+            level.dimension().location().toString()));
+        CableChangeLog.logRequest(level, packet.toJson(), code);
     }
 
     private static CableMsgPacket buildPullResponse(ServerLevel level, long since)
     {
         var dimension = level.dimension();
+        long current = CableNetworkManager.currentVersion(dimension);
+        // v1.0.0：追回起点比当前版本还新（跨维度版本号混用等）时按过期处理。
+        // 否则会回一个"空变更且未过期"的响应，客户端因版本号回退直接丢弃，缓存永远停在错误内容
+        if (since > current)
+        {
+            return CableMsgPacket.full(current, new java.util.ArrayList<>(),
+                dimension.location().toString(), true, since);
+        }
         List<CableNetworkManager.ChangeRecord> rows = CableNetworkManager.getChangesSince(dimension, since);
         if (since == 0)
         {

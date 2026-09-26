@@ -29,6 +29,8 @@ import java.util.Set;
  * （不持久标记，断开后可正常重连）。
  * v1.0.0：历史清空时递增历史代次并丢弃排队中的撤销/重做请求；非当前维度的报文
  * 只作废在途请求并推进队列，不改动缓存与历史。
+ * v1.0.0 修复：新增换维度/断线的状态复位入口（onDimensionChanged/reset），
+ * 全量请求新增强制通道（跳过 5 秒冷却丢弃），避免一次冷却丢弃导致整个会话不再全量拉取。
  */
 public final class CableClientQueue
 {
@@ -89,31 +91,44 @@ public final class CableClientQueue
      */
     public static void requestFull()
     {
+        requestFull(false);
+    }
+
+    /**
+     * v1.0.0：全量请求强制通道。
+     * force 为 true 时跳过 5 秒冷却且不计入每分钟风暴计数，用于进入世界、换维度、
+     * 过期追回这类必须成功的一次性拉取；否则一次冷却丢弃就会让本次进入维度永远拿不到数据。
+     */
+    public static void requestFull(boolean force)
+    {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
 
         long now = System.currentTimeMillis();
-        if (now - lastFullRequestTime < FULL_COOLDOWN_MS)
+        if (!force)
         {
-            return; // 冷却期内丢弃
-        }
-        while (!FULL_REQUEST_TIMES.isEmpty() && now - FULL_REQUEST_TIMES.peekFirst() > 60000)
-        {
-            FULL_REQUEST_TIMES.pollFirst();
-        }
-        if (FULL_REQUEST_TIMES.size() >= FULL_MAX_PER_MINUTE)
-        {
-            // 异常：断开连接并提示，重置计数保证重连正常
-            FULL_REQUEST_TIMES.clear();
-            lastFullRequestTime = 0;
-            if (mc.player.connection != null)
+            if (now - lastFullRequestTime < FULL_COOLDOWN_MS)
             {
-                mc.player.connection.getConnection().disconnect(Component.translatable(
-                    "message.virtual_redstone_wire.full_request_throttle"));
+                return; // 冷却期内丢弃
             }
-            return;
+            while (!FULL_REQUEST_TIMES.isEmpty() && now - FULL_REQUEST_TIMES.peekFirst() > 60000)
+            {
+                FULL_REQUEST_TIMES.pollFirst();
+            }
+            if (FULL_REQUEST_TIMES.size() >= FULL_MAX_PER_MINUTE)
+            {
+                // 异常：断开连接并提示，重置计数保证重连正常
+                FULL_REQUEST_TIMES.clear();
+                lastFullRequestTime = 0;
+                if (mc.player.connection != null)
+                {
+                    mc.player.connection.getConnection().disconnect(Component.translatable(
+                        "message.virtual_redstone_wire.full_request_throttle"));
+                }
+                return;
+            }
+            FULL_REQUEST_TIMES.addLast(now);
         }
-        FULL_REQUEST_TIMES.addLast(now);
         lastFullRequestTime = now;
         enqueue(CableOpPacket.pull(0, mc.level.dimension(), mc.player.getName().getString()));
     }
@@ -133,6 +148,30 @@ public final class CableClientQueue
     {
         inFlight = null;
         sendNext();
+    }
+
+    /**
+     * v1.0.0：换维度时复位队列：作废在途请求，并丢弃排队中尚未发出的请求
+     * （它们携带的是旧维度，发出后会被服务端按维度不一致拒绝）。
+     */
+    public static void onDimensionChanged()
+    {
+        QUEUE.clear();
+        inFlight = null;
+    }
+
+    /**
+     * v1.0.0：断线/登出时复位全部队列状态，避免跨会话残留
+     * （残留的在途标记会让重连后所有操作都发不出去）。
+     */
+    public static void reset()
+    {
+        QUEUE.clear();
+        inFlight = null;
+        lastPullSc = 0;
+        lastPullDim = null;
+        lastFullRequestTime = 0;
+        FULL_REQUEST_TIMES.clear();
     }
 
     /**
@@ -194,11 +233,11 @@ public final class CableClientQueue
         sendNext();
     }
 
-    /** 版本号落后（异常）：作废在途请求并触发全量（带节流） */
+    /** 版本号落后（异常）：作废在途请求并强制触发全量（缓存已证明与服务端不一致，不能因节流丢弃） */
     public static void onVersionRollback()
     {
         inFlight = null;
-        requestFull();
+        requestFull(true);
     }
 
     /** 拒绝响应（tp 为 r）到达：按来源分流，NORMAL 维持既有追回逻辑，UNDO/REDO 不触发追回 */
@@ -207,7 +246,13 @@ public final class CableClientQueue
         Pending done = inFlight;
         inFlight = null;
         Level level = Minecraft.getInstance().level;
-        if (level == null) return;
+        if (level == null)
+        {
+            // v1.0.0：未进入世界（重生/换维度瞬间）也要推进队列，
+            // 否则已排队的请求会被刚作废的在途标记堵死
+            sendNext();
+            return;
+        }
 
         // 撤销/重做失败：按类型分流（同 tick 相背放回/状态型移除），不触发追回
         if (done != null && done.origin() != Origin.NORMAL)

@@ -25,21 +25,29 @@ import java.util.UUID;
 
 public class VirtualCableItem extends Item
 {
-    private static final Map<UUID, BlockPos> SELECTED_INPUTS = new HashMap<>();
+    /** 起点选中态（v1.0.0：带所属维度，避免换维度后残留被渲染或误用） */
+    private record Selection(String dimension, BlockPos pos) {}
+
+    private static final Map<UUID, Selection> SELECTED_INPUTS = new HashMap<>();
 
     public VirtualCableItem(Properties properties)
     {
         super(properties);
     }
 
+    /** 当前维度下的选中起点；选中态属于其他维度时返回 null（不渲染也不参与交互） */
     public static BlockPos getSelectedInput(Player player)
     {
-        return SELECTED_INPUTS.get(player.getUUID());
+        Selection selection = SELECTED_INPUTS.get(player.getUUID());
+        if (selection == null) return null;
+        if (!selection.dimension().equals(player.level().dimension().location().toString())) return null;
+        return selection.pos();
     }
 
     public static void setSelectedInput(Player player, BlockPos pos)
     {
-        SELECTED_INPUTS.put(player.getUUID(), pos.immutable());
+        SELECTED_INPUTS.put(player.getUUID(),
+            new Selection(player.level().dimension().location().toString(), pos.immutable()));
     }
 
     public static void clearSelectedInput(Player player)
@@ -105,6 +113,13 @@ public class VirtualCableItem extends Item
                 return InteractionResult.PASS;
             }
             if (level.isEmptyBlock(sel))
+            {
+                return InteractionResult.PASS;
+            }
+
+            // v1.0.0：缓存内容不属于当前维度时（换维度守卫最长 1 tick 的窗口）不提交操作，
+            // 避免用他维度缓存把 add 判成 del（或反之）
+            if (!ClientCableCache.isCurrentFor(level))
             {
                 return InteractionResult.PASS;
             }

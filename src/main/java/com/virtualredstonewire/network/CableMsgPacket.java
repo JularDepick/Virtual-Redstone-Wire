@@ -25,6 +25,8 @@ import java.util.function.Supplier;
  * v1.0.0：拒绝响应在 cd 为 404/409 时附带 lx（其他客户端最近一次成功操作摘要）；
  * 全量与追回响应回显请求的 sc，客户端据此判定响应类型；
  * 客户端按报文的 dm 校验维度，增量追回不再清空撤销/重做双栈，改为按缓存状态定向失效。
+ * v1.0.0 修复（维度隔离失效）：拒绝响应同样携带 dm 并按维度校验；缓存残留其他维度内容时
+ * 整体作废并强制全量重拉；版本号相等的重复广播仍需结算在途请求（否则队列会永久停摆）。
  */
 public class CableMsgPacket
 {
@@ -76,15 +78,17 @@ public class CableMsgPacket
             expired, null, 0, null, null, since);
     }
 
-    public static CableMsgPacket reject(String requestJson, int code, String message)
+    /** v1.0.0：拒绝响应携带该批请求所属维度（客户端按 dm 校验，避免跨维度顶掉在途请求） */
+    public static CableMsgPacket reject(String requestJson, int code, String message, String dimension)
     {
-        return reject(requestJson, code, message, null);
+        return reject(requestJson, code, message, null, dimension);
     }
 
     /** v1.0.0：拒绝响应可附带其他客户端最近一次成功操作的摘要 */
-    public static CableMsgPacket reject(String requestJson, int code, String message, Concurrent lastOp)
+    public static CableMsgPacket reject(String requestJson, int code, String message, Concurrent lastOp,
+                                        String dimension)
     {
-        return new CableMsgPacket(CableProtocol.TYPE_REJECT, 0, null, null,
+        return new CableMsgPacket(CableProtocol.TYPE_REJECT, 0, null, dimension,
             false, requestJson, code, message, lastOp, 0);
     }
 
@@ -157,14 +161,28 @@ public class CableMsgPacket
                         // v1.0.0：非当前维度的广播只作废在途请求并推进队列，不改动缓存
                         CableClientQueue.onForeignDimension();
                     }
+                    else if (cacheHoldsForeignDimension())
+                    {
+                        // v1.0.0：缓存内容仍属于其他维度（换维度守卫尚未跑到）：整体作废并强制全量重拉，
+                        // 不能把当前维度的增量并入旧维度内容
+                        ClientCableCache.clear();
+                        CableClientQueue.onDimensionChanged();
+                        CableClientQueue.requestFull(true);
+                    }
                     else if (version > ClientCableCache.getVersion())
                     {
-                        ClientCableCache.applyDelta(lines, version);
+                        ClientCableCache.applyDelta(dimension, lines, version);
                         CableClientQueue.onDeltaReceived(lines);
                     }
                     else if (version < ClientCableCache.getVersion())
                     {
                         CableClientQueue.onVersionRollback();
+                    }
+                    else
+                    {
+                        // v1.0.0：版本号相等属重复广播，不写缓存，但必须按内容结算在途请求，
+                        // 否则 sendNext 会因在途未解除而永久停摆
+                        CableClientQueue.onDeltaReceived(lines);
                     }
                 }
                 else if (isFull())
@@ -184,27 +202,37 @@ public class CableMsgPacket
                     }
                     if (expired)
                     {
-                        // 过期响应已使本次追回请求终结：先复位在途请求，再发起全量请求，
-                        // 否则新请求会因在途未复位而滞留队列，需等下一次广播才发出
+                        // 过期响应已使本次追回请求终结：先复位在途请求，再强制发起全量请求，
+                        // 否则新请求会因在途未复位而滞留队列，需等下一次广播才发出；
+                        // 强制通道绕开节流，过期意味着缓存不可信，不能因 5 秒冷却丢弃
                         CableClientQueue.onFullReceived();
-                        CableClientQueue.requestFull();
+                        CableClientQueue.requestFull(true);
                     }
                     else if (fullPull)
                     {
-                        ClientCableCache.applyFull(lines, version);
+                        ClientCableCache.applyFull(dimension, lines, version);
                         CableClientQueue.onFullReceived();
                     }
                     else
                     {
                         // 增量追回：应用变更后按缓存状态定向失效，保留其余历史（v1.0.0）
-                        ClientCableCache.applyDelta(lines, version);
+                        ClientCableCache.applyDelta(dimension, lines, version);
                         CableUndoRedoManager.invalidateByState();
                         CableClientQueue.onFullReceived();
                     }
                 }
                 else if (isReject())
                 {
-                    CableClientQueue.onRejectReceived(this);
+                    // v1.0.0：拒绝响应按报文 dm 校验维度，非当前维度只复位在途并推进队列，
+                    // 避免旧维度的拒绝顶掉当前维度的在途请求；dm 缺失时按当前维度处理
+                    if (dimension != null && !isCurrentDimension(dimension))
+                    {
+                        CableClientQueue.onForeignDimension();
+                    }
+                    else
+                    {
+                        CableClientQueue.onRejectReceived(this);
+                    }
                 }
             });
         });
@@ -216,6 +244,16 @@ public class CableMsgPacket
     {
         net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         return mc.level != null && mc.level.dimension().location().toString().equals(dimension);
+    }
+
+    /**
+     * v1.0.0：客户端缓存是否残留其他维度的内容（缓存所属维度非空且与当前维度不一致）。
+     * 缓存为空（从未写入或已作废）不算残留。
+     */
+    private static boolean cacheHoldsForeignDimension()
+    {
+        String cached = ClientCableCache.getDimension();
+        return cached != null && !isCurrentDimension(cached);
     }
 
     private static net.minecraft.resources.ResourceKey<Level> dimensionKey()
@@ -246,6 +284,11 @@ public class CableMsgPacket
             }
             root.addProperty(CableProtocol.KEY_CODE, code);
             root.addProperty(CableProtocol.KEY_MESSAGE, message == null ? "" : message);
+            // v1.0.0：拒绝响应携带该批请求所属维度，客户端据此校验（缺失时客户端按当前维度处理）
+            if (dimension != null)
+            {
+                root.addProperty(CableProtocol.KEY_DIMENSION, dimension);
+            }
             if (lastOp != null)
             {
                 JsonObject o = new JsonObject();
@@ -317,7 +360,11 @@ public class CableMsgPacket
                         changesFromJson(o.get(CableProtocol.KEY_LINES)));
                 }
             }
-            return new CableMsgPacket(type, 0, null, null, false, rq,
+            // v1.0.0：拒绝响应可携带维度；缺失（异常/旧数据）时按 null 处理，客户端不做维度校验
+            String dm = root.has(CableProtocol.KEY_DIMENSION)
+                && !root.get(CableProtocol.KEY_DIMENSION).isJsonNull()
+                ? root.get(CableProtocol.KEY_DIMENSION).getAsString() : null;
+            return new CableMsgPacket(type, 0, null, dm, false, rq,
                 root.get(CableProtocol.KEY_CODE).getAsInt(),
                 root.has(CableProtocol.KEY_MESSAGE) ? root.get(CableProtocol.KEY_MESSAGE).getAsString() : null,
                 last, 0);
