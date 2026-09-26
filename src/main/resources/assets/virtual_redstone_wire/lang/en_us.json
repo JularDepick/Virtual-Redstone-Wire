@@ -87,6 +87,8 @@
   "message.virtual_redstone_wire.redo_failed": "Redo failed, try again",
   "message.virtual_redstone_wire.undo_failed_state": "Undo failed (state has changed)",
   "message.virtual_redstone_wire.redo_failed_state": "Redo failed (state has changed)",
+  "message.virtual_redstone_wire.undo_failed_concurrent": "Undo failed (%s just modified that link)",
+  "message.virtual_redstone_wire.redo_failed_concurrent": "Redo failed (%s just modified that link)",
   "key.virtual_redstone_wire.history": "Show/hide operation history",
   "screen.virtual_redstone_wire.history_title": "Operation History",
   "screen.virtual_redstone_wire.undo_history": "Undo",

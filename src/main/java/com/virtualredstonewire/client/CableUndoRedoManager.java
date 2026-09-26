@@ -36,6 +36,8 @@ import java.util.List;
  * 同 tick 相背放回原栈可重试，状态型失败从历史移除（均不触发追回）。
  * 空栈提示后进入 3 秒冷却期（撤销/重做共用），冷却期内静默忽略。
  * 全部提示（空栈/成功/失败）受 undoRedoFeedback 配置控制。
+ * v1.0.0：增量追回响应不再清空全部历史，改为 invalidateByState() 按缓存状态定向失效；
+ * 状态型失败在服务端附带其他客户端并发操作摘要时细分提示。
  * 实现细节见 docs/v0.5.0-客户端撤销与重做机制-实现方案.md。
  */
 @Mod.EventBusSubscriber(modid = VirtualRedstoneWire.MOD_ID, value = Dist.CLIENT)
@@ -217,18 +219,51 @@ public final class CableUndoRedoManager
         }
         else
         {
-            // 状态型失败：assoc 已从原栈弹出，不压回即完成从历史移除
-            sendMessage(mc, origin == CableClientQueue.Origin.UNDO
-                ? "message.virtual_redstone_wire.undo_failed_state"
-                : "message.virtual_redstone_wire.redo_failed_state", 0xFF5555);
+            // 状态型失败：assoc 已从原栈弹出，不压回即完成从历史移除；
+            // v1.0.0：服务端附带其他客户端并发操作摘要且触及该链路时，提示并发修改而非泛化的状态变化
+            if (msg != null && CableMsgPacket.touches(msg.lastOp, assoc.links))
+            {
+                sendMessage(mc, origin == CableClientQueue.Origin.UNDO
+                    ? "message.virtual_redstone_wire.undo_failed_concurrent"
+                    : "message.virtual_redstone_wire.redo_failed_concurrent",
+                    0xFF5555, msg.lastOp.player());
+            }
+            else
+            {
+                sendMessage(mc, origin == CableClientQueue.Origin.UNDO
+                    ? "message.virtual_redstone_wire.undo_failed_state"
+                    : "message.virtual_redstone_wire.redo_failed_state", 0xFF5555);
+            }
         }
     }
 
-    /** 清空双栈（断线/登出、换维度、全量/追回响应到达时） */
+    /** 清空双栈（断线/登出、换维度、全量与过期追回响应到达时） */
     public static void clearHistory()
     {
         UNDO_STACK.clear();
         REDO_STACK.clear();
+    }
+
+    /**
+     * v1.0.0 定向失效：按缓存当前状态校验双栈，仅移除前提已失效的条目，
+     * 用于增量追回与并发失败路径（替代"追回响应到达即清空全部历史"）。
+     */
+    public static void invalidateByState()
+    {
+        UNDO_STACK.removeIf(p -> !isStateValid(p));
+        REDO_STACK.removeIf(p -> !isStateValid(p));
+    }
+
+    /** 条目前提校验：add 历史要求链路当前存在，del 历史要求链路当前不存在；批量条目任一条不符即整条失效 */
+    private static boolean isStateValid(CableOpPacket p)
+    {
+        if (p == null || p.links.isEmpty()) return false;
+        boolean expectExists = CableProtocol.OP_ADD.equals(p.op);
+        for (CableOpPacket.Link l : p.links)
+        {
+            if (ClientCableCache.hasLink(l.from(), l.to(), l.faceDir()) != expectExists) return false;
+        }
+        return true;
     }
 
     /** 只读快照：撤销栈从新到旧，供历史浮窗渲染（不修改历史） */
@@ -265,14 +300,14 @@ public final class CableUndoRedoManager
             : "message.virtual_redstone_wire.redo_empty", 0xFFFFFF);
     }
 
-    private static void sendMessage(Minecraft mc, String langKey, int color)
+    private static void sendMessage(Minecraft mc, String langKey, int color, Object... args)
     {
         if (!ClientConfig.undoRedoFeedback.get()) return;
         // 历史窗口页打开期间不弹聊天栏提示（撤销/重做结果在窗口页内实时可见）
         if (isHistoryScreenOpen()) return;
         if (mc.player != null)
         {
-            mc.player.sendSystemMessage(Component.translatable(langKey)
+            mc.player.sendSystemMessage(Component.translatable(langKey, args)
                 .withStyle(style -> style.withColor(color)));
         }
     }

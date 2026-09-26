@@ -1,15 +1,16 @@
 package com.virtualredstonewire.network;
 
 /**
- * v0.3.0 通信协议全局定义。
+ * v0.3.0 通信协议全局定义，v1.0.0 升级至协议版本 4。
  * 协议版本为全局常量，升级协议格式时统一变更，版本不匹配的客户端无法通信。
  * 键名统一使用缩写（双端通信 minified JSON），缩写含义见
- * docs/v0.3.0-客户端与服务端通信机制与规范.md 第 3 章缩写表。
+ * docs/v0.3.0-客户端与服务端通信机制与规范.md 第 3 章缩写表；
+ * v1.0.0 的协议变更见 docs/v1.0.0-通信协议升级与撤销历史定向失效机制与规范.md。
  */
 public final class CableProtocol
 {
     // 协议版本（全局宏）
-    public static final String PROTOCOL_VERSION = "3";
+    public static final String PROTOCOL_VERSION = "4";
 
     // 键名（通信缩写）
     public static final String KEY_TYPE = "tp";        // type
@@ -26,6 +27,7 @@ public final class CableProtocol
     public static final String KEY_REQUEST = "rq";     // request
     public static final String KEY_CODE = "cd";        // code
     public static final String KEY_MESSAGE = "ms";     // message
+    public static final String KEY_LAST = "lx";        // last external op（v1.0.0 拒绝响应附带）
 
     // 消息类型
     public static final String TYPE_DELTA = "d";       // 增量广播

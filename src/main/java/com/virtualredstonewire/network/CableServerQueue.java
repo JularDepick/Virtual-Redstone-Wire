@@ -141,15 +141,32 @@ public final class CableServerQueue
                 CableMsgPacket.delta(v, changes, dim.location().toString()));
             CableChangeLog.logOperation(level, playerName, op0, req.links, "success");
             CableChangeLog.logRequest(level, req.toJson(), CableProtocol.CODE_OK);
+            // v1.0.0：记录该维度最近一次成功操作摘要（协议拒绝响应 lx 字段的数据源）
+            List<CableNetworkManager.LastOperation.LinkEntry> entries = new ArrayList<>();
+            for (CableOpPacket.Link l : req.links)
+            {
+                entries.add(new CableNetworkManager.LastOperation.LinkEntry(
+                    l.from(), l.to(), l.faceDir()));
+            }
+            CableNetworkManager.recordLastOperation(dim,
+                new CableNetworkManager.LastOperation(v, playerName, op0, entries));
         }
     }
 
     private static void sendReject(QueuedOp op, int code, String message)
     {
-        CableNetworkChannel.sendToPlayer(op.player(),
-            CableMsgPacket.reject(op.packet().toJson(), code, message));
         ServerLevel level = op.player().serverLevel();
-        CableChangeLog.logOperation(level, op.player().getName().getString(),
+        String playerName = op.player().getName().getString();
+        // v1.0.0：404/409 附带其他客户端最近一次成功操作的摘要（无记录或操作者本人时省略）
+        CableMsgPacket.Concurrent lastOp = null;
+        if (code == CableProtocol.CODE_NOT_EXISTS || code == CableProtocol.CODE_CONFLICT)
+        {
+            lastOp = CableMsgPacket.concurrentOf(
+                CableNetworkManager.getLastOperation(level.dimension()), playerName);
+        }
+        CableNetworkChannel.sendToPlayer(op.player(),
+            CableMsgPacket.reject(op.packet().toJson(), code, message, lastOp));
+        CableChangeLog.logOperation(level, playerName,
             op.packet().op, op.packet().links, "rejected");
         CableChangeLog.logRequest(level, op.packet().toJson(), code);
     }

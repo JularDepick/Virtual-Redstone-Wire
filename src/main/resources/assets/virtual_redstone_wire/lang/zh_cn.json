@@ -87,6 +87,8 @@
   "message.virtual_redstone_wire.redo_failed": "重做失败,建议重试",
   "message.virtual_redstone_wire.undo_failed_state": "撤销失败(状态已变化)",
   "message.virtual_redstone_wire.redo_failed_state": "重做失败(状态已变化)",
+  "message.virtual_redstone_wire.undo_failed_concurrent": "撤销失败(该链路刚被 %s 修改)",
+  "message.virtual_redstone_wire.redo_failed_concurrent": "重做失败(该链路刚被 %s 修改)",
   "key.virtual_redstone_wire.history": "显示/隐藏操作历史",
   "screen.virtual_redstone_wire.history_title": "操作历史",
   "screen.virtual_redstone_wire.undo_history": "可撤销",

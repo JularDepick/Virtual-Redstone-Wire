@@ -20,9 +20,19 @@ public class CableNetworkManager
     private static final Map<ResourceKey<Level>, Long> VERSIONS = new HashMap<>();
     private static final Map<ResourceKey<Level>, List<ChangeRecord>> CHANGE_LOGS = new HashMap<>();
 
+    // v1.0.0：每维度最近一次成功操作摘要（协议拒绝响应 lx 字段的数据源，内存驻留，不落盘）
+    private static final Map<ResourceKey<Level>, LastOperation> LAST_OPERATIONS = new HashMap<>();
+
     /** 变更表记录（完整字段名，映射到通信响应时转换为缩写键名） */
     public record ChangeRecord(long version, String player, String op,
                                BlockPos from, BlockPos to, Direction face) {}
+
+    /** v1.0.0 最近一次成功操作摘要：版本号、操作者、操作类型与涉及链路 */
+    public record LastOperation(long version, String player, String op, List<LinkEntry> links)
+    {
+        /** 摘要内的单条链路 */
+        public record LinkEntry(BlockPos from, BlockPos to, Direction face) {}
+    }
 
     public static CableNetwork get(Level level)
     {
@@ -107,9 +117,24 @@ public class CableNetworkManager
         return result;
     }
 
+    // ── v1.0.0 最近成功操作摘要 ────────────────────
+
+    /** 成功执行一批操作后调用：覆盖该维度的最近成功操作摘要 */
+    public static void recordLastOperation(ResourceKey<Level> dimension, LastOperation operation)
+    {
+        LAST_OPERATIONS.put(dimension, operation);
+    }
+
+    /** 该维度最近一次成功操作摘要；无记录返回 null */
+    public static LastOperation getLastOperation(ResourceKey<Level> dimension)
+    {
+        return LAST_OPERATIONS.get(dimension);
+    }
+
     public static void resetVersion(ResourceKey<Level> dimension)
     {
         VERSIONS.remove(dimension);
         CHANGE_LOGS.remove(dimension);
+        LAST_OPERATIONS.remove(dimension);
     }
 }

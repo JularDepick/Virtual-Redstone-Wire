@@ -207,9 +207,19 @@ public final class CableClientQueue
         }
         if (msg.code == 404 || msg.code == 409)
         {
-            // 状态不一致：增量追回纠正缓存
-            enqueue(CableOpPacket.pull(ClientCableCache.getVersion(), level.dimension(),
-                Minecraft.getInstance().player.getName().getString()));
+            // v1.0.0：其他客户端最近成功操作未超出本机缓存版本时无版本缺口，
+            // 失败源于并发修改而非缓存不一致，免拉取并直接按缓存状态定向失效相关历史
+            if (msg.lastOp != null && msg.lastOp.version() <= ClientCableCache.getVersion())
+            {
+                CableUndoRedoManager.invalidateByState();
+                sendNext();
+            }
+            else
+            {
+                // 状态不一致：增量追回纠正缓存（追回响应按缓存状态定向失效，不再清空全部历史）
+                enqueue(CableOpPacket.pull(ClientCableCache.getVersion(), level.dimension(),
+                    Minecraft.getInstance().player.getName().getString()));
+            }
         }
         // 422/400：直接放弃或记录（由上层提示）
         else

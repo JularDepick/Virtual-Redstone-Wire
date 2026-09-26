@@ -28,6 +28,8 @@ run/
 
 # Agent Tool
 .workbuddy/
+.agent/
+.agents/
 AGENTS*.md
 
 # docs for some versions
