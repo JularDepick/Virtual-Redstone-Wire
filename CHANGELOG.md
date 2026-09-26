@@ -1,5 +1,11 @@
 # 变更日志
 
+## a0d9f4d
+### 更新版本徽章链接并修正协议注释的文档指向
+
+- README.md 与 README_en-US.md 的版本徽章链接由 releases 页面改为 releases/tag/v1.0.0
+- CableProtocol.java 头注释中 v1.0.0 协议文档的指向改为通信协议升级机制与规范文档
+
 ## 5ab446f
 ### 升级通信协议至 4 并改为按缓存状态定向失效撤销历史
 

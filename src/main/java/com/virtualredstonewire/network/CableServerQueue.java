@@ -60,7 +60,7 @@ public final class CableServerQueue
                 // 相背：全部不执行
                 for (QueuedOp op : members)
                 {
-                    sendReject(op, CableProtocol.CODE_CONFLICT,
+                    sendReject(level, op, CableProtocol.CODE_CONFLICT,
                         "message.virtual_redstone_wire.reject_conflict_same_tick");
                 }
                 continue;
@@ -79,7 +79,7 @@ public final class CableServerQueue
                 {
                     for (QueuedOp op : members)
                     {
-                        sendReject(op, CableProtocol.CODE_CONFLICT,
+                        sendReject(level, op, CableProtocol.CODE_CONFLICT,
                             "message.virtual_redstone_wire.reject_already_exists");
                     }
                     continue;
@@ -94,7 +94,7 @@ public final class CableServerQueue
                 {
                     for (QueuedOp op : members)
                     {
-                        sendReject(op, CableProtocol.CODE_NOT_EXISTS,
+                        sendReject(level, op, CableProtocol.CODE_NOT_EXISTS,
                             "message.virtual_redstone_wire.reject_not_exists");
                     }
                     continue;
@@ -119,7 +119,7 @@ public final class CableServerQueue
                 // 已校验通过仍失败，防御性拒绝
                 for (QueuedOp op : members)
                 {
-                    sendReject(op, CableProtocol.CODE_CONFLICT,
+                    sendReject(level, op, CableProtocol.CODE_CONFLICT,
                         "message.virtual_redstone_wire.reject_batch_failed");
                 }
                 continue;
@@ -153,9 +153,9 @@ public final class CableServerQueue
         }
     }
 
-    private static void sendReject(QueuedOp op, int code, String message)
+    /** 拒绝响应：level 取该批请求所属维度（不取处理时刻玩家所在维度，避免跨维度错配） */
+    private static void sendReject(ServerLevel level, QueuedOp op, int code, String message)
     {
-        ServerLevel level = op.player().serverLevel();
         String playerName = op.player().getName().getString();
         // v1.0.0：404/409 附带其他客户端最近一次成功操作的摘要（无记录或操作者本人时省略）
         CableMsgPacket.Concurrent lastOp = null;

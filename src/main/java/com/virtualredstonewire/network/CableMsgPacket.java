@@ -279,15 +279,20 @@ public class CableMsgPacket
             String rq = root.has(CableProtocol.KEY_REQUEST)
                 ? root.get(CableProtocol.KEY_REQUEST).toString() : null;
             Concurrent last = null;
+            // 摘要字段残缺时按无摘要处理，避免解码路径抛异常
             if (root.has(CableProtocol.KEY_LAST))
             {
                 JsonObject o = root.getAsJsonObject(CableProtocol.KEY_LAST);
-                last = new Concurrent(
-                    o.get(CableProtocol.KEY_PLAYER).getAsString(),
-                    o.get(CableProtocol.KEY_CODE).getAsInt(),
-                    o.get(CableProtocol.KEY_VERSION).getAsLong(),
-                    o.get(CableProtocol.KEY_OP).getAsString(),
-                    changesFromJson(o.get(CableProtocol.KEY_LINES)));
+                if (o.has(CableProtocol.KEY_PLAYER) && o.has(CableProtocol.KEY_CODE)
+                    && o.has(CableProtocol.KEY_VERSION) && o.has(CableProtocol.KEY_OP))
+                {
+                    last = new Concurrent(
+                        o.get(CableProtocol.KEY_PLAYER).getAsString(),
+                        o.get(CableProtocol.KEY_CODE).getAsInt(),
+                        o.get(CableProtocol.KEY_VERSION).getAsLong(),
+                        o.get(CableProtocol.KEY_OP).getAsString(),
+                        changesFromJson(o.get(CableProtocol.KEY_LINES)));
+                }
             }
             return new CableMsgPacket(type, 0, null, null, false, rq,
                 root.get(CableProtocol.KEY_CODE).getAsInt(),

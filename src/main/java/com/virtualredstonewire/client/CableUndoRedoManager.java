@@ -247,18 +247,23 @@ public final class CableUndoRedoManager
     /**
      * v1.0.0 定向失效：按缓存当前状态校验双栈，仅移除前提已失效的条目，
      * 用于增量追回与并发失败路径（替代"追回响应到达即清空全部历史"）。
+     * 两栈待执行动作相反：撤销栈执行抵消请求，重做栈重新执行原请求，故前提判据相反。
      */
     public static void invalidateByState()
     {
-        UNDO_STACK.removeIf(p -> !isStateValid(p));
-        REDO_STACK.removeIf(p -> !isStateValid(p));
+        UNDO_STACK.removeIf(p -> !isStateValid(p, true));
+        REDO_STACK.removeIf(p -> !isStateValid(p, false));
     }
 
-    /** 条目前提校验：add 历史要求链路当前存在，del 历史要求链路当前不存在；批量条目任一条不符即整条失效 */
-    private static boolean isStateValid(CableOpPacket p)
+    /**
+     * 条目前提校验：撤销栈要求抵消请求可成立（add 历史要求链路存在，del 历史要求链路不存在），
+     * 重做栈要求原请求可成立（add 历史要求链路不存在，del 历史要求链路存在）；
+     * 批量条目任一条不符即整条失效。
+     */
+    private static boolean isStateValid(CableOpPacket p, boolean undoAction)
     {
         if (p == null || p.links.isEmpty()) return false;
-        boolean expectExists = CableProtocol.OP_ADD.equals(p.op);
+        boolean expectExists = CableProtocol.OP_ADD.equals(p.op) == undoAction;
         for (CableOpPacket.Link l : p.links)
         {
             if (ClientCableCache.hasLink(l.from(), l.to(), l.faceDir()) != expectExists) return false;
