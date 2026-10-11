@@ -177,6 +177,8 @@ The language setting is **client-side**: each player chooses their own language,
 
 ---
 
+![![](https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/intro/intro_cover.png)](https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/intro/intro_video.gif)
+
 ## 功能简介
 
 虚拟红石线缆可让您在方块之间无线传输红石信号。在输入端方块与输出端方块之间创建单向链路后，输入端的红石能量会即时反映到输出端。无需线缆、无需实体红石粉、无需方块实体。

@@ -15,6 +15,8 @@
 
 ---
 
+![![](./intro/intro_cover.png)](./intro/intro_video.gif)
+
 # 模组使用教程
 
 本模组高度依赖Forge，但无前置模组依赖，也不绑定任何其他模组或整合包。
