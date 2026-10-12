@@ -132,6 +132,12 @@ Minecraft 1.20.1 is the baseline version, and the other compatible versions are 
 | 1.20.5 | Not supported | Not supported |
 | 1.20.6 | 50.2.x | mc-1.20.6-forge |
 
+Fabric baseline version:
+
+| Minecraft | Fabric loader | Mod file name suffix |
+|:---:|:---:|:---:|
+| 1.20.1 | 0.16.x | mc-1.20.1-fabric |
+
 
 # Development Build Environment
 
@@ -164,6 +170,7 @@ Minecraft 1.20.1 is the baseline version, and the other compatible versions are 
 | `python versions/build_version.py prework mc-1.20.2-forge` | Generate the working copy of that target |
 | `python versions/build_version.py build mc-1.20.2-forge` | Generate and build that target; the artifact stays in that target's working copy |
 | `python versions/build_version.py copy` | Check the built mod jars under each version directory and copy them all into release/ |
+| `cd versions-fabric && gradlew.bat build` | Build the Fabric baseline artifact; it lands in that project's own build/libs/ |
 
 Artifact naming rules:
 - File name: `VirtualRedstoneWire-v<mod version>-mc-<start MC version>_<end MC version>-<mod loader name>.jar`

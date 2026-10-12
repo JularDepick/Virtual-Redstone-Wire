@@ -132,6 +132,21 @@
 | 1.20.5 | 不支持 | 不支持 |
 | 1.20.6 | 50.2.x | mc-1.20.6-forge |
 
+Fabric 侧基线版本:
+
+| Minecraft | Fabric 加载器 | 模组文件名称后缀 |
+|:---:|:---:|:---:|
+| 1.20.1 | 0.16.x | mc-1.20.1-fabric |
+
+
+# 多语言支持
+
+当前模组支持的语言有:
+- 简体中文
+- English
+
+> 模组语言随游戏语言自动变更。
+
 
 # 开发构建环境
 
@@ -164,6 +179,7 @@
 | `python versions/build_version.py prework mc-1.20.2-forge` | 生成该目标的工作副本 |
 | `python versions/build_version.py build mc-1.20.2-forge` | 生成并构建该目标, 产物留在该目标的工作副本 |
 | `python versions/build_version.py copy` | 检查各版本目录下的构建产物模组 jar, 全部复制到 release/ |
+| `cd versions-fabric && gradlew.bat build` | 构建 Fabric 侧基线产物, 产物在该工程自己的 build/libs/ |
 
 构建产物规范:
 - 文件名称: `VirtualRedstoneWire-v<模组版本>-mc-<起始MC版本>_<终止MC版本>-<模组加载器名称>.jar`
@@ -195,6 +211,7 @@ Copyright (c) 2026 JularDepick
 
 - 缺少优秀的物品贴图素材方案
 - 缺少更多版本的支持(提案或PR)
+- 缺少更多语言的支持(提案或PR)
 
 
 # 相关链接

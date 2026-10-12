@@ -41,6 +41,9 @@ AGENTS*.md
 # docs for some versions
 v*-*.md
 
+# developer's addtion
+version.index.md
+
 # other
 release*/
 reference/
