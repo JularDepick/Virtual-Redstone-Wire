@@ -7,7 +7,8 @@
         "MixinLevel"
     ],
     "client": [
-        "MixinGui"
+        "MixinGui",
+        "MixinLevelRenderer"
     ],
     "server": []
 }

@@ -78,10 +78,10 @@ public class CableCutterItem extends Item
                 // v1.0.0：超批量不再静默返回（原实现无任何提示，玩家会以为已经切断）
                 if (ClientConfig.enableChatFeedback.get())
                 {
-                    player.sendSystemMessage(
+                    player.displayClientMessage(
                         Component.translatable("message.virtual_redstone_wire.cut_too_many",
                             CableProtocol.BATCH_LIMIT)
-                            .withStyle(style -> style.withColor(0xFF5555)));
+                            .withStyle(style -> style.withColor(0xFF5555)), false);
                 }
                 return InteractionResult.PASS;
             }

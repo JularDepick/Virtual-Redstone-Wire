@@ -355,8 +355,8 @@ public final class CableUndoRedoManager
         if (isHistoryScreenOpen()) return;
         if (mc.player != null)
         {
-            mc.player.sendSystemMessage(Component.translatable(langKey, args)
-                .withStyle(style -> style.withColor(color)));
+            mc.player.displayClientMessage(Component.translatable(langKey, args)
+                .withStyle(style -> style.withColor(color)), false);
         }
     }
 }

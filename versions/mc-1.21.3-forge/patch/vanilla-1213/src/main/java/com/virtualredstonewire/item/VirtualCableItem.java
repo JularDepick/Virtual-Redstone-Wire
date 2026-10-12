@@ -91,10 +91,10 @@ public class VirtualCableItem extends Item
                 setSelectedInput(player, clickedPos);
                 if (ClientConfig.enableChatFeedback.get())
                 {
-                    player.sendSystemMessage(
+                    player.displayClientMessage(
                         Component.translatable("message.virtual_redstone_wire.selected_input",
                             clickedPos.getX(), clickedPos.getY(), clickedPos.getZ())
-                            .withStyle(style -> style.withColor(0xFFFF55)));
+                            .withStyle(style -> style.withColor(0xFFFF55)), false);
                 }
                 return InteractionResult.SUCCESS;
             }
@@ -104,9 +104,9 @@ public class VirtualCableItem extends Item
                 clearSelectedInput(player);
                 if (ClientConfig.enableChatFeedback.get())
                 {
-                    player.sendSystemMessage(
+                    player.displayClientMessage(
                         Component.translatable("message.virtual_redstone_wire.cancelled")
-                            .withStyle(style -> style.withColor(0xFFFFFF)));
+                            .withStyle(style -> style.withColor(0xFFFFFF)), false);
                 }
                 return InteractionResult.PASS;
             }
@@ -117,9 +117,9 @@ public class VirtualCableItem extends Item
             {
                 if (ClientConfig.enableChatFeedback.get())
                 {
-                    player.sendSystemMessage(
+                    player.displayClientMessage(
                         Component.translatable("message.virtual_redstone_wire.too_far", maxDist)
-                            .withStyle(style -> style.withColor(0xFFAA00)));
+                            .withStyle(style -> style.withColor(0xFFAA00)), false);
                 }
                 return InteractionResult.PASS;
             }

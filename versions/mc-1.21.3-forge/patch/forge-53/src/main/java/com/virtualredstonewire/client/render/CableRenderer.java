@@ -21,7 +21,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -63,11 +62,11 @@ public class CableRenderer
         }
     }
 
-    @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
-    public static void onRenderLevel(RenderLevelStageEvent event)
+    public static void onRenderSectionLayer(RenderType renderType)
     {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) return;
+        // 1.21.3 起无可用世界渲染事件, 由 MixinLevelRenderer 注入 LevelRenderer.renderSectionLayer
+        // 尾部触发; 按渲染层筛选以对齐原 AFTER_TRANSLUCENT_BLOCKS 的时机
+        if (renderType != RenderType.translucent()) return;
 
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
@@ -84,12 +83,11 @@ public class CableRenderer
 
         if (!holdingCable && !holdingCutter && !holdingMagnifier) return;
 
-        // 1.20.5 起 RenderLevelStageEvent#getPoseStack 返回模型视图矩阵, 需自行构造姿态栈
+        // 注入体拿不到模型视图矩阵: 顶点本就先减相机坐标, 用单位姿态栈即可
         PoseStack poseStack = new PoseStack();
-        poseStack.mulPose(event.getPoseStack());
         MultiBufferSource.BufferSource bufferSource =
             Minecraft.getInstance().renderBuffers().bufferSource();
-        Vec3 cameraPos = event.getCamera().getPosition();
+        Vec3 cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
 
         double renderDistSq = ServerConfig.magnifierRenderDistance.get()
             * (double) ServerConfig.magnifierRenderDistance.get();

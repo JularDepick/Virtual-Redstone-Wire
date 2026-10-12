@@ -25,7 +25,8 @@
             "./work/src/main/java/com/virtualredstonewire/client/render/CableRenderer.java",
             "./work/src/main/java/com/virtualredstonewire/ServerEventHandler.java",
             "./work/src/main/resources/mixins.virtual_redstone_wire.json",
-            "./work/src/main/java/com/virtualredstonewire/VirtualRedstoneWire.java"
+            "./work/src/main/java/com/virtualredstonewire/VirtualRedstoneWire.java",
+            "./work/src/main/java/com/virtualredstonewire/client/CableClientQueue.java"
         ],
         "add": [
             {
@@ -127,6 +128,14 @@
             {
                 "from": "../.sync/container-fallback/src/main/java/com/virtualredstonewire/VirtualRedstoneWire.java",
                 "to": "./work/src/main/java/com/virtualredstonewire"
+            },
+            {
+                "from": "./patch/vanilla-1213/src/main/java/com/virtualredstonewire/client/CableClientQueue.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client"
+            },
+            {
+                "from": "./patch/vanilla-1213/src/main/java/com/virtualredstonewire/client/gui/ServerConfigSubScreen.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
             }
         ]
     }
