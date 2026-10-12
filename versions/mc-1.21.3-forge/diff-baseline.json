@@ -136,6 +136,10 @@
             {
                 "from": "./patch/vanilla-1213/src/main/java/com/virtualredstonewire/client/gui/ServerConfigSubScreen.java",
                 "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
+            },
+            {
+                "from": "./patch/forge-53/src/main/java/com/virtualredstonewire/mixin/MixinLevelRenderer.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/mixin"
             }
         ]
     }
