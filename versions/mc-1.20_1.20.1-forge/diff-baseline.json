@@ -1,0 +1,14 @@
+{
+    "id": "mc-1.20_1.20.1-forge",
+    "diff": {
+        "del": [
+            "./work/src/main/java/com/virtualredstonewire/VirtualRedstoneWire.java"
+        ],
+        "add": [
+            {
+                "from": "../.sync/container-fallback/src/main/java/com/virtualredstonewire/VirtualRedstoneWire.java",
+                "to": "./work/src/main/java/com/virtualredstonewire"
+            }
+        ]
+    }
+}

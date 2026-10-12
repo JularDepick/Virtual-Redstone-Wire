@@ -1,0 +1,74 @@
+[
+    {
+        "id": "mc-1.20_1.20.1-forge",
+        "tag": "baseline",
+        "mc": {
+            "version": ["1.20", "1.20.1"],
+            "pack-format": 15
+        },
+        "mod-loader": {
+            "name": "forge",
+            "version": ["46.0.14", "46.x", "47.x"]
+        },
+        "gradle": {
+            "version": ["8.14.3"]
+        },
+        "jdk": {
+            "version": ["17"]
+        }
+    },
+    {
+        "id": "mc-1.20.2-forge",
+        "tag": "compat",
+        "mc": {
+            "version": ["1.20.2"],
+            "pack-format": 18
+        },
+        "mod-loader": {
+            "name": "forge",
+            "version": ["48.1.0", "48.x"]
+        },
+        "gradle": {
+            "version": ["8.14.3"]
+        },
+        "jdk": {
+            "version": ["17"]
+        }
+    },
+    {
+        "id": "mc-1.20.3_1.20.4-forge",
+        "tag": "compat",
+        "mc": {
+            "version": ["1.20.3", "1.20.4"],
+            "pack-format": 22
+        },
+        "mod-loader": {
+            "name": "forge",
+            "version": ["49.0.2", "49.0.x", "49.2.x"]
+        },
+        "gradle": {
+            "version": ["8.14.3"]
+        },
+        "jdk": {
+            "version": ["17"]
+        }
+    },
+    {
+        "id": "mc-1.20.6-forge",
+        "tag": "compat",
+        "mc": {
+            "version": ["1.20.6"],
+            "pack-format": 32
+        },
+        "mod-loader": {
+            "name": "forge",
+            "version": ["50.2.0", "50.2.x"]
+        },
+        "gradle": {
+            "version": ["8.14.3"]
+        },
+        "jdk": {
+            "version": ["21"]
+        }
+    }
+]

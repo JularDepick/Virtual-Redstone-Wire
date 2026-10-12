@@ -1,0 +1,79 @@
+{
+    "id": "mc-1.20.3_1.20.4-forge",
+    "diff": {
+        "del": [
+            "./work/src/main/java/com/virtualredstonewire/VirtualRedstoneWire.java",
+            "./work/src/main/java/com/virtualredstonewire/network/CableInfoRequestPacket.java",
+            "./work/src/main/java/com/virtualredstonewire/network/CableInfoResponsePacket.java",
+            "./work/src/main/java/com/virtualredstonewire/network/CableMsgPacket.java",
+            "./work/src/main/java/com/virtualredstonewire/network/CableNetworkChannel.java",
+            "./work/src/main/java/com/virtualredstonewire/network/CableOpPacketHandler.java",
+            "./work/src/main/java/com/virtualredstonewire/network/CableServerConfigRequestPacket.java",
+            "./work/src/main/java/com/virtualredstonewire/network/CableServerConfigResponsePacket.java",
+            "./work/src/main/java/com/virtualredstonewire/client/gui/CableInfoScreen.java",
+            "./work/src/main/java/com/virtualredstonewire/client/gui/CableUndoRedoHistoryScreen.java",
+            "./work/src/main/java/com/virtualredstonewire/data/CableNetworkSavedData.java",
+            "./work/src/main/java/com/virtualredstonewire/client/gui/ClientConfigScreen.java",
+            "./work/src/main/java/com/virtualredstonewire/client/gui/ClientConfigSubScreen.java",
+            "./work/src/main/java/com/virtualredstonewire/client/gui/ServerConfigSubScreen.java"
+        ],
+        "add": [
+            {
+                "from": "../.sync/container-fallback/src/main/java/com/virtualredstonewire/VirtualRedstoneWire.java",
+                "to": "./work/src/main/java/com/virtualredstonewire"
+            },
+            {
+                "from": "../.sync/forge-48/src/main/java/com/virtualredstonewire/network/CableInfoRequestPacket.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/network"
+            },
+            {
+                "from": "../.sync/forge-48/src/main/java/com/virtualredstonewire/network/CableInfoResponsePacket.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/network"
+            },
+            {
+                "from": "../.sync/forge-48/src/main/java/com/virtualredstonewire/network/CableMsgPacket.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/network"
+            },
+            {
+                "from": "../.sync/forge-48/src/main/java/com/virtualredstonewire/network/CableNetworkChannel.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/network"
+            },
+            {
+                "from": "../.sync/forge-48/src/main/java/com/virtualredstonewire/network/CableOpPacketHandler.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/network"
+            },
+            {
+                "from": "../.sync/forge-48/src/main/java/com/virtualredstonewire/network/CableServerConfigRequestPacket.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/network"
+            },
+            {
+                "from": "../.sync/forge-48/src/main/java/com/virtualredstonewire/network/CableServerConfigResponsePacket.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/network"
+            },
+            {
+                "from": "../.sync/vanilla-48/src/main/java/com/virtualredstonewire/client/gui/CableInfoScreen.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
+            },
+            {
+                "from": "../.sync/vanilla-48/src/main/java/com/virtualredstonewire/client/gui/CableUndoRedoHistoryScreen.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
+            },
+            {
+                "from": "../.sync/vanilla-48/src/main/java/com/virtualredstonewire/data/CableNetworkSavedData.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/data"
+            },
+            {
+                "from": "../.sync/vanilla-1203/src/main/java/com/virtualredstonewire/client/gui/ClientConfigScreen.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
+            },
+            {
+                "from": "../.sync/vanilla-1203/src/main/java/com/virtualredstonewire/client/gui/ClientConfigSubScreen.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
+            },
+            {
+                "from": "../.sync/vanilla-1203/src/main/java/com/virtualredstonewire/client/gui/ServerConfigSubScreen.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
+            }
+        ]
+    }
+}
