@@ -17,215 +17,172 @@
 
 ![![](./intro/intro_cover.png)](./intro/intro_video.gif)
 
-# 模组使用教程
+# 模组使用
 
-本模组高度依赖Forge，但无前置模组依赖，也不绑定任何其他模组或整合包。
+## 前置要求
 
-安装：将下载的模组 jar 放入 `.minecraft/mods` 文件夹即可（需要 Forge 1.20.1）。
+| 项 | 要求 |
+|:---:|:---:|
+| Minecraft | 1.20.x |
+| 模组加载器 | Forge |
 
-当前模组仅支持 Minecraft 1.20.1版本，如需做其他版本兼容适配，请 [提交Issue](https://github.com/JularDepick/Virtual-Redstone-Wire/issues/new) 或 [进行贡献](#贡献指南)。
+> Minecraft游戏版本与Forge版本对照表见[支持的版本](#支持的版本)
 
-| 物品 | 合成 | 操作 | 特性 |
-|:---:|:---:|:---:|:---:|
-| 线缆 | 红石 + 铁锭 | 右键输入端方块，再右键输出端方块，创建单向红石链路 | 信号强度沿链路传播；再次右键同一方块可取消选中；输入端可连接多个输出端，输出端可接收多个输入端（取最大信号） |
-| 线缆剪 | 铁锭 + 木棍 x2 | 右键输入端方块，切断其全部出链 | 仅作用于该方块作为输入端（起点）的链路 |
-| 线缆放大镜 | 红石 + 玻璃板 + 木棍 | 手持时高亮显示全部链路（蓝框是输入端，黄框是输出端，红线是链路路径）；潜行右键方块，查看其链路信息；右键方块，快捷栏上方显示其红石信号强度与坐标 | 链路高亮与信号查询 |
+## 模组物品
 
-> 上表的右键操作在按下时触发一次，按住不放不会重复触发（松开后可再次触发）；未瞄准方块时不触发；左键不触发任何操作。
+### 线缆
 
-## 红石行为
+- 物品ID: `virtual_redstone_wire:virtual_cable`
+- 合成: 1红石 + 1铁锭
+- 使用: 
+  - 手持物品右键选中输入端方块后,再次右键选中输出端方块以创建单向红石链路
+  - 手持物品右键选中输入端方块后,再次右键取消选中
+  - 输入端可连接多个输出端,输出端可接收多个输入端
 
-- 虚拟线缆传输的是红石信号强度（0-15）
-- 输入端方块检测其所在位置的红石信号（使用标准红石 API）
-- 信号沿链路传递到输出端，通过内存网络图查询返回信号强度（无方块占用）
-- 输入端的红石变化会实时反映到输出端
-- 支持一对多广播、多对一合并（取最大值）
-- 链路有方向：信号从输出方块的指定面射出（方向精确），红石灯放在输出端方块本身上即可点亮
-- 支持先建链后放源：放置/移除信号源、拨动拉杆等操作会实时刷新链路信号
-- 聊天栏操作反馈默认关闭，可在游戏内 Mods 菜单或配置文件中启用
-- 链路数据查询已索引加速：链路数量较多时建链/删链操作响应更流畅
+### 线缆剪
+
+- 物品ID: `virtual_redstone_wire:cable_cutter`
+- 合成: 2木棍 + 1铁锭
+- 使用: 右键输入端方块切断其全部出链
+
+### 线缆放大镜
+
+- 物品ID: `virtual_redstone_wire:cable_magnifier`
+- 合成: 1木棍 + 1玻璃板 + 1红石
+- 使用: 
+  - 手持时高亮显示全部链路(输入端蓝色,输出端黄色,链路红色)
+  - 手持物品右键方块查看其坐标和红石信号强度
+  - 手持物品潜行右键方块打开其链路信息面板
 
 ## 撤销与重做
 
-撤销/重做可回退或重放最近成功的链路操作，避免误操作后手动重建：
+- 主手或副手持有任一本模组物品时，按 `Ctrl+Z` 撤销、`Ctrl+Y` 重做 (可更改按键绑定)
+- 操作历史仅保存在客户端内存,退出游戏清空
+- 线缆剪批量删除的链路可整体撤销或重做
 
-- 手持线缆、线缆剪或放大镜（主手或副手任一）时，按 `Ctrl+Z` 撤销、`Ctrl+Y` 重做（可在游戏 Controls 设置中修改按键绑定）
-- 撤销会取消最近一次成功的链路操作：创建的链路被移除，被移除的链路恢复；重做会重新执行最近一次被撤销的操作
-- 连续按 `Ctrl+Z` 可逐步回退多次操作；撤销后执行新的操作会清空重做历史
-- 操作历史仅保存在客户端内存：撤销/重做双栈共用上限（默认 20，可在游戏内 Mods 菜单客户端配置中调整，范围 10-100），退出游戏清空
-- 无可撤销/重做或操作被拒绝时，聊天栏提示原因（受客户端"撤销/重做提示"开关控制，默认开启；空栈提示后 3 秒内按键不重复响应）
-- 线缆剪批量删除的链路可整体撤销（一次撤销恢复全部被剪链路）
+## 查看操作历史
 
-## 操作历史查看
+手持放大镜时按 `Ctrl+A` 打开操作历史窗口页(可更改按键绑定)
 
-手持放大镜时按 `Ctrl+A` 打开操作历史窗口页，查看当前可撤销与可重做的链路操作：
+## 红石行为
 
-- 窗口页分两列显示可撤销、可重做的历史操作（操作类型与起终点坐标），列表超出时可用鼠标滚轮滚动查看
-- 窗口页内可直接按 `Ctrl+Z` 撤销、`Ctrl+Y` 重做，结果在页面内实时刷新；窗口页打开期间不弹出聊天栏提示
-- 退出方式：面板右上角关闭按钮、`ESC`、再次按 `Ctrl+A`（按键可在游戏 Controls 设置中修改）
+- 虚拟线缆传输的是 0-15 的红石信号强度
+- 输入端方块检测其所在位置的红石信号
+- 输入端的红石变化会实时反映到输出端
+- 支持一对多广播、多对一合并取最大值
+- 链路信号单向传播
+- 信号从输出方块的指定面发出,方向精确
 
-## 使用建议
 
-- 左手（副手）持放大镜，右手（主手）使用线缆或线缆剪：放大镜会持续高亮全部链路（蓝框输入、黄框输出、红线路径），边查看链路布局边建链/删链，操作更直观
+# 模组配置
 
-# 运行时文件
+## 客户端
 
-## 配置文件
+- 配置文件: `config/virtual_redstone_wire-client.toml`
 
-- 客户端配置：`config/virtual_redstone_wire-client.toml`（游戏目录下 config 文件夹，聊天反馈开关、撤销/重做历史上限与提示开关等；可在游戏内 Mods 菜单配置，悬停配置项可查看该项说明）
-- 服务端配置：`<世界文件夹>/serverconfig/virtual_redstone_wire-server.toml`
-  - 单机/局域网：`saves/<存档名>/serverconfig/`
-  - 专用服务器：`<服务器世界文件夹>/serverconfig/`（如 `world/serverconfig/`）
-  - 内容：链路最大距离/放大镜渲染距离/同步变更表容量/操作日志与请求日志；可在游戏内 Mods 菜单配置（仅存档拥有者）
+| 配置项 | 默认值 | 取值范围 | 含义 |
+|:---:|:---:|:---:|:---:|
+| `enableChatFeedback` | `false` | `true` / `false` | 是否在聊天栏显示链路操作的结果反馈 |
+| `undoHistorySize` | `20` | `10` - `100` | 撤销栈与重做栈各自的条数上限 |
+| `undoRedoFeedback` | `true` | `true` / `false` | 是否显示撤销与重做的各类提示 |
 
-## 数据文件
+## 服务端
 
-- 链路数据按维度独立存储（自动保存，同目录保留 `.dat_old` 备份）：
-  - 主世界：`<世界文件夹>/data/virtual_redstone_wire_network.dat`
-  - 下界：`<世界文件夹>/DIM-1/data/virtual_redstone_wire_network.dat`
-  - 末地：`<世界文件夹>/DIM1/data/virtual_redstone_wire_network.dat`
-  - 其他维度：`<世界文件夹>/<维度子目录>/data/virtual_redstone_wire_network.dat`
+- 配置文件: `<世界存档>/serverconfig/virtual_redstone_wire-server.toml`
 
-## 日志文件（世界文件夹根目录，均仅输出不恢复）
+| 配置项 | 默认值 | 取值范围 | 含义 |
+|:---:|:---:|:---:|:---:|
+| `maxLinkDistance` | `256` | `1` - `1024` | 单条链路允许的最大距离, 单位为方块 |
+| `magnifierRenderDistance` | `512` | `64` - `1024` | 手持放大镜时链路高亮渲染的最大距离, 单位为方块 |
+| `networkChangeLogSize` | `200` | `200` - `1000` | 增量同步所用的近期变更表容量 |
+| `operationLogEnabled` | `true` | `true` / `false` | 是否记录每一条已生效或被拒绝的增删操作 |
+| `operationLogSplit` | `total` | `total` / `both` / `player` | 操作日志的文件分割方式, 依次为合并写入, 合并与按玩家分文件同时写, 仅按玩家分文件 |
+| `operationLogFile` | `Virtual_Redstone_Wire-Operations.log` | 自定义文件名 | 操作日志的文件名, 按玩家分文件时在文件名主体后追加玩家名称 |
+| `requestLogEnabled` | `false` | `true` / `false` | 是否记录收到的每一条请求原文与最终结果码, 属调试级 |
+| `requestLogFile` | `Virtual_Redstone_Wire-Requests.log` | 自定义文件名 | 请求日志的文件名 |
 
-- 操作日志：`<世界文件夹>/Virtual_Redstone_Wire-Operations.log`（add/del 执行与拒绝；分割模式为 player/both 时生成 `Virtual_Redstone_Wire-Operations_<玩家名>.log`）
-- 请求日志：`<世界文件夹>/Virtual_Redstone_Wire-Requests.log`（调试级，记录每次收到的原始请求与最终状态码，默认关闭）
 
-# 技术栈
+# 模组数据
 
-| 组件 | 版本 |
+## 链路数据
+
+| 世界维度 | 数据文件 |
 |:---:|:---:|
-| Minecraft | 1.20.1 |
-| Forge | 47.4.23 |
-| JDK | 17 |
-| Gradle | 8.14.3 |
-| ForgeGradle | 6.x |
-| 映射 | official |
-| 模组 ID | virtual_redstone_wire |
+| 主世界 | `<世界存档>/data/virtual_redstone_wire_network.dat` |
+| 下界 | `<世界存档>/DIM-1/data/virtual_redstone_wire_network.dat` |
+| 末地 | `<世界存档>/DIM1/data/virtual_redstone_wire_network.dat` |
 
-# 源码目录结构
+## 日志数据
 
-```
-src/main/java/com/virtualredstonewire/
-├── VirtualRedstoneWire.java          # 模组主入口
-├── ClientSetup.java                  # 客户端初始化
-├── ServerEventHandler.java           # 服务端事件(世界加载/保存/卸载/方块更新)
-├── RedstoneDiagnostics.java          # 红石信号自动化诊断(调试用)
-├── client/
-│   ├── ClientCableCache.java         # 客户端链路缓存(版本化,只读,索引化)
-│   ├── CableFullSyncBuffer.java      # 全量/追回响应分片缓冲(收齐后一次性应用)
-│   ├── CableInteractGate.java        # 三物品右键按下沿闸门(长按不重复触发)
-│   ├── CableClientQueue.java         # 操作任务队列(单在途/来源标记)
-│   ├── CableClientEvents.java        # 连接/维度切换全量同步
-│   ├── CableUndoRedoManager.java     # 撤销/重做(双栈/快捷键/历史窗口页)
-│   ├── CableActionBarHud.java        # 快捷栏上方信号飘浮提示
-│   ├── gui/CableInfoScreen.java      # 线缆信息 GUI 面板
-│   ├── gui/CableInfoScreenOpener.java
-│   ├── gui/CableUndoRedoHistoryScreen.java # 操作历史窗口页(可撤销/可重做)
-│   ├── gui/ClientConfigScreen.java   # Mods 菜单配置索引页(配置文件列表)
-│   ├── gui/ClientConfigSubScreen.java # 客户端配置文件子页
-│   ├── gui/ServerConfigSubScreen.java # 服务端配置文件子页(仅拥有者)
-│   ├── gui/ConfigLabels.java         # 配置项显示名翻译
-│   ├── gui/ConfigScreenTarget.java   # 配置响应目标分发
-│   ├── gui/ServerConfigResponseTarget.java # 配置响应接收接口
-│   ├── gui/ConfigTooltips.java       # 配置项悬浮提示
-│   └── render/CableRenderer.java     # 3D 渲染(方管梁+面亮点+连接线)
-├── commands/
-│   └── VRedTestCommand.java          # /vredtest 诊断命令
-├── config/
-│   ├── ServerConfig.java             # 服务端配置(距离/变更表/日志)
-│   └── ClientConfig.java             # 客户端配置(聊天反馈/撤销重做)
-├── data/
-│   ├── CableLink.java                # 链路数据模型(纯渲染载体)
-│   ├── CableNetwork.java             # 电缆网络图(结点索引+存储式信号查询)
-│   ├── CableNode.java                # 电缆拓扑结点(toWho/fromWho 邻接表)
-│   ├── CableNetworkManager.java      # 按维度管理 CableNetwork/计数器/变更表
-│   └── CableNetworkSavedData.java    # NBT 持久化
-├── item/
-│   ├── VirtualCableItem.java         # 虚拟线缆(创建/删除链路,保留选态)
-│   ├── CableCutterItem.java          # 线缆剪(只删起点链路)
-│   └── CableMagnifierItem.java       # 线缆放大镜(下蹲查看面板/右键查看信号)
-├── mixin/
-│   └── MixinLevel.java               # 仅覆写 getSignal (DBW 存储式语义)
-├── network/
-│   ├── CableNetworkChannel.java      # 网络通道注册
-│   ├── CableProtocol.java            # 协议常量/缩写键名/错误码
-│   ├── CableOpPacket.java            # 操作请求(add/del/pull, JSON)
-│   ├── CableMsgPacket.java           # 消息(d/f/r, JSON)
-│   ├── CableOpPacketHandler.java     # 服务端请求处理与校验
-│   ├── CableServerQueue.java         # 服务端 tick 队列与冲突处理
-│   ├── CableChangeLog.java           # 双日志(操作/请求,可选)
-│   ├── CableInfoRequestPacket.java   # 放大镜信号查询请求
-│   ├── CableInfoResponsePacket.java  # 放大镜信号查询响应
-│   ├── CableServerConfigRequestPacket.java # 服务端配置查询/修改请求
-│   └── CableServerConfigResponsePacket.java # 服务端配置查询/修改响应
-└── registry/
-    ├── ModItems.java                 # 物品注册
-    └── ModBlocks.java                # 方块注册
-```
+- 操作日志: `<世界存档>/Virtual_Redstone_Wire-Operations.log` 和 `Virtual_Redstone_Wire-Operations_<玩家名称>.log`
+- 请求日志: `<世界存档>/Virtual_Redstone_Wire-Requests.log`
 
-```
-src/main/java/com/virtualredstonewire/util/
-├── TooltipLines.java                 # 物品提示多行工具
-├── FaceNames.java                    # 输出面名称本地化工具
-└── PressEdgeLatch.java               # 按下沿锁存(按住期间只放行一次)
-```
 
-```
-src/main/resources/
-├── META-INF/mods.toml
-├── mixins.virtual_redstone_wire.json    # Mixin 配置
-├── pack.mcmeta
-├── virtual_redstone_wire.png            # 模组 Logo
-├── assets/virtual_redstone_wire/
-│   ├── lang/{en_us,zh_cn}.json
-│   ├── models/item/*.json
-│   └── textures/
-│       └── item/{virtual_cable,cable_cutter,cable_magnifier}.png
-└── data/virtual_redstone_wire/recipes/
-    ├── virtual_cable.json
-    ├── cable_cutter.json
-    └── cable_magnifier.json
-```
+# 支持的版本
 
-# 构建与运行
+1.20.1 为基线版本,其它兼容版本如下:
 
-确保环境满足以下要求：
+| Minecraft | Forge版本 | 模组文件名称后缀 |
+|:---:|:---:|:---:|
+| 1.20 | 46.x | mc-1.20_1.20.1-forge |
+| 1.20.1 | 47.x | mc-1.20_1.20.1-forge |
+| 1.20.2 | 48.x | mc-1.20.2-forge |
+| 1.20.3 | 49.0.x | mc-1.20.3_1.20.4-forge |
+| 1.20.4 | 49.2.x | mc-1.20.3_1.20.4-forge |
+| 1.20.5 | 不支持 | 不支持 |
+| 1.20.6 | 50.2.x | mc-1.20.6-forge |
+
+
+# 开发构建环境
+
+## 基线版本
 
 | 组件 | 要求 |
 |:---:|:---:|
-| JDK | 17 (推荐 Eclipse Temurin / Adoptium) |
+| Java | JDK17 |
 | Gradle | 8.14.3 |
-| Minecraft | 1.20.1 (Forge 47.4.23) |
+| Minecraft | 1.20.1 |
+| 模组加载器 | Forge 47.4.23 |
 
-验证环境：
+## 兼容版本
 
-```bash
-java -version
-# 输出应为 openjdk version "17.x.x"
+| Minecraft | Java | Gradle | 模组加载器 |
+|:---:|:---:|:---:|:---:|
+| 1.20 | Java 17 | 8.14.3 | Forge 46.0.14 |
+| 1.20.1 | Java 17 | 8.14.3 | Forge 47.4.23 |
+| 1.20.2 | Java 17 | 8.14.3 | Forge 48.1.0 |
+| 1.20.3 | Java 17 | 8.14.3 | Forge 49.0.2 |
+| 1.20.4 | Java 17 | 8.14.3 | Forge 49.2.8 |
+| 1.20.5 | 不支持 | 不支持 | 不支持 |
+| 1.20.6 | Java 21 | 8.14.3 | Forge 50.2.0 |
 
-gradlew --version
-# 输出应包含 Gradle 8.14.3
-```
+## 构建脚本
 
-构建：
+| 命令 | 说明 |
+|:---:|:---:|
+| `python versions/build_version.py list` | 列出全部适配目标与所需环境版本 |
+| `python versions/build_version.py prework mc-1.20.2-forge` | 生成该目标的工作副本 |
+| `python versions/build_version.py build mc-1.20.2-forge` | 生成并构建该目标, 产物留在该目标的工作副本 |
+| `python versions/build_version.py copy` | 检查各版本目录下的构建产物模组 jar, 全部复制到 release/ |
 
-```bash
-gradlew build
-# 输出在 build/libs/VirtualRedstoneWire-v<version>-forge-mc1.20.1.jar
-```
+构建产物规范:
+- 文件名称: `VirtualRedstoneWire-v<模组版本>-mc-<起始MC版本>_<终止MC版本>-<模组加载器名称>.jar`
+- 起始版本与终止版本一致时合并为单值
+- 起始版本与终止版本匿名其一时,匿名的留空,保留下划线
+- 不允许起始版本与终止版本同时匿名
 
-# 变更日志
+其他开发信息详见 [开发者文档](./docs/developer/README.md)
 
-详见 [CHANGELOG.md](./CHANGELOG.md)
 
 # 贡献指南
 
 详见 [CONTRIBUTING.md](./CONTRIBUTING.md)
 
+
 # 许可证
 
 本项目基于 [MIT 许可证](./LICENSE) 开源。
+
 
 # 版权信息
 
@@ -233,14 +190,12 @@ Copyright (c) 2026 JularDepick
 
 详见 [COPYRIGHT文件](./COPYRIGHT)
 
-# 开发参考
-
-本模组开发部分参考了 Drive By Wire 模组的交互效果和实现逻辑。
 
 # 需要协作
 
-- 缺少多 Minecraft 版本兼容
 - 缺少优秀的物品贴图素材方案
+- 缺少更多版本的支持(提案或PR)
+
 
 # 相关链接
 

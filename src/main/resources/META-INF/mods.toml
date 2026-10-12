@@ -24,6 +24,6 @@ A Minecraft mod for long-distance redstone signal transmission that does not rel
 [[dependencies.virtual_redstone_wire]]
     modId="minecraft"
     mandatory=true
-    versionRange="[${mcVersion},${mcNextVersion})"
+    versionRange="[${mcCompatMin},${mcNextVersion})"
     ordering="NONE"
     side="BOTH"

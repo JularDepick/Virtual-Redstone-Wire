@@ -10,6 +10,10 @@ archivesBaseName = 'VirtualRedstoneWire'
 
 // MC 版本单源化：mappings、forge 依赖、产物文件名共用
 def mcVersion = '1.20.1'
+// 编译目标与兼容下界分离：mcVersion 决定 mappings 与 Forge 依赖版本，
+// mcCompatMin 只用于 mods.toml 的 minecraft 依赖下界，
+// 从而支持"用较新版本编译、声明覆盖较旧版本"的多版本合并产物
+def mcCompatMin = mcVersion
 // MC 兼容上界与 Forge 主版本：mods.toml 的 versionRange / loaderVersion 占位符共用
 def mcNextVersion = '1.21'
 def forgeMajor = '47'
@@ -22,6 +26,7 @@ processResources {
     filesMatching('META-INF/mods.toml') {
         expand 'version': project.version,
                'mcVersion': mcVersion,
+               'mcCompatMin': mcCompatMin,
                'mcNextVersion': mcNextVersion,
                'forgeMajor': forgeMajor
     }

@@ -6,8 +6,8 @@
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
-[简体中文](./README.md)
-| [English]
+[English]
+| [[简体中文]](./README.md)
 
 </div>
 
@@ -15,215 +15,174 @@ A Minecraft mod for long-distance redstone signal transmission that does not rel
 
 ---
 
-# Usage Guide
+![![](./intro/intro_cover.png)](./intro/intro_video.gif)
 
-This mod heavily depends on Forge, but has no prerequisite mod dependencies and is not tied to any other mod or modpack.
+# Mod Usage
 
-Currently supports Minecraft 1.20.1 only. For compatibility with other versions, please [submit an Issue](https://github.com/JularDepick/Virtual-Redstone-Wire/issues/new) or [contribute](#contributing).
+## Prerequisites
 
-Installation: put the downloaded mod jar into your `.minecraft/mods` folder (Forge 1.20.1 required).
+| Item | Requirement |
+|:---:|:---:|
+| Minecraft | 1.20.x |
+| Mod loader | Forge |
 
-| Item | Crafting | Usage | Notes |
-|:---:|:---:|:---:|:---:|
-| Virtual Cable | Redstone + Iron Ingot | Right-click an input block, then an output block, to create a one-way redstone link | Signal strength propagates along the link; right-click the same block again to cancel; one input can feed multiple outputs, one output can take multiple inputs (highest signal wins) |
-| Cable Cutter | Iron Ingot + Stick x2 | Right-click an input block to cut all links originating from it | Only affects links where this block is the input (source) |
-| Cable Magnifier | Redstone + Glass Pane + Stick | While held, highlights all links (blue is input, yellow is output, red is link path); sneak-right-click a block to inspect its links; right-click a block to show its redstone signal strength and position above the hotbar | Link highlighting & signal query |
+> For the mapping between Minecraft game versions and Forge versions, see [Supported Versions](#supported-versions)
 
-> The right-click actions listed above trigger once when the button is pressed; holding it down does not repeat them (release and press again to trigger again). They do not trigger when no block is targeted, and the left button triggers nothing.
+## Mod Items
 
-## Redstone Behavior
+### Cable
 
-- Virtual cables transmit redstone signal strength (0-15)
-- The input block's redstone power is queried using the standard redstone API
-- Signal propagates along the link to the output, queried through the in-memory network graph (zero space occupation)
-- Input changes are reflected at the output in real-time
-- Supports one-to-many broadcast and many-to-one merging (max signal)
-- Links are directional: the signal exits from the clicked face of the output block (face-accurate); a redstone lamp placed on the output block itself lights up
-- Works when the source is placed after the link: placing/removing a signal source or flipping a lever refreshes the link signal in real-time
-- Chat feedback is disabled by default; can be enabled in-game from the Mods menu or in the config file
-- Link data lookups are index-accelerated: creating/removing links stays responsive even with many links
+- Item ID: `virtual_redstone_wire:virtual_cable`
+- Crafting: 1 Redstone + 1 Iron Ingot
+- Usage:
+  - Right-click the block you want as the input to select it, then right-click the block you want as the output to create a one-way redstone link
+  - Right-click the block currently selected as the input to deselect it
+  - One input can be linked to several outputs, and one output can accept several inputs
 
-## Undo & Redo
+### Cable Cutter
 
-Undo/redo lets you revert or replay your most recent successful link operations:
+- Item ID: `virtual_redstone_wire:cable_cutter`
+- Crafting: 2 Sticks + 1 Iron Ingot
+- Usage: Right-click an input block to cut every link leaving it
 
-- While holding a Virtual Cable, Cable Cutter, or Cable Magnifier (main or off hand), press `Ctrl+Z` to undo and `Ctrl+Y` to redo (keybinds can be changed in the Controls settings)
-- Undo cancels the most recent successful link operation: a created link is removed, a removed link is restored; redo re-executes the most recently undone operation
-- Press `Ctrl+Z` repeatedly to step back through multiple operations; performing a new operation after undoing clears the redo history
-- Operation history is client-side only: the undo and redo stacks share a size limit (default 20, adjustable 10-100 in the Mods menu client config), cleared on game exit
-- When there is nothing to undo/redo or an operation is rejected, a chat message shows the reason (controlled by the client "Undo/Redo feedback" option, enabled by default; after an empty-stack prompt, further presses are ignored for 3 seconds)
-- Links removed in batch by the Cable Cutter can be undone as a whole (one undo restores all of them)
+### Cable Magnifier
+
+- Item ID: `virtual_redstone_wire:cable_magnifier`
+- Crafting: 1 Stick + 1 Glass Pane + 1 Redstone
+- Usage:
+  - While held, highlights every link around you: blue for the input, yellow for the output, red for the link path
+  - Right-click a block to read its coordinates and its redstone signal strength
+  - Sneak-right-click a block to open its link info panel
+
+## Undo and Redo
+
+- While holding any mod item in the main hand or the off hand, press `Ctrl+Z` to undo and `Ctrl+Y` to redo; both keybinds can be changed
+- Operation history is kept in client memory only and is cleared when you leave the game
+- Links removed in a batch by the Cable Cutter are undone or redone as a whole
 
 ## Operation History
 
-While holding the Cable Magnifier, press `Ctrl+A` to open the operation history screen and review the operations you can currently undo or redo:
+While holding the Cable Magnifier, press `Ctrl+A` to open the operation history screen; the keybind can be changed
 
-- Shows undoable and redoable operations in two columns (operation type and endpoint coordinates); scroll with the mouse wheel when the list overflows
-- Press `Ctrl+Z` / `Ctrl+Y` inside the screen to undo/redo directly; the page refreshes in real time and chat feedback is suppressed while it is open
-- Close with the button at the panel's top-right corner, `ESC`, or `Ctrl+A` again (keybinds can be changed in the Controls settings)
+## Redstone Behavior
 
-## Usage Tip
+- Virtual cables carry a redstone signal strength from 0 to 15
+- An input block reports the redstone signal at its own position
+- Redstone changes at the input show up at the output in real time
+- One-to-many broadcast and many-to-one merging are both supported, and the output side takes the highest incoming signal
+- A signal always travels along a link in one direction
+- The signal leaves the output block through the chosen face, so its direction is exact
 
-- Hold the Cable Magnifier in your left (off) hand while using the Virtual Cable or Cable Cutter in your right (main) hand: the magnifier keeps all links highlighted (blue input, yellow output, red path), so you can see the link layout while building or removing links
 
-# Runtime Files
+# Mod Configuration
 
-## Config Files
+## Client
 
-- Client config: `config/virtual_redstone_wire-client.toml` (in the game directory's config folder; chat feedback, undo/redo history limit and feedback toggle, adjustable in-game from the Mods menu; hover a config entry to see its description)
-- Server config: `<world folder>/serverconfig/virtual_redstone_wire-server.toml`
-  - Singleplayer/LAN: `saves/<save name>/serverconfig/`
-  - Dedicated server: `<server world folder>/serverconfig/` (e.g. `world/serverconfig/`)
-  - Contents: max link distance / magnifier render distance / sync change table size / operation & request logs; adjustable in-game from the Mods menu (owner-only)
+- Config file: `config/virtual_redstone_wire-client.toml`
 
-## Data Files
+| Option | Default | Range | Meaning |
+|:---:|:---:|:---:|:---:|
+| `enableChatFeedback` | `false` | `true` / `false` | Whether link operation results are reported in the chat |
+| `undoHistorySize` | `20` | `10` - `100` | Maximum number of entries kept in the undo stack and in the redo stack |
+| `undoRedoFeedback` | `true` | `true` / `false` | Whether undo and redo notifications are shown |
 
-- Link data is stored per-dimension (auto-saved, with a `.dat_old` backup kept in the same folder):
-  - Overworld: `<world folder>/data/virtual_redstone_wire_network.dat`
-  - Nether: `<world folder>/DIM-1/data/virtual_redstone_wire_network.dat`
-  - End: `<world folder>/DIM1/data/virtual_redstone_wire_network.dat`
-  - Other dimensions: `<world folder>/<dimension subfolder>/data/virtual_redstone_wire_network.dat`
+## Server
 
-## Log Files (in the world folder root, output-only)
+- Config file: `<world save>/serverconfig/virtual_redstone_wire-server.toml`
 
-- Operation log: `<world folder>/Virtual_Redstone_Wire-Operations.log` (add/del execution and rejection; with player/both split mode a `Virtual_Redstone_Wire-Operations_<player>.log` is also written)
-- Request log: `<world folder>/Virtual_Redstone_Wire-Requests.log` (debug level, raw requests with final status codes, disabled by default)
+| Option | Default | Range | Meaning |
+|:---:|:---:|:---:|:---:|
+| `maxLinkDistance` | `256` | `1` - `1024` | Maximum distance allowed for a single link, in blocks |
+| `magnifierRenderDistance` | `512` | `64` - `1024` | Maximum distance at which links are highlighted while you hold the Cable Magnifier, in blocks |
+| `networkChangeLogSize` | `200` | `200` - `1000` | Capacity of the recent-change table used for incremental sync |
+| `operationLogEnabled` | `true` | `true` / `false` | Whether every add or remove operation that was applied or rejected is recorded |
+| `operationLogSplit` | `total` | `total` / `both` / `player` | How the operation log is split into files: one combined file, the combined file together with per-player files, or per-player files only |
+| `operationLogFile` | `Virtual_Redstone_Wire-Operations.log` | Custom file name | File name of the operation log; with per-player files the player name is appended to the base name |
+| `requestLogEnabled` | `false` | `true` / `false` | Whether every received request is recorded verbatim together with its final status code; debug level |
+| `requestLogFile` | `Virtual_Redstone_Wire-Requests.log` | Custom file name | File name of the request log |
 
-# Tech Stack
 
-| Component | Version |
+# Mod Data
+
+## Link Data
+
+| World dimension | Data file |
 |:---:|:---:|
-| Minecraft | 1.20.1 |
-| Forge | 47.4.23 |
-| JDK | 17 |
-| Gradle | 8.14.3 |
-| ForgeGradle | 6.x |
-| Mapping | official |
-| Mod ID | virtual_redstone_wire |
+| Overworld | `<world save>/data/virtual_redstone_wire_network.dat` |
+| Nether | `<world save>/DIM-1/data/virtual_redstone_wire_network.dat` |
+| End | `<world save>/DIM1/data/virtual_redstone_wire_network.dat` |
 
-# Source Directory Structure
+## Log Data
 
-```
-src/main/java/com/virtualredstonewire/
-├── VirtualRedstoneWire.java          # Main mod class
-├── ClientSetup.java                  # Client initialization
-├── ServerEventHandler.java           # Server events (world load/save/unload/block update)
-├── RedstoneDiagnostics.java          # Redstone signal diagnostics (debug only)
-├── client/
-│   ├── ClientCableCache.java         # Client-side link cache (versioned, read-only, indexed)
-│   ├── CableFullSyncBuffer.java      # Chunked full/recatch-up response buffer (applied once complete)
-│   ├── CableInteractGate.java        # Press-edge gate for the three items' right click (no repeat while held)
-│   ├── CableClientQueue.java         # Operation queue (single in-flight)
-│   ├── CableClientEvents.java        # Full sync on connect/dimension change
-│   ├── CableUndoRedoManager.java     # Undo/redo (dual stacks, keybinds, history screen)
-│   ├── CableActionBarHud.java        # Signal popup above the hotbar
-│   ├── gui/CableInfoScreen.java      # Cable info GUI panel
-│   ├── gui/CableInfoScreenOpener.java
-│   ├── gui/CableUndoRedoHistoryScreen.java # Operation history screen (undoable/redoable)
-│   ├── gui/ClientConfigScreen.java   # Mods menu config index (config file list)
-│   ├── gui/ClientConfigSubScreen.java # Client config file sub-page
-│   ├── gui/ServerConfigSubScreen.java # Server config file sub-page (owner-only)
-│   ├── gui/ConfigLabels.java         # Config display-name translation
-│   ├── gui/ConfigScreenTarget.java   # Config response target dispatch
-│   ├── gui/ServerConfigResponseTarget.java # Config response receiver interface
-│   ├── gui/ConfigTooltips.java       # Config entry hover tooltip
-│   └── render/CableRenderer.java     # 3D rendering (tube beams + face dots + lines)
-├── commands/
-│   └── VRedTestCommand.java          # /vredtest diagnostics command
-├── config/
-│   ├── ServerConfig.java             # Server config (distance/change table/log)
-│   └── ClientConfig.java             # Client config (chat feedback/undo redo)
-├── data/
-│   ├── CableLink.java                # Link data model (render-only carrier)
-│   ├── CableNetwork.java             # Network graph (node index + stored signal query)
-│   ├── CableNode.java                # Topology node (toWho/fromWho adjacency)
-│   ├── CableNetworkManager.java      # Per-dimension network/counter/change table
-│   └── CableNetworkSavedData.java    # NBT persistence
-├── item/
-│   ├── VirtualCableItem.java         # Virtual cable (create/delete links, retain selection)
-│   ├── CableCutterItem.java          # Cable cutter (delete origin links only)
-│   └── CableMagnifierItem.java       # Magnifier (sneak: panel / right-click: signal)
-├── mixin/
-│   └── MixinLevel.java               # Overrides getSignal only (DBW stored-signal semantics)
-├── network/
-│   ├── CableNetworkChannel.java      # Network channel registration
-│   ├── CableProtocol.java            # Protocol constants/abbreviated keys/error codes
-│   ├── CableOpPacket.java            # Operation request (add/del/pull, JSON)
-│   ├── CableMsgPacket.java           # Message (d/f/r, JSON)
-│   ├── CableOpPacketHandler.java     # Server request processing and validation
-│   ├── CableServerQueue.java         # Server tick queue and conflict handling
-│   ├── CableChangeLog.java           # Dual logs (operation/request, optional)
-│   ├── CableInfoRequestPacket.java   # Magnifier signal query request
-│   ├── CableInfoResponsePacket.java  # Magnifier signal query response
-│   ├── CableServerConfigRequestPacket.java # Server config query/change request
-│   └── CableServerConfigResponsePacket.java # Server config query/change response
-└── registry/
-    ├── ModItems.java                 # Item registration
-    └── ModBlocks.java                # Block registration
-```
+- Operation log: `<world save>/Virtual_Redstone_Wire-Operations.log` and `<world save>/Virtual_Redstone_Wire-Operations_<player name>.log`
+- Request log: `<world save>/Virtual_Redstone_Wire-Requests.log`
 
-```
-src/main/java/com/virtualredstonewire/util/
-├── TooltipLines.java                 # Multi-line item tooltip helper
-├── FaceNames.java                    # Localized output-face name helper
-└── PressEdgeLatch.java               # Press-edge latch (fires once per hold)
-```
 
-```
-src/main/resources/
-├── META-INF/mods.toml
-├── mixins.virtual_redstone_wire.json    # Mixin configuration
-├── pack.mcmeta
-├── virtual_redstone_wire.png            # Mod Logo
-├── assets/virtual_redstone_wire/
-│   ├── lang/{en_us,zh_cn}.json
-│   ├── models/item/*.json
-│   └── textures/
-│       └── item/{virtual_cable,cable_cutter,cable_magnifier}.png
-└── data/virtual_redstone_wire/recipes/
-    ├── virtual_cable.json
-    ├── cable_cutter.json
-    └── cable_magnifier.json
-```
+# Supported Versions
 
-# Build & Run
+Minecraft 1.20.1 is the baseline version, and the other compatible versions are listed below:
 
-Make sure the environment meets these requirements:
+| Minecraft | Forge version | Mod file name suffix |
+|:---:|:---:|:---:|
+| 1.20 | 46.x | mc-1.20_1.20.1-forge |
+| 1.20.1 | 47.x | mc-1.20_1.20.1-forge |
+| 1.20.2 | 48.x | mc-1.20.2-forge |
+| 1.20.3 | 49.0.x | mc-1.20.3_1.20.4-forge |
+| 1.20.4 | 49.2.x | mc-1.20.3_1.20.4-forge |
+| 1.20.5 | Not supported | Not supported |
+| 1.20.6 | 50.2.x | mc-1.20.6-forge |
+
+
+# Development Build Environment
+
+## Baseline Version
 
 | Component | Requirement |
 |:---:|:---:|
-| JDK | 17 (Eclipse Temurin / Adoptium recommended) |
+| Java | JDK 17 |
 | Gradle | 8.14.3 |
-| Minecraft | 1.20.1 (Forge 47.4.23) |
+| Minecraft | 1.20.1 |
+| Mod loader | Forge 47.4.23 |
 
-Verify the environment:
+## Compatible Versions
 
-```bash
-java -version
-# Should show openjdk version "17.x.x"
+| Minecraft | Java | Gradle | Mod loader |
+|:---:|:---:|:---:|:---:|
+| 1.20 | Java 17 | 8.14.3 | Forge 46.0.14 |
+| 1.20.1 | Java 17 | 8.14.3 | Forge 47.4.23 |
+| 1.20.2 | Java 17 | 8.14.3 | Forge 48.1.0 |
+| 1.20.3 | Java 17 | 8.14.3 | Forge 49.0.2 |
+| 1.20.4 | Java 17 | 8.14.3 | Forge 49.2.8 |
+| 1.20.5 | Not supported | Not supported | Not supported |
+| 1.20.6 | Java 21 | 8.14.3 | Forge 50.2.0 |
 
-gradlew --version
-# Should show Gradle 8.14.3
-```
+## Build Scripts
 
-Build:
+| Command | Description |
+|:---:|:---:|
+| `python versions/build_version.py list` | List every adaptation target together with the environment versions it needs |
+| `python versions/build_version.py prework mc-1.20.2-forge` | Generate the working copy of that target |
+| `python versions/build_version.py build mc-1.20.2-forge` | Generate and build that target; the artifact stays in that target's working copy |
+| `python versions/build_version.py copy` | Check the built mod jars under each version directory and copy them all into release/ |
 
-```bash
-gradlew build
-# Output: build/libs/VirtualRedstoneWire-v<version>-forge-mc1.20.1.jar
-```
+Artifact naming rules:
+- File name: `VirtualRedstoneWire-v<mod version>-mc-<start MC version>_<end MC version>-<mod loader name>.jar`
+- When the start and the end version are identical, they are merged into a single segment
+- When one of the start and the end version is anonymous, that position is left empty and the underscore is kept
+- The start and the end version may not both be anonymous
 
-# Changelog
+For other development information, see the [developer documentation](./docs/developer/README.md)
 
-See [CHANGELOG.md](./CHANGELOG.md)
 
 # Contributing
 
-See [CONTRIBUTING_en-US.md](./CONTRIBUTING_en-US.md)
+See [CONTRIBUTING.md](./CONTRIBUTING.md)
+
 
 # License
 
 This project is open source under the [MIT License](./LICENSE).
+
 
 # Copyright
 
@@ -231,16 +190,14 @@ Copyright (c) 2026 JularDepick
 
 See the [COPYRIGHT file](./COPYRIGHT)
 
-# Development Reference
-
-This mod's development partially references the interaction effects and implementation logic of the Drive By Wire mod.
 
 # Looking for Collaboration
 
-- Missing multi-version Minecraft compatibility
-- Missing a proper item texture asset solution
+- A good item texture asset plan is still missing
+- Support for more versions is still missing; proposals and PRs are welcome
+
 
 # Related Links
 
-- CurseForge: https://www.curseforge.com/minecraft/mc-mods/virtual-redstone-wire
-- Modrinth: https://modrinth.com/mod/virtual-redstone-wire
+- CurseForge mod page: https://www.curseforge.com/minecraft/mc-mods/virtual-redstone-wire
+- Modrinth mod page: https://modrinth.com/mod/virtual-redstone-wire
