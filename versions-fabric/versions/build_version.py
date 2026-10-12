@@ -5,6 +5,7 @@ build_version.py - 1.20.x 多版本适配产物生成脚本
   list                列出全部适配目标
   prework <目标标识>   生成该目标的工作副本, 不构建
   build <目标标识>     生成该目标的工作副本并调用 Gradle 构建
+  jdk-build <JDK主版本> 依次构建清单中 jdk.version 首项等于该主版本的全部目标
   copy                检查各个目标目录下的构建产物模组 jar, 全部复制到 release/ 下
 
 位置:
@@ -78,14 +79,18 @@ build_version.py - 1.20.x 多版本适配产物生成脚本
   python versions/build_version.py prework mc-1.20.1-fabric
   python versions/build_version.py build mc-1.20.1-fabric
   python versions/build_version.py build mc-1.20.1-fabric --override-mc 1.20 --override-loader 0.16.14
+  python versions/build_version.py jdk-build 17
   python versions/build_version.py copy
 
 注意:
-  一次只处理一个目标: 不同目标要求不同主版本的 java, 而本脚本不切换 java, 所以没有批量构建;
-  list 与 copy 不涉及编译, 不受此限. 构建前取该目标 jdk.version 首项, 与当前 java 主版本比对,
-  不符则直接拒绝; 本脚本不切换 java, 不写入 org.gradle.java.home, 也不查找其他 JDK 路径.
+  一次只处理一个目标: 不同目标要求不同主版本的 java, 而本脚本不切换 java, 所以没有跨 java 版本
+  的批量构建; jdk-build 只批量构建同一 java 主版本的目标, 且仍是按清单顺序逐个依次构建(一次只
+  构建一个), 某个目标失败时继续构建其余目标, 最后汇总. list 与 copy 不涉及编译, 不受此限. 构建
+  前取该目标 jdk.version 首项, 与当前 java 主版本比对, 不符则直接拒绝; 本脚本不切换 java, 不写
+  入 org.gradle.java.home, 也不查找其他 JDK 路径.
   prework 与 build 开始时内置差异清单校验: 校验各目标 diff-baseline.json 的结构, id 与所在
-  目录名是否一致, 以及每条 add 的来源文件是否存在, 校验不通过则中止.
+  目录名是否一致, 以及每条 add 的来源文件是否存在, 校验不通过则中止. jdk-build 不做事前校验,
+  某个目标的差异清单问题按该目标构建失败处理, 不中断其余目标.
   构建时 Gradle 会写入工作目录之外的 Gradle 用户缓存, 这是 Loom 的固有行为, 本脚本
   不规避.
 """
@@ -750,6 +755,36 @@ def probe_entry(entry, args):
     return probe
 
 
+def build_one(entry, gradle_cmd, work_root=None):
+    """构建单个目标, 打印全过程日志, 返回 Gradle 的退出码
+
+    build 与 jdk-build 共用这一条构建路径(java 门禁 -> 准备工作副本 -> 调用 Gradle), 避免两处
+    的构建行为日后分叉. java 门禁不通过或准备工作副本失败时抛出 SystemExit, 由调用方决定是终止
+    整个命令还是记为该目标的失败.
+    """
+    # java 门禁先于准备工作副本: 版本不符时直接拒绝, 不触碰工作副本
+    log = []
+    require_java_version(entry, log)
+    print('  ' + log[-1])
+
+    log = []
+    work = prepare(entry, log, work_root)
+    for line in log:
+        print('  ' + line)
+
+    log = []
+    code = run_build(work, gradle_cmd, log)
+    print('  ' + log[-1])
+    if code != 0:
+        print('  构建失败(退出码 %d).' % code)
+        return code
+    for jar in find_artifacts(work):
+        print('  构建产物: %s' % jar.relative_to(REPO).as_posix())
+    if work_root is None:
+        print('  产物留在工作副本, 用 copy 子命令收集到 release/')
+    return 0
+
+
 def command_build(args, manifest):
     entry = find_target(manifest, args.target)
     require_diffs_ok(manifest)
@@ -761,28 +796,55 @@ def command_build(args, manifest):
         print('探针模式: 借用 %s 的差异清单与 java 要求, 编译对准 %s / %s-%s / API %s (工作副本落在 temp/probes/, 不属于真实目标)'
               % (borrowed, build_mc(entry), loader_name(entry), build_loader(entry), build_api(entry)))
     print('=== %s [%s] ===' % (target_id(entry), entry['tag']))
+    return build_one(entry, args.gradle_cmd, PROBE_ROOT if is_probe else None)
 
-    # java 门禁先于准备工作副本: 版本不符时直接拒绝, 不触碰工作副本
+
+def targets_for_jdk(manifest, major):
+    """按清单顺序挑出 jdk.version 首项等于该主版本号的全部目标"""
+    return [entry for entry in manifest if build_jdk(entry) == major]
+
+
+def command_jdk_build(args, manifest):
+    """依次构建清单中 java 主版本匹配的全部目标
+
+    一次只构建一个目标: 不同目标要求不同主版本的 java, 而本脚本不切换 java, 所以这里按清单顺序
+    逐个串行构建. java 门禁在批量开始前只检查一次, 避免逐个目标重复报同一件事, 且门禁先于准备
+    工作副本, 不符时不触碰任何工作副本. 单个目标失败不中断其余目标, 最后打印汇总表, 存在失败
+    目标时返回非 0. 不归集产物, 收集仍由 copy 负责.
+    """
+    major = args.jdk
+    selected = targets_for_jdk(manifest, major)
+    if not selected:
+        print('清单中没有 jdk.version 首项为 java %d 的目标, 无需构建' % major)
+        return 0
+    print('java %d 的目标共 %d 个, 按清单顺序依次构建: %s'
+          % (major, len(selected), ', '.join(target_id(entry) for entry in selected)))
+
+    # java 门禁与 build 同一口径(只检查不切换)
     log = []
-    require_java_version(entry, log)
+    require_java_version(selected[0], log)
     print('  ' + log[-1])
 
-    log = []
-    work = prepare(entry, log, PROBE_ROOT if is_probe else None)
-    for line in log:
-        print('  ' + line)
+    results = []
+    for entry in selected:
+        print('=== %s [%s] ===' % (target_id(entry), entry['tag']))
+        try:
+            code = build_one(entry, args.gradle_cmd)
+        except SystemExit as exc:
+            code, reason = 1, str(exc)
+        except Exception as exc:
+            # 单个目标的意外错误不应中断其余目标
+            code, reason = 1, '%s: %s' % (type(exc).__name__, exc)
+        else:
+            reason = '构建失败(退出码 %d)' % code if code != 0 else ''
+        results.append((target_id(entry), code == 0, reason))
 
-    log = []
-    code = run_build(work, args.gradle_cmd, log)
-    print('  ' + log[-1])
-    if code != 0:
-        print('  构建失败(退出码 %d).' % code)
-        return code
-    for jar in find_artifacts(work):
-        print('  构建产物: %s' % jar.relative_to(REPO).as_posix())
-    if not is_probe:
-        print('  产物留在工作副本, 用 copy 子命令收集到 release/')
-    return 0
+    failed = [item for item in results if not item[1]]
+    print('=== java %d 构建汇总 ===' % major)
+    for identifier, ok, reason in results:
+        print('  %-22s %s' % (identifier, '成功' if ok else '失败: %s' % reason))
+    print('  共 %d 个目标: 成功 %d, 失败 %d' % (len(results), len(results) - len(failed), len(failed)))
+    return 1 if failed else 0
 
 
 def command_copy(manifest):
@@ -832,10 +894,13 @@ def main():
     build.add_argument('--override-mc', help='探针: 临时把编译对准的 MC 版本改为该值')
     build.add_argument('--override-loader', help='探针: 临时把编译对准的加载器版本改为该值')
     build.add_argument('--override-api', help='探针: 临时把编译对准的 Fabric API 版本改为该值')
+    jdk_build = subparsers.add_parser('jdk-build', help='依次构建清单中 java 主版本匹配的全部目标')
+    jdk_build.add_argument('jdk', type=int, help='JDK 主版本号, 例如 17')
+    jdk_build.add_argument('--gradle-cmd', default='gradlew.bat', help='Gradle 命令, 默认 gradlew.bat')
     subparsers.add_parser('copy', help='收集各目标目录下的产物模组 jar 到 release/')
     args = parser.parse_args()
     if not args.command:
-        parser.error('需要指定子命令: list / prework / build / copy')
+        parser.error('需要指定子命令: list / prework / build / jdk-build / copy')
 
     manifest = load_manifest()
 
@@ -845,6 +910,8 @@ def main():
         return command_prework(args, manifest)
     if args.command == 'build':
         return command_build(args, manifest)
+    if args.command == 'jdk-build':
+        return command_jdk_build(args, manifest)
     if args.command == 'copy':
         return command_copy(manifest)
     raise SystemExit('未知子命令: %s' % args.command)

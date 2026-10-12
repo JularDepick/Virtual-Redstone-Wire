@@ -398,35 +398,35 @@ public class CableRenderer
         float b4y = ty + p1y * t - p2y * t;
         float b4z = tz + p1z * t - p2z * t;
 
-        consumer.vertex(matrix, a1x, a1y, a1z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, a2x, a2y, a2z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, b2x, b2y, b2z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, b1x, b1y, b1z).color(r, g, bl, alpha).endVertex();
+        consumer.addVertex(matrix, a1x, a1y, a1z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, a2x, a2y, a2z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, b2x, b2y, b2z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, b1x, b1y, b1z).setColor(r, g, bl, alpha);
 
-        consumer.vertex(matrix, a2x, a2y, a2z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, a3x, a3y, a3z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, b3x, b3y, b3z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, b2x, b2y, b2z).color(r, g, bl, alpha).endVertex();
+        consumer.addVertex(matrix, a2x, a2y, a2z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, a3x, a3y, a3z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, b3x, b3y, b3z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, b2x, b2y, b2z).setColor(r, g, bl, alpha);
 
-        consumer.vertex(matrix, a3x, a3y, a3z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, a4x, a4y, a4z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, b4x, b4y, b4z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, b3x, b3y, b3z).color(r, g, bl, alpha).endVertex();
+        consumer.addVertex(matrix, a3x, a3y, a3z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, a4x, a4y, a4z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, b4x, b4y, b4z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, b3x, b3y, b3z).setColor(r, g, bl, alpha);
 
-        consumer.vertex(matrix, a4x, a4y, a4z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, a1x, a1y, a1z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, b1x, b1y, b1z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, b4x, b4y, b4z).color(r, g, bl, alpha).endVertex();
+        consumer.addVertex(matrix, a4x, a4y, a4z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, a1x, a1y, a1z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, b1x, b1y, b1z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, b4x, b4y, b4z).setColor(r, g, bl, alpha);
 
-        consumer.vertex(matrix, a1x, a1y, a1z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, a4x, a4y, a4z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, a3x, a3y, a3z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, a2x, a2y, a2z).color(r, g, bl, alpha).endVertex();
+        consumer.addVertex(matrix, a1x, a1y, a1z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, a4x, a4y, a4z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, a3x, a3y, a3z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, a2x, a2y, a2z).setColor(r, g, bl, alpha);
 
-        consumer.vertex(matrix, b1x, b1y, b1z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, b2x, b2y, b2z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, b3x, b3y, b3z).color(r, g, bl, alpha).endVertex();
-        consumer.vertex(matrix, b4x, b4y, b4z).color(r, g, bl, alpha).endVertex();
+        consumer.addVertex(matrix, b1x, b1y, b1z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, b2x, b2y, b2z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, b3x, b3y, b3z).setColor(r, g, bl, alpha);
+        consumer.addVertex(matrix, b4x, b4y, b4z).setColor(r, g, bl, alpha);
     }
 
     private static void renderFaceDot(PoseStack poseStack,
@@ -449,9 +449,9 @@ public class CableRenderer
         float ux = (float) u.x, uy = (float) u.y, uz = (float) u.z;
         float vx = (float) v.x, vy = (float) v.y, vz = (float) v.z;
 
-        consumer.vertex(matrix, cx + ux * radius + vx * radius, cy + uy * radius + vy * radius, cz + uz * radius + vz * radius).color(r, g, b, a).endVertex();
-        consumer.vertex(matrix, cx - ux * radius + vx * radius, cy - uy * radius + vy * radius, cz - uz * radius + vz * radius).color(r, g, b, a).endVertex();
-        consumer.vertex(matrix, cx - ux * radius - vx * radius, cy - uy * radius - vy * radius, cz - uz * radius - vz * radius).color(r, g, b, a).endVertex();
-        consumer.vertex(matrix, cx + ux * radius - vx * radius, cy + uy * radius - vy * radius, cz + uz * radius - vz * radius).color(r, g, b, a).endVertex();
+        consumer.addVertex(matrix, cx + ux * radius + vx * radius, cy + uy * radius + vy * radius, cz + uz * radius + vz * radius).setColor(r, g, b, a);
+        consumer.addVertex(matrix, cx - ux * radius + vx * radius, cy - uy * radius + vy * radius, cz - uz * radius + vz * radius).setColor(r, g, b, a);
+        consumer.addVertex(matrix, cx - ux * radius - vx * radius, cy - uy * radius - vy * radius, cz - uz * radius - vz * radius).setColor(r, g, b, a);
+        consumer.addVertex(matrix, cx + ux * radius - vx * radius, cy + uy * radius - vy * radius, cz + uz * radius - vz * radius).setColor(r, g, b, a);
     }
 }
