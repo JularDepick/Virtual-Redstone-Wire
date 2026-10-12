@@ -1,0 +1,56 @@
+plugins {
+    id 'fabric-loom' version '1.10.5'
+}
+
+version = '1.0.0'
+group = 'com.virtualredstonewire'
+archivesBaseName = 'VirtualRedstoneWire'
+
+// 平台与版本单源化：mappings 与产物名共用 mcVersion
+def mcVersion = '1.20.1'
+// 编译对准的具体版本进 dependencies, 兼容谓词进 fabric.mod.json
+def mcRange = '1.20.1'
+def loaderVersion = '0.16.14'
+def loaderRange = '0.16.14'
+def fabricApiVersion = '0.92.12+1.20.1'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'Fabric'
+        url = 'https://maven.fabricmc.net/'
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${mcVersion}"
+    // 用 Mojang 官方映射：源码标识符与官方名一致，可与 Forge 侧基线保持同名
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${loaderVersion}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabricApiVersion}"
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') {
+        expand 'version': project.version,
+               'mcRange': mcRange,
+               'loaderRange': loaderRange,
+               'fabricApiVersion': fabricApiVersion
+    }
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(17)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 17
+    // javac 默认在 100 条错误处截断; 移植期需要一次看到全部待改点
+    options.compilerArgs += ['-Xmaxerrs', '10000']
+}
+
+tasks.named('remapJar') {
+    archiveFileName = "${archivesBaseName}-v${project.version}-mc-${mcVersion}-fabric.jar"
+}

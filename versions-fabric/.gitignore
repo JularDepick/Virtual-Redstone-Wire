@@ -1,0 +1,14 @@
+# 本文件只作用于 versions-fabric/ 下的内容, 属于 Fabric 侧独立工程自己的忽略规则
+# 这些规则不再写入仓库根目录的 .gitignore, 避免把本工程独有的约定混进全局规则
+
+# 构建产物
+build/
+
+# Gradle 状态
+.gradle/
+
+# 开发运行时目录(Minecraft 客户端与服务端)
+run/
+
+# 多版本兼容目录: 只有生成的工作副本是生成物
+versions/*/work/

@@ -1,0 +1,30 @@
+{
+    "schemaVersion": 1,
+    "id": "virtual_redstone_wire",
+    "version": "${version}",
+    "name": "Virtual Redstone Wire",
+    "description": "A Minecraft mod for long-distance redstone signal transmission that does not rely on physical redstone blocks, supporting one-to-one, one-to-many, and many-to-one connections.",
+    "authors": [
+        "JularDepick"
+    ],
+    "license": "MIT",
+    "icon": "virtual_redstone_wire.png",
+    "environment": "*",
+    "entrypoints": {
+        "main": [
+            "com.virtualredstonewire.VirtualRedstoneWire"
+        ],
+        "client": [
+            "com.virtualredstonewire.ClientSetup"
+        ]
+    },
+    "mixins": [
+        "mixins.virtual_redstone_wire.json"
+    ],
+    "depends": {
+        "fabricloader": "${loaderRange}",
+        "fabric-api": ">=${fabricApiVersion}",
+        "minecraft": "${mcRange}",
+        "java": ">=17"
+    }
+}

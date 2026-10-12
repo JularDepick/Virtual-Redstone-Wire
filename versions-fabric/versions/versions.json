@@ -1,0 +1,21 @@
+[
+    {
+        "id": "mc-1.20.1-fabric",
+        "tag": "baseline",
+        "mc": {
+            "version": ["1.20.1"],
+            "pack-format": 15
+        },
+        "mod-loader": {
+            "name": "fabric",
+            "version": ["0.16.14", "0.16.x"],
+            "api": ["0.92.12+1.20.1"]
+        },
+        "gradle": {
+            "version": ["8.14.3"]
+        },
+        "jdk": {
+            "version": ["17"]
+        }
+    }
+]

@@ -1,0 +1,6 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "virtual_redstone_wire:item/virtual_cable"
+  }
+}
