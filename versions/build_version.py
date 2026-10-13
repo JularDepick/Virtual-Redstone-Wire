@@ -29,7 +29,7 @@ build_version.py - 1.20.x 多版本适配产物生成脚本
   其余内容保持基线原样.
 
   产物名为 VirtualRedstoneWire-v<模组版本>-<id>.jar, 其中模组版本取自 build.gradle, id 即
-  目标标识, 例如 VirtualRedstoneWire-v1.0.0-mc-1.20.1-forge.jar.
+  目标标识, 例如 VirtualRedstoneWire-v1.1.0-alpha-mc-1.20.1-forge.jar.
 
 工作副本:
   先把仓库根的 src/ 完整复制到 versions/<目标标识>/work/, 再按该目标目录下的

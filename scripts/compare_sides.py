@@ -34,7 +34,7 @@ MOD_PACKAGE_PREFIX = "com/virtualredstonewire/"
 
 # 基线产物默认路径, 相对仓库根解析
 FORGE_JAR_DIR = "build/libs"
-FORGE_JAR_PATTERN = "VirtualRedstoneWire-v*-forge-mc1.20.1.jar"
+FORGE_JAR_PATTERN = "VirtualRedstoneWire-v*-mc-1.20.1-forge.jar"
 FABRIC_JAR_DIR = "versions-fabric/build/libs"
 FABRIC_JAR_PATTERN = "VirtualRedstoneWire-v*-mc-1.20.1-fabric.jar"
 

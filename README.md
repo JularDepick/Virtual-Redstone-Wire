@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire (虚拟红石线缆)
 
-[![Version](https://img.shields.io/badge/Version-1.0.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v1.0.0)
+[![Version](https://img.shields.io/badge/Version-1.1.0--alpha-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v1.1.0-alpha)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue)](./LICENSE)
 
@@ -24,9 +24,10 @@
 | 项 | 要求 |
 |:---:|:---:|
 | Minecraft | 1.20 - 1.21.8 |
-| 模组加载器 | Forge |
+| 模组加载器 | Forge / Fabric |
+| 前置模组 | Fabric 需要 Fabric API |
 
-> Minecraft游戏版本与Forge版本对照表见[支持的版本](#支持的版本)
+> Minecraft游戏版本与模组加载器版本对照表见[支持的版本](#支持的版本)
 
 ## 模组物品
 
@@ -114,38 +115,61 @@
 
 ## 日志数据
 
-- 操作日志: `<世界存档>/Virtual_Redstone_Wire-Operations.log` 和 `Virtual_Redstone_Wire-Operations_<玩家名称>.log`
+- 操作日志: `<世界存档>/Virtual_Redstone_Wire-Operations.log` 和 `<世界存档>/Virtual_Redstone_Wire-Operations_<玩家名称>.log`
 - 请求日志: `<世界存档>/Virtual_Redstone_Wire-Requests.log`
 
 
 # 支持的版本
 
-1.20.1 为基线版本,其它兼容版本如下:
+`mc-1.20.1-forge` 与 `mc-1.20.1-fabric` 是两侧的 1.20.1 基线产物,其余兼容版本如下:
+
+## Forge
 
 | Minecraft | Forge版本 | 模组文件名称后缀 |
 |:---:|:---:|:---:|
-| 1.20 | 46.x | mc-1.20_1.20.1-forge |
-| 1.20.1 | 47.x | mc-1.20_1.20.1-forge |
-| 1.20.2 | 48.x | mc-1.20.2-forge |
-| 1.20.3 | 49.0.x | mc-1.20.3_1.20.4-forge |
-| 1.20.4 | 49.2.x | mc-1.20.3_1.20.4-forge |
-| 1.20.5 | 不支持 | 不支持 |
-| 1.20.6 | 50.2.x | mc-1.20.6-forge |
-| 1.21 | 51.0.x | mc-1.21_1.21.1-forge |
-| 1.21.1 | 51.0.x | mc-1.21_1.21.1-forge |
-| 1.21.2 | 不支持 | 不支持 |
-| 1.21.3 | 53.1.x | mc-1.21.3-forge |
-| 1.21.4 | 54.1.x | mc-1.21.4-forge |
-| 1.21.5 | 55.1.x | mc-1.21.5-forge |
-| 1.21.6 | 56.0.x | mc-1.21.6-forge |
-| 1.21.7 | 57.0.x | mc-1.21.7-forge |
-| 1.21.8 | 58.1.x | mc-1.21.8-forge |
+| `1.20` | `46.x` | `mc-1.20_1.20.1-forge` |
+| **`1.20.1`** | **`47.x`** | **`mc-1.20.1-forge`** |
+| `1.20.1` | `47.x` | `mc-1.20_1.20.1-forge` |
+| `1.20.2` | `48.x` | `mc-1.20.2-forge` |
+| `1.20.3` | `49.0.x` | `mc-1.20.3_1.20.4-forge` |
+| `1.20.4` | `49.2.x` | `mc-1.20.3_1.20.4-forge` |
+| `1.20.6` | `50.2.x` | `mc-1.20.6-forge` |
+| `1.21` | `51.0.x` | `mc-1.21_1.21.1-forge` |
+| `1.21.1` | `51.0.x` | `mc-1.21_1.21.1-forge` |
+| `1.21.3` | `53.1.x` | `mc-1.21.3-forge` |
+| `1.21.4` | `54.1.x` | `mc-1.21.4-forge` |
+| `1.21.5` | `55.1.x` | `mc-1.21.5-forge` |
+| `1.21.6` | `56.0.x` | `mc-1.21.6-forge` |
+| `1.21.7` | `57.0.x` | `mc-1.21.7-forge` |
+| `1.21.8` | `58.1.x` | `mc-1.21.8-forge` |
 
-Fabric 侧基线版本:
+> Forge 不支持 1.20.5 和 1.21.2 两个游戏版本
 
-| Minecraft | Fabric 加载器 | 模组文件名称后缀 |
-|:---:|:---:|:---:|
-| 1.20.1 | 0.16.x | mc-1.20.1-fabric |
+## Fabric
+
+| Minecraft | Fabric版本 | Fabric API 版本 | 模组文件名称后缀 |
+|:---:|:---:|:---:|:---:|
+| `1.20` | `0.16.x` | `0.83.0+1.20` | `mc-1.20_1.20.1-fabric` |
+| **`1.20.1`** | **`0.16.x`** | **`0.92.12+1.20.1`** | **`mc-1.20.1-fabric`** |
+| `1.20.1` | `0.16.x` | `0.83.0+1.20` | `mc-1.20_1.20.1-fabric` |
+| `1.20.2` | `0.16.x` | `0.91.6+1.20.2` | `mc-1.20.2-fabric` |
+| `1.20.3` | `0.16.x` | `0.91.1+1.20.3` | `mc-1.20.3_1.20.4-fabric` |
+| `1.20.4` | `0.16.x` | `0.91.1+1.20.3` | `mc-1.20.3_1.20.4-fabric` |
+| `1.20.5` | `0.16.x` | `0.97.8+1.20.5` | `mc-1.20.5_1.20.6-fabric` |
+| `1.20.6` | `0.16.x` | `0.97.8+1.20.5` | `mc-1.20.5_1.20.6-fabric` |
+| `1.21` | `0.16.x` | `0.101.2+1.21` | `mc-1.21_1.21.1-fabric` |
+| `1.21.1` | `0.16.x` | `0.101.2+1.21` | `mc-1.21_1.21.1-fabric` |
+| `1.21.2` | `0.16.x` | `0.106.1+1.21.2` | `mc-1.21.2_1.21.3-fabric` |
+| `1.21.3` | `0.16.x` | `0.106.1+1.21.2` | `mc-1.21.2_1.21.3-fabric` |
+| `1.21.4` | `0.16.x` | `0.107.0+1.21.4` | `mc-1.21.4-fabric` |
+| `1.21.5` | `0.16.x` | `0.114.1+1.21.5` | `mc-1.21.5-fabric` |
+| `1.21.6` | `0.16.x` | `0.128.2+1.21.6` | `mc-1.21.6-fabric` |
+| `1.21.7` | `0.16.x` | `0.128.2+1.21.7` | `mc-1.21.7_1.21.8-fabric` |
+| `1.21.8` | `0.16.x` | `0.128.2+1.21.7` | `mc-1.21.7_1.21.8-fabric` |
+
+> 本模组暂不考虑兼容 NeoForge 模组加载器,玩家可以通过桥接模组在 NeoForge上加载本模组。或者你可以 [新建Issue](https://github.com/JularDepick/Virtual-Redstone-Wire/issues/new) 请求适配。
+
+> 本模组暂不考虑支持 26.x 游戏版本。但是你可以 [新建Issue](https://github.com/JularDepick/Virtual-Redstone-Wire/issues/new) 请求适配。
 
 
 # 多语言支持
@@ -159,45 +183,46 @@ Fabric 侧基线版本:
 
 # 开发构建环境
 
-## 基线版本
+## 环境版本
 
-| 组件 | 要求 |
+| 基线组件 | 版本 |
 |:---:|:---:|
-| Java | JDK17 |
-| Gradle | 8.14.3 |
-| Minecraft | 1.20.1 |
-| 模组加载器 | Forge 47.4.23 |
+| Java | `JDK17` |
+| Gradle | `8.14.3` |
+| Minecraft | `1.20.1` |
+| Forge | `47.4.23` |
+| Fabric | `0.16.14` |
+| Fabric API | `0.92.12+1.20.1` |
 
-## 兼容版本
-
-| Minecraft | Java | Gradle | 模组加载器 |
-|:---:|:---:|:---:|:---:|
-| 1.20 | Java 17 | 8.14.3 | Forge 46.0.14 |
-| 1.20.1 | Java 17 | 8.14.3 | Forge 47.4.23 |
-| 1.20.2 | Java 17 | 8.14.3 | Forge 48.1.0 |
-| 1.20.3 | Java 17 | 8.14.3 | Forge 49.0.2 |
-| 1.20.4 | Java 17 | 8.14.3 | Forge 49.2.8 |
-| 1.20.5 | 不支持 | 不支持 | 不支持 |
-| 1.20.6 | Java 21 | 8.14.3 | Forge 50.2.0 |
-| 1.21 | Java 21 | 8.14.3 | Forge 51.0.33 |
-| 1.21.1 | Java 21 | 8.14.3 | Forge 51.0.33 |
-| 1.21.2 | 不支持 | 不支持 | 不支持 |
-| 1.21.3 | Java 21 | 8.14.3 | Forge 53.1.0 |
-| 1.21.4 | Java 21 | 8.14.3 | Forge 54.1.0 |
-| 1.21.5 | Java 21 | 8.14.3 | Forge 55.1.0 |
-| 1.21.6 | Java 21 | 8.14.3 | Forge 56.0.0 |
-| 1.21.7 | Java 21 | 8.14.3 | Forge 57.0.3 |
-| 1.21.8 | Java 21 | 8.14.3 | Forge 58.1.0 |
+兼容版本的环境详见 [versions/versions.json](./versions/versions.json) 和 [versions-fabric/versions/versions.json](./versions-fabric/versions/versions.json)
 
 ## 构建脚本
 
-| 命令 | 说明 |
-|:---:|:---:|
-| `python versions/build_version.py list` | 列出全部适配目标与所需环境版本 |
-| `python versions/build_version.py prework mc-1.20.2-forge` | 生成该目标的工作副本 |
-| `python versions/build_version.py build mc-1.20.2-forge` | 生成并构建该目标, 产物留在该目标的工作副本 |
-| `python versions/build_version.py copy` | 检查各目标的构建产物模组 jar, 全部收集到发布产物目录 |
-| `cd versions-fabric && gradlew.bat build` | 构建 Fabric 侧基线产物, 产物落在该工程自己的构建产物目录 |
+```bash
+# 列出 Forge 侧全部适配目标与所需环境版本
+python versions/build_version.py list
+# 生成该 Forge 目标的工作副本
+python versions/build_version.py prework mc-1.20.2-forge
+# 生成并构建该 Forge 目标, 产物留在该目标的工作副本
+python versions/build_version.py build mc-1.20.2-forge
+# 按 java 主版本依次构建 Forge 侧匹配的全部目标
+python versions/build_version.py jdk-build 21
+# 检查 Forge 侧各目标的构建产物模组 jar, 全部收集到发布产物目录
+python versions/build_version.py copy
+
+# 构建 Fabric 侧基线产物, 产物落在该工程自己的构建产物目录
+cd versions-fabric && gradlew.bat build
+# 列出 Fabric 侧全部适配目标与所需环境版本
+python versions-fabric/versions/build_version.py list
+# 生成该 Fabric 目标的工作副本
+python versions-fabric/versions/build_version.py prework mc-1.20.2-fabric
+# 生成并构建该 Fabric 目标, 产物留在该目标的工作副本
+python versions-fabric/versions/build_version.py build mc-1.20.2-fabric
+# 按 java 主版本依次构建 Fabric 侧匹配的全部目标
+python versions-fabric/versions/build_version.py jdk-build 21
+# 检查 Fabric 侧各目标的构建产物模组 jar, 全部收集到发布产物目录
+python versions-fabric/versions/build_version.py copy
+```
 
 构建产物规范:
 - 文件名称: `VirtualRedstoneWire-v<模组版本>-mc-<起始MC版本>_<终止MC版本>-<模组加载器名称>.jar`

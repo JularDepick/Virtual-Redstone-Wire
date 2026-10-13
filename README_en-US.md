@@ -2,7 +2,7 @@
 
 # Virtual Redstone Wire
 
-[![Version](https://img.shields.io/badge/Version-1.0.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v1.0.0)
+[![Version](https://img.shields.io/badge/Version-1.1.0--alpha-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v1.1.0-alpha)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue)](./LICENSE)
 
@@ -24,9 +24,10 @@ A Minecraft mod for long-distance redstone signal transmission that does not rel
 | Item | Requirement |
 |:---:|:---:|
 | Minecraft | 1.20 - 1.21.8 |
-| Mod loader | Forge |
+| Mod loader | Forge / Fabric |
+| Prerequisite mod | Fabric API is required on the Fabric side |
 
-> For the mapping between Minecraft game versions and Forge versions, see [Supported Versions](#supported-versions)
+> For the mapping between Minecraft game versions and mod loader versions, see [Supported Versions](#supported-versions)
 
 ## Mod Items
 
@@ -120,32 +121,55 @@ While holding the Cable Magnifier, press `Ctrl+A` to open the operation history 
 
 # Supported Versions
 
-Minecraft 1.20.1 is the baseline version, and the other compatible versions are listed below:
+`mc-1.20.1-forge` and `mc-1.20.1-fabric` are the 1.20.1 baseline artifacts of the two sides; the other compatible versions are listed below:
+
+## Forge
 
 | Minecraft | Forge version | Mod file name suffix |
 |:---:|:---:|:---:|
-| 1.20 | 46.x | mc-1.20_1.20.1-forge |
-| 1.20.1 | 47.x | mc-1.20_1.20.1-forge |
-| 1.20.2 | 48.x | mc-1.20.2-forge |
-| 1.20.3 | 49.0.x | mc-1.20.3_1.20.4-forge |
-| 1.20.4 | 49.2.x | mc-1.20.3_1.20.4-forge |
-| 1.20.5 | Not supported | Not supported |
-| 1.20.6 | 50.2.x | mc-1.20.6-forge |
-| 1.21 | 51.0.x | mc-1.21_1.21.1-forge |
-| 1.21.1 | 51.0.x | mc-1.21_1.21.1-forge |
-| 1.21.2 | Not supported | Not supported |
-| 1.21.3 | 53.1.x | mc-1.21.3-forge |
-| 1.21.4 | 54.1.x | mc-1.21.4-forge |
-| 1.21.5 | 55.1.x | mc-1.21.5-forge |
-| 1.21.6 | 56.0.x | mc-1.21.6-forge |
-| 1.21.7 | 57.0.x | mc-1.21.7-forge |
-| 1.21.8 | 58.1.x | mc-1.21.8-forge |
+| `1.20` | `46.x` | `mc-1.20_1.20.1-forge` |
+| **`1.20.1`** | **`47.x`** | **`mc-1.20.1-forge`** |
+| `1.20.1` | `47.x` | `mc-1.20_1.20.1-forge` |
+| `1.20.2` | `48.x` | `mc-1.20.2-forge` |
+| `1.20.3` | `49.0.x` | `mc-1.20.3_1.20.4-forge` |
+| `1.20.4` | `49.2.x` | `mc-1.20.3_1.20.4-forge` |
+| `1.20.6` | `50.2.x` | `mc-1.20.6-forge` |
+| `1.21` | `51.0.x` | `mc-1.21_1.21.1-forge` |
+| `1.21.1` | `51.0.x` | `mc-1.21_1.21.1-forge` |
+| `1.21.3` | `53.1.x` | `mc-1.21.3-forge` |
+| `1.21.4` | `54.1.x` | `mc-1.21.4-forge` |
+| `1.21.5` | `55.1.x` | `mc-1.21.5-forge` |
+| `1.21.6` | `56.0.x` | `mc-1.21.6-forge` |
+| `1.21.7` | `57.0.x` | `mc-1.21.7-forge` |
+| `1.21.8` | `58.1.x` | `mc-1.21.8-forge` |
 
-Fabric baseline version:
+> Forge does not support Minecraft 1.20.5 and 1.21.2
 
-| Minecraft | Fabric loader | Mod file name suffix |
-|:---:|:---:|:---:|
-| 1.20.1 | 0.16.x | mc-1.20.1-fabric |
+## Fabric
+
+| Minecraft | Fabric version | Fabric API version | Mod file name suffix |
+|:---:|:---:|:---:|:---:|
+| `1.20` | `0.16.x` | `0.83.0+1.20` | `mc-1.20_1.20.1-fabric` |
+| **`1.20.1`** | **`0.16.x`** | **`0.92.12+1.20.1`** | **`mc-1.20.1-fabric`** |
+| `1.20.1` | `0.16.x` | `0.83.0+1.20` | `mc-1.20_1.20.1-fabric` |
+| `1.20.2` | `0.16.x` | `0.91.6+1.20.2` | `mc-1.20.2-fabric` |
+| `1.20.3` | `0.16.x` | `0.91.1+1.20.3` | `mc-1.20.3_1.20.4-fabric` |
+| `1.20.4` | `0.16.x` | `0.91.1+1.20.3` | `mc-1.20.3_1.20.4-fabric` |
+| `1.20.5` | `0.16.x` | `0.97.8+1.20.5` | `mc-1.20.5_1.20.6-fabric` |
+| `1.20.6` | `0.16.x` | `0.97.8+1.20.5` | `mc-1.20.5_1.20.6-fabric` |
+| `1.21` | `0.16.x` | `0.101.2+1.21` | `mc-1.21_1.21.1-fabric` |
+| `1.21.1` | `0.16.x` | `0.101.2+1.21` | `mc-1.21_1.21.1-fabric` |
+| `1.21.2` | `0.16.x` | `0.106.1+1.21.2` | `mc-1.21.2_1.21.3-fabric` |
+| `1.21.3` | `0.16.x` | `0.106.1+1.21.2` | `mc-1.21.2_1.21.3-fabric` |
+| `1.21.4` | `0.16.x` | `0.107.0+1.21.4` | `mc-1.21.4-fabric` |
+| `1.21.5` | `0.16.x` | `0.114.1+1.21.5` | `mc-1.21.5-fabric` |
+| `1.21.6` | `0.16.x` | `0.128.2+1.21.6` | `mc-1.21.6-fabric` |
+| `1.21.7` | `0.16.x` | `0.128.2+1.21.7` | `mc-1.21.7_1.21.8-fabric` |
+| `1.21.8` | `0.16.x` | `0.128.2+1.21.7` | `mc-1.21.7_1.21.8-fabric` |
+
+> This mod does not plan to support the NeoForge mod loader for now; you can load this mod on NeoForge through a bridge mod. Or you can [open a new issue](https://github.com/JularDepick/Virtual-Redstone-Wire/issues/new) to request support.
+
+> This mod does not plan to support 26.x game versions for now. But you can [open a new issue](https://github.com/JularDepick/Virtual-Redstone-Wire/issues/new) to request support.
 
 
 # Language Support
@@ -159,45 +183,46 @@ The languages currently supported by the mod are:
 
 # Development Build Environment
 
-## Baseline Version
+## Environment Versions
 
-| Component | Requirement |
+| Baseline component | Version |
 |:---:|:---:|
-| Java | JDK 17 |
-| Gradle | 8.14.3 |
-| Minecraft | 1.20.1 |
-| Mod loader | Forge 47.4.23 |
+| Java | `JDK17` |
+| Gradle | `8.14.3` |
+| Minecraft | `1.20.1` |
+| Forge | `47.4.23` |
+| Fabric | `0.16.14` |
+| Fabric API | `0.92.12+1.20.1` |
 
-## Compatible Versions
-
-| Minecraft | Java | Gradle | Mod loader |
-|:---:|:---:|:---:|:---:|
-| 1.20 | Java 17 | 8.14.3 | Forge 46.0.14 |
-| 1.20.1 | Java 17 | 8.14.3 | Forge 47.4.23 |
-| 1.20.2 | Java 17 | 8.14.3 | Forge 48.1.0 |
-| 1.20.3 | Java 17 | 8.14.3 | Forge 49.0.2 |
-| 1.20.4 | Java 17 | 8.14.3 | Forge 49.2.8 |
-| 1.20.5 | Not supported | Not supported | Not supported |
-| 1.20.6 | Java 21 | 8.14.3 | Forge 50.2.0 |
-| 1.21 | Java 21 | 8.14.3 | Forge 51.0.33 |
-| 1.21.1 | Java 21 | 8.14.3 | Forge 51.0.33 |
-| 1.21.2 | Not supported | Not supported | Not supported |
-| 1.21.3 | Java 21 | 8.14.3 | Forge 53.1.0 |
-| 1.21.4 | Java 21 | 8.14.3 | Forge 54.1.0 |
-| 1.21.5 | Java 21 | 8.14.3 | Forge 55.1.0 |
-| 1.21.6 | Java 21 | 8.14.3 | Forge 56.0.0 |
-| 1.21.7 | Java 21 | 8.14.3 | Forge 57.0.3 |
-| 1.21.8 | Java 21 | 8.14.3 | Forge 58.1.0 |
+The environments of the compatible versions are listed in [versions/versions.json](./versions/versions.json) and [versions-fabric/versions/versions.json](./versions-fabric/versions/versions.json)
 
 ## Build Scripts
 
-| Command | Description |
-|:---:|:---:|
-| `python versions/build_version.py list` | List every adaptation target together with the environment versions it needs |
-| `python versions/build_version.py prework mc-1.20.2-forge` | Generate the working copy of that target |
-| `python versions/build_version.py build mc-1.20.2-forge` | Generate and build that target; the artifact stays in that target's working copy |
-| `python versions/build_version.py copy` | Check the built mod jars under each target directory and collect them all into the release artifact directory |
-| `cd versions-fabric && gradlew.bat build` | Build the Fabric baseline artifact; it lands in that project's own build output directory |
+```bash
+# List every Forge-side adaptation target together with the environment versions it needs
+python versions/build_version.py list
+# Generate the working copy of that Forge target
+python versions/build_version.py prework mc-1.20.2-forge
+# Generate and build that Forge target; the artifact stays in that target's working copy
+python versions/build_version.py build mc-1.20.2-forge
+# Build every matching Forge-side target in sequence by Java major version
+python versions/build_version.py jdk-build 21
+# Check the built mod jars under each Forge-side target directory and collect them all into the release artifact directory
+python versions/build_version.py copy
+
+# Build the Fabric baseline artifact; it lands in that project's own build output directory
+cd versions-fabric && gradlew.bat build
+# List every Fabric-side adaptation target together with the environment versions it needs
+python versions-fabric/versions/build_version.py list
+# Generate the working copy of that Fabric target
+python versions-fabric/versions/build_version.py prework mc-1.20.2-fabric
+# Generate and build that Fabric target; the artifact stays in that target's working copy
+python versions-fabric/versions/build_version.py build mc-1.20.2-fabric
+# Build every matching Fabric-side target in sequence by Java major version
+python versions-fabric/versions/build_version.py jdk-build 21
+# Check the built mod jars under each Fabric-side target directory and collect them all into the release artifact directory
+python versions-fabric/versions/build_version.py copy
+```
 
 Artifact naming rules:
 - File name: `VirtualRedstoneWire-v<mod version>-mc-<start MC version>_<end MC version>-<mod loader name>.jar`

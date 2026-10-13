@@ -4,7 +4,7 @@ plugins {
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
 }
 
-version = '1.0.0'
+version = '1.1.0-alpha'
 group = 'com.virtualredstonewire'
 archivesBaseName = 'VirtualRedstoneWire'
 
@@ -99,8 +99,8 @@ dependencies {
 }
 
 jar {
-    // 产物命名：VirtualRedstoneWire-v<version>-forge-mc<mcVersion>.jar（v 前缀仅用于文件名，mods.toml 内部版本保持纯 semver）
-    archiveFileName = "${archivesBaseName}-v${project.version}-forge-mc${mcVersion}.jar"
+    // 产物命名：VirtualRedstoneWire-v<version>-mc-<mcVersion>-forge.jar（v 前缀仅用于文件名，mods.toml 内部版本保持纯 semver）
+    archiveFileName = "${archivesBaseName}-v${project.version}-mc-${mcVersion}-forge.jar"
     manifest {
         attributes([
             "Specification-Title"     : "Virtual Redstone Wire",

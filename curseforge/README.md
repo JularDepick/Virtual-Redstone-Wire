@@ -95,9 +95,9 @@ Virtual Redstone Wire lets you transmit redstone signals between blocks wireless
 
 ## Requirements
 
-- Minecraft 1.20 - 1.20.6
-- Forge 46.0.14 - 50.2.10
-- No other mod dependencies
+- Minecraft 1.20 - 1.21.8
+- Forge or Fabric
+- Fabric API is required on the Fabric side; the Forge side needs no other mod dependencies
 - Download the artifact that matches your Minecraft version; each file name declares the range it supports
 
 ---
@@ -163,7 +163,7 @@ The language setting is **client-side**: each player chooses their own language,
 
 - Chat feedback is disabled by default and can be enabled in the client config
 - Right-click actions trigger once when the button is pressed; holding the button down does not repeat them (release and press again to trigger again). They do not trigger when no block is targeted, and the left button triggers nothing
-- This mod is inspired by Drive-By-Wire cable logic and works in a vanilla world with no mod dependencies
+- This mod is inspired by Drive-By-Wire cable logic and works in a vanilla world; apart from Fabric API on the Fabric side, it has no other mod dependencies
 - **For version ranges this mod does not yet cover, or to report issues and request features, visit the GitHub repository**: [https://github.com/JularDepick/Virtual-Redstone-Wire](https://github.com/JularDepick/Virtual-Redstone-Wire)
 
 ---
@@ -268,9 +268,9 @@ The language setting is **client-side**: each player chooses their own language,
 
 ## 环境要求
 
-- Minecraft 1.20 - 1.20.6
-- Forge 46.0.14 - 50.2.10
-- 无其他模组依赖
+- Minecraft 1.20 - 1.21.8
+- Forge 或 Fabric
+- Fabric 需要 Fabric API; Forge 侧无其他模组依赖
 - 请下载与你的 Minecraft 版本匹配的产物, 每个文件名已声明其支持区间
 
 ---
@@ -336,5 +336,5 @@ maxLinkDistance = 512
 
 - 聊天反馈默认关闭，可在客户端配置中启用
 - 右键操作在按下时触发一次，按住不放不会重复触发（松开后可再次触发）；未瞄准方块时不触发；左键不触发任何操作
-- 本模组受 Drive-By-Wire 线缆逻辑启发，可在原版世界使用，无模组依赖
+- 本模组受 Drive-By-Wire 线缆逻辑启发，可在原版世界使用；除 Fabric 侧需要 Fabric API 外无其他模组依赖
 - **如需本模组尚未覆盖的版本区间, 反馈问题或建议功能, 请前往 GitHub 仓库**: [https://github.com/JularDepick/Virtual-Redstone-Wire](https://github.com/JularDepick/Virtual-Redstone-Wire)
