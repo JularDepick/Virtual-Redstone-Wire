@@ -2,7 +2,12 @@
 
 负责更新 alpha-runtime/runtime.config.json 的可变列表:
   jar_files_id, runtimes_list, runtimes_mods_dir, mc_list
-mc_map_runtime 与 mc_map_id 两个 Map 映射必须由 Agent 或人工手动维护, 本脚本只检查不填写。
+
+用法:
+  python update_config.py           走原有流程, 两个 Map 只校验不推导
+  python update_config.py --withmap 额外自动推导两个 Map(编辑距离相似度匹配)
+
+无论是否自动推导, 推导结果都必须由 Agent 或人工二次核验配置文件后再使用。
 
 硬校验(某侧缺失即拒绝):
   - 任一份 versions.json 缺失或解析失败
@@ -23,6 +28,9 @@ JAR_PREFIX = 'VirtualRedstoneWire-'
 JAR_SUFFIX = '.jar'
 # release_path 与 runtimes_path 已迁至 .env, 配置文件只保留空字段名
 ENV_KEYS = ('RELEASE_PATH', 'RUNTIMES_PATH')
+WITHMAP_FLAG = '--withmap'
+# 编辑距离归一化后的相似度阈值, 低于该值的匹配判为失败并列入待人工确认
+SIMILARITY_THRESHOLD = 0.50
 
 
 def log(msg):
@@ -96,6 +104,132 @@ def check_runtime(runtimes_path):
     return existing, []
 
 
+def load_targets(manifest, label):
+    """把一份清单展开成推导用目标列表: {id, mc:[版本区间], loader}"""
+    if not manifest.is_file():
+        raise FileNotFoundError('%s 侧清单缺失: %s' % (label, manifest))
+    data = load_json(manifest)
+    targets = []
+    for entry in data:
+        target_id = entry.get('id', '')
+        versions = entry.get('mc', {}).get('version', [])
+        loader = entry.get('mod-loader', {}).get('name', '')
+        if not target_id or not versions or not loader:
+            raise ValueError('%s 侧清单存在字段不完整的目标: %r' % (label, entry))
+        targets.append({'id': target_id, 'mc': list(versions), 'loader': loader})
+    return targets
+
+
+def levenshtein(a, b):
+    """编辑距离: 把 a 变成 b 所需的最少单字符编辑次数"""
+    if a == b:
+        return 0
+    if not a:
+        return len(b)
+    if not b:
+        return len(a)
+    previous = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        current = [i]
+        for j, cb in enumerate(b, 1):
+            current.append(min(previous[j] + 1,
+                               current[j - 1] + 1,
+                               previous[j - 1] + (ca != cb)))
+        previous = current
+    return previous[-1]
+
+
+def similarity(a, b):
+    """归一化相似度: 1 为完全相同, 0 为完全不同"""
+    longest = max(len(a), len(b))
+    if longest == 0:
+        return 1.0
+    return 1.0 - levenshtein(a, b) / longest
+
+
+def split_mc_key(mc):
+    """把 mc-1.20.1-forge 拆成 (mc 版本号, 加载器名)"""
+    target = mc[3:] if mc.startswith('mc-') else mc
+    for loader in ('forge', 'fabric'):
+        if target.endswith('-' + loader):
+            return target[:-(len(loader) + 1)], loader
+    return target, ''
+
+
+# 加载器名到运行时目录后缀的写法映射(目录用首字母大写)
+RUNTIME_SUFFIX = {'forge': 'Forge', 'fabric': 'Fabric'}
+
+
+def guess_runtime_dir(mc, runtimes_existing):
+    """按目录命名规则 <MC版本>-<Forge|Fabric> 猜实例目录, 取相似度最高者"""
+    version, loader = split_mc_key(mc)
+    suffix = RUNTIME_SUFFIX.get(loader, '')
+    expected = '%s-%s' % (version, suffix) if suffix else version
+    ranked = sorted(((similarity(expected, name), name) for name in runtimes_existing),
+                    key=lambda item: (-item[0], item[1]))
+    if not ranked:
+        return None, 0.0, expected
+    return ranked[0][1], ranked[0][0], expected
+
+
+def guess_jar_id(mc, targets, existing_ids):
+    """按清单推断能兼容 mc 的 jar id
+
+    规则: 对每个目标算出其 mc 版本区间与加载器名, mc 落在区间内且加载器名一致即候选;
+    区间长度越短(覆盖越精确)优先, 其次取 id 相似度高者。
+    """
+    version, loader = split_mc_key(mc)
+
+    def in_range(versions):
+        return version in versions
+
+    candidates = [t for t in targets
+                  if t.get('loader') == loader and in_range(t.get('mc', []))]
+    if not candidates:
+        return None, 0.0, expected_key(mc, loader)
+
+    def sort_key(t):
+        span = len(t.get('mc', []))
+        return (span, -similarity(mc, t['id']))
+
+    candidates.sort(key=sort_key)
+    best = candidates[0]
+    expected = expected_key(mc, loader)
+    score = similarity(mc, best['id']) if loader == best.get('loader') else 0.0
+    return best['id'], score, expected
+
+
+def expected_key(mc, loader):
+    return '%s-%s' % (mc, loader)
+
+
+def infer_maps(config, runtimes_existing, targets):
+    """自动推导两个 Map; 返回 (map_runtime, map_id, report 列表)
+
+    report 每项为 (mc, 字段, 值, 相似度, 是否低于阈值)
+    """
+    mc_list = config.get('mc_list', [])
+    existing_ids = set(config.get('jar_files_id', []))
+    map_runtime = {}
+    map_id = {}
+    report = []
+    for mc in mc_list:
+        name, score, _expected = guess_runtime_dir(mc, runtimes_existing)
+        map_runtime[mc] = name if name else ''
+        if not name:
+            report.append((mc, 'mc_map_runtime', '(无候选)', 0.0, True))
+        else:
+            report.append((mc, 'mc_map_runtime', name, score, score < SIMILARITY_THRESHOLD))
+
+        target_id, score_id, _exp = guess_jar_id(mc, targets, existing_ids)
+        map_id[mc] = [target_id] if target_id else []
+        if not target_id:
+            report.append((mc, 'mc_map_id', '(无候选)', 0.0, True))
+        else:
+            report.append((mc, 'mc_map_id', target_id, score_id, score_id < SIMILARITY_THRESHOLD))
+    return map_runtime, map_id, report
+
+
 def check_maps(config, runtimes_existing):
     """校验两个手动维护的 Map: key 必须落在 mc_list, 值必须存在"""
     problems = []
@@ -129,6 +263,13 @@ def check_maps(config, runtimes_existing):
 
 
 def main():
+    args = sys.argv[1:]
+    unknown = [a for a in args if a != WITHMAP_FLAG]
+    if unknown or args.count(WITHMAP_FLAG) > 1:
+        print('用法: python update_config.py [%s]' % WITHMAP_FLAG)
+        return 1
+    withmap = WITHMAP_FLAG in args
+
     if not CONFIG.is_file():
         print('配置文件缺失: %s' % CONFIG)
         return 1
@@ -191,10 +332,38 @@ def main():
     if missing_jars:
         failures.append('缺失构建产物 %d 个, 请先构建再更新配置' % len(missing_jars))
 
+    targets = []
+    if withmap:
+        log('模式: 原有流程 + 自动推导 Map 映射(编辑距离相似度)')
+        targets = load_targets(FORGE_MANIFEST, 'Forge') + load_targets(FABRIC_MANIFEST, 'Fabric')
+        log('用于推导的目标 %d 个(Forge %d / Fabric %d)'
+            % (len(targets), len(load_targets(FORGE_MANIFEST, 'Forge')),
+               len(load_targets(FABRIC_MANIFEST, 'Fabric'))))
+    else:
+        log('模式: 原有流程, 两个 Map 只校验不推导')
+
     map_problems = check_maps(config, runtimes_existing)
     log('Map 映射人工检查: %d 个问题' % len(map_problems))
     for problem in map_problems:
         log('  ' + problem)
+
+    infer_report = []
+    low_confidence = []
+    if withmap:
+        log('按编辑距离相似度推导 Map 映射(阈值 %.2f)' % SIMILARITY_THRESHOLD)
+        map_runtime, map_id, infer_report = infer_maps(config, runtimes_existing, targets)
+        for mc, field, value, score, low in infer_report:
+            mark = '  <-- 低于阈值, 需人工确认' if low else ''
+            log('  %-20s %-16s %-28s 相似度 %.3f%s' % (mc, field, str(value), score, mark))
+            if low:
+                low_confidence.append('%s 的 %s = %s(相似度 %.3f)'
+                                      % (mc, field, value, score))
+        config['mc_map_runtime'] = map_runtime
+        config['mc_map_id'] = map_id
+        map_problems = check_maps(config, runtimes_existing)
+        log('推导后复检 Map: %d 个问题' % len(map_problems))
+        for problem in map_problems:
+            log('  ' + problem)
 
     config['jar_files_id'] = all_ids
     config['runtimes_list'] = runtimes_existing
@@ -212,8 +381,14 @@ def main():
     print('runtimes_list     : %d 个实例' % len(runtimes_existing))
     print('runtimes_mods_dir : %s' % config['runtimes_mods_dir'])
     print('mc_list           : %d 个(手动维护, 未改动)' % len(config.get('mc_list', [])))
-    print('mc_map_runtime    : %d 项(手动维护, 未改动)' % len(config.get('mc_map_runtime', {})))
-    print('mc_map_id         : %d 项(手动维护, 未改动)' % len(config.get('mc_map_id', {})))
+    if withmap:
+        print('mc_map_runtime    : %d 项(本轮自动推导)' % len(config.get('mc_map_runtime', {})))
+        print('mc_map_id         : %d 项(本轮自动推导)' % len(config.get('mc_map_id', {})))
+        print('推导明细          : %d 条, 其中 %d 条低于相似度阈值'
+              % (len(infer_report), len(low_confidence)))
+    else:
+        print('mc_map_runtime    : %d 项(手动维护, 未改动)' % len(config.get('mc_map_runtime', {})))
+        print('mc_map_id         : %d 项(手动维护, 未改动)' % len(config.get('mc_map_id', {})))
     print('缺失构建产物      : %d 个' % len(missing_jars))
     print('Map 映射问题      : %d 个' % len(map_problems))
     print('其它失败          : %d 项' % len([f for f in failures if '缺失构建产物' not in f]))
@@ -222,6 +397,10 @@ def main():
         json.dump(config, f, ensure_ascii=False, indent=4)
         f.write('\n')
     log('已写回 ' + CONFIG.as_posix())
+
+    if withmap:
+        print()
+        print('自动推导结果必须经 Agent 或人工二次核验配置文件后再使用')
 
     if failures or map_problems:
         print()
