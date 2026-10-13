@@ -19,10 +19,7 @@ import java.util.Map;
 
 /**
  * 模组配置主页（Mods 菜单 -> Config 按钮）：黑色半透明背景，
- * 列出客户端/服务端配置文件条目，点击"配置"跳转对应子页。
- * 服务端配置条目仅存档拥有者可见（进入界面时预检权限）。
- * v1.0.0：未连接服务器时不再发送请求（原先在标题界面打开会因连接为 null 抛 NPE）；
- * 请求带回执标识并在超时后有限重试，避免一次丢包导致条目永久不显示。
+ * 未连接服务器时不再发送请求（原先在标题界面打开会因连接为 null 抛 NPE）；
  */
 public class ClientConfigScreen extends Screen implements ServerConfigResponseTarget
 {
@@ -64,7 +61,6 @@ public class ClientConfigScreen extends Screen implements ServerConfigResponseTa
         rebuild();
     }
 
-    /** v1.0.0：仅在存在服务器连接时发送预检请求（标题界面打开配置界面时连接为 null） */
     private void sendGet()
     {
         Minecraft mc = Minecraft.getInstance();
@@ -79,7 +75,7 @@ public class ClientConfigScreen extends Screen implements ServerConfigResponseTa
         CableNetworkChannel.sendToServer(packet);
     }
 
-    /** v1.0.0：请求超时有限重试，避免预检回执丢失后服务端条目永久不显示 */
+    /** 请求超时有限重试，避免预检回执丢失后服务端条目永久不显示 */
     private void maybeRetryGet()
     {
         if (!requestPending) return;
@@ -99,8 +95,7 @@ public class ClientConfigScreen extends Screen implements ServerConfigResponseTa
         this.minecraft.setScreen(this.parent);
     }
 
-    /** 黑色半透明背景 */
-    // 1.20.2 起 renderBackground 增加 mouseX/mouseY/partialTick 形参
+    /* renderBackground 增加 mouseX/mouseY/partialTick 形参*/
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
     {
@@ -141,8 +136,8 @@ public class ClientConfigScreen extends Screen implements ServerConfigResponseTa
                                        Map<String, String> values, boolean sync, String errorKey,
                                        boolean success)
     {
-        if (sync) return; // 主动同步只刷新本地 spec，主页条目无需变化
-        if (requestId != 0 && !sentRequestIds.contains(requestId)) return; // 非本次请求的回执
+        if (sync) return; /* 主动同步只刷新本地 spec，主页条目无需变化*/
+        if (requestId != 0 && !sentRequestIds.contains(requestId)) return; /* 非本次请求的回执*/
         this.requestPending = false;
         this.serverVisible = allowed;
         if (this.minecraft != null && this.minecraft.screen == this)
@@ -151,13 +146,11 @@ public class ClientConfigScreen extends Screen implements ServerConfigResponseTa
         }
     }
 
-    // ---------- 配置文件条目 ----------
-
     private final class ConfigList extends ContainerObjectSelectionList<FileRow>
     {
         ConfigList(int width, int height, int y0, int y1, int itemHeight)
         {
-            // 1.20.3 起 ContainerObjectSelectionList 不再接收底部坐标, 改由顶部与高度推出
+            /* ContainerObjectSelectionList 不再接收底部坐标, 改由顶部与高度推出*/
             super(ClientConfigScreen.this.minecraft, width, y1 - y0, y0, itemHeight);
         }
 

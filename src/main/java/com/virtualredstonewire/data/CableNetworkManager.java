@@ -17,22 +17,20 @@ public class CableNetworkManager
     private static final Map<ResourceKey<Level>, CableNetwork> NETWORKS = new HashMap<>();
     private static final Map<ResourceKey<Level>, Boolean> DIRTY_FLAGS = new HashMap<>();
 
-    // v0.3.0：每维度操作计数器与近期版本变更表（内存驻留，不落盘）
+    /* 每维度操作计数器与近期版本变更表（内存驻留，不落盘）*/
     private static final Map<ResourceKey<Level>, Long> VERSIONS = new HashMap<>();
     private static final Map<ResourceKey<Level>, List<ChangeRecord>> CHANGE_LOGS = new HashMap<>();
 
-    // v1.0.0：每维度最近一次成功操作摘要（协议拒绝响应 lx 字段的数据源，内存驻留，不落盘）
+    /* 每维度最近一次成功操作摘要（协议拒绝响应 lx 字段的数据源，内存驻留，不落盘）*/
     private static final Map<ResourceKey<Level>, LastOperation> LAST_OPERATIONS = new HashMap<>();
 
     /** 变更表记录（完整字段名，映射到通信响应时转换为缩写键名） */
     public record ChangeRecord(long version, String player, String op,
                                BlockPos from, BlockPos to, Direction face) {}
 
-    /** v1.0.0 最近一次成功操作摘要：版本号、记录者、操作类型、参与者集合与涉及链路 */
     public record LastOperation(long version, String player, String op,
                                 Set<String> participants, List<LinkEntry> links)
     {
-        /** 摘要内的单条链路 */
         public record LinkEntry(BlockPos from, BlockPos to, Direction face) {}
     }
 
@@ -44,7 +42,7 @@ public class CableNetworkManager
     public static void load(ResourceKey<Level> dimension, CableNetwork network)
     {
         NETWORKS.put(dimension, network);
-        // 计数器与变更表：进入该维度后重新计数（与存档数据维度隔离一致）
+        /* 计数器与变更表：进入该维度后重新计数（与存档数据维度隔离一致）*/
         resetVersion(dimension);
     }
 
@@ -73,8 +71,6 @@ public class CableNetworkManager
         DIRTY_FLAGS.remove(dimension);
         resetVersion(dimension);
     }
-
-    // ── v0.3.0 版本号与变更表 ──────────────────────
 
     public static long currentVersion(ResourceKey<Level> dimension)
     {
@@ -118,8 +114,6 @@ public class CableNetworkManager
         }
         return result;
     }
-
-    // ── v1.0.0 最近成功操作摘要 ────────────────────
 
     /** 成功执行一批操作后调用：覆盖该维度的最近成功操作摘要 */
     public static void recordLastOperation(ResourceKey<Level> dimension, LastOperation operation)

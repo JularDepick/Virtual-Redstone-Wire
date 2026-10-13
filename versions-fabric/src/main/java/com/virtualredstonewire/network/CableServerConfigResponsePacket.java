@@ -11,10 +11,6 @@ import java.util.Map;
 
 /**
  * 服务端配置读取/修改响应（服务端 -> 客户端，二进制）。
- * allowed 表示是否被授权访问服务端配置；message 为拒绝/错误原因；values 为配置键值集合。
- * v1.0.0：新增 success（本次操作是否成功，与权限分离）、requestId（回显请求标识，0 表示主动同步）、
- * sync（服务端配置变更后的广播同步，客户端据此刷新本地 spec 的渲染距离与预检值）、
- * errorKey（出错配置键，供客户端按该键的取值范围本地化提示）。
  */
 public class CableServerConfigResponsePacket implements CablePayload
 {
@@ -96,8 +92,8 @@ public class CableServerConfigResponsePacket implements CablePayload
     /** 客户端接收器：只在客户端注册，侧判定与回主线程包装都不再需要 */
     public void handle(net.minecraft.client.Minecraft client)
     {
-        // v1.0.0：服务端配置变更的主动同步：先写入本地 spec（渲染距离与本地预检即时生效），
-        // 再交给当前界面刷新显示
+        /* 服务端配置变更的主动同步：先写入本地 spec（渲染距离与本地预检即时生效），*/
+        /* 再交给当前界面刷新显示*/
         if (sync)
         {
             com.virtualredstonewire.config.ServerConfig.applyFromMap(values);

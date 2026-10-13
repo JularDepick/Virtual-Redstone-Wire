@@ -11,9 +11,6 @@ import net.minecraft.server.level.ServerLevel;
 
 /*
  * /vredtest 红石信号诊断命令（权限 2，OP 可用）
- * 在服务端搭建临时测试装置并逐项断言，输出 [VREDTEST] 日志。
- * Fabric 侧没有事件总线自动订阅，改由 CommandRegistrationCallback 在服务端构建命令表时注册，
- * 并由主入口显式调用 register()。
  */
 public class VRedTestCommand
 {

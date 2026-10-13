@@ -43,8 +43,8 @@ public class ServerEventHandler
             CableNetworkSavedData savedData = CableNetworkSavedData.get(serverLevel);
             CableNetwork network = savedData.getNetwork();
             CableNetworkManager.load(serverLevel.dimension(), network);
-            // 信号不落盘（DBW 语义）：存档加载后对所有输入源主动采集一次真实信号写入存储，
-            // 让已放置的红石灯等立即按网络状态点亮
+            /* 信号不落盘（DBW 语义）：存档加载后对所有输入源主动采集一次真实信号写入存储，*/
+            /* 让已放置的红石灯等立即按网络状态点亮*/
             for (BlockPos inputPos : network.getInputPositions())
             {
                 network.refreshSource(serverLevel, inputPos);
@@ -73,8 +73,8 @@ public class ServerEventHandler
         {
             ResourceKey<Level> dimension = serverLevel.dimension();
             CableNetworkManager.onDimensionUnload(dimension);
-            // v1.0.0：同时清掉该维度尚未处理的排队请求，避免常驻离线玩家引用，
-            // 以及单人同 JVM 切换存档时旧请求在新存档执行
+            /* 同时清掉该维度尚未处理的排队请求，避免常驻离线玩家引用，*/
+            /* 以及单人同 JVM 切换存档时旧请求在新存档执行*/
             CableServerQueue.clearPending(dimension);
             VirtualRedstoneWire.LOGGER.info("Cable network unloaded for dimension: {}",
                 dimension.location());
@@ -88,11 +88,11 @@ public class ServerEventHandler
 
         CableNetwork network = CableNetworkManager.get(serverLevel);
 
-        // DBW ServerEvents.onBlockUpdate 语义（与 DBW updateSource 一致，不做信号源排除）：
-        // 1) 事件方块本身
+        /* DBW ServerEvents.onBlockUpdate 语义（与 DBW updateSource 一致，不做信号源排除）：*/
+        /* 1) 事件方块本身*/
         updateSource(serverLevel, network, event.getPos());
-        // 2) 所有被通知的邻居（含信号源邻居，如红石块/拉杆/红石线——它们的信号
-        //    变化只以"邻居"身份到达输入节点，必须处理，否则拨拉杆/放红石块灯不亮）
+        /* 2) 所有被通知的邻居（含信号源邻居，如红石块/拉杆/红石线——它们的信号*/
+        /* 变化只以"邻居"身份到达输入节点，必须处理，否则拨拉杆/放红石块灯不亮）*/
         for (Direction dir : event.getNotifiedSides())
         {
             updateSource(serverLevel, network, event.getPos().relative(dir));
@@ -125,9 +125,5 @@ public class ServerEventHandler
         network.setSource(level, pos, CableNetwork.WORLD_CHANNEL, signal);
     }
 
-    /**
-     * v1.0.0：原先在此清空线缆起点选中态，但该静态表属于客户端状态，
-     * 由服务端登出事件清理只在单人同 JVM 下"碰巧"生效（分层泄漏）；
-     * 客户端已在 {@code CableClientEvents.onLoggingOut} 中自行清理，故此处移除。
-     */
+    /* 线缆起点选中态属客户端状态，由 CableClientEvents.onLoggingOut 自行清理，服务端不介入*/
 }

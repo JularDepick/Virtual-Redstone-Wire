@@ -14,11 +14,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * v0.3.0 链路服务端双日志（仅输出，不提供恢复功能）。
- * 操作日志（add/del，默认开启）：支持 TOTAL 合并 / PLAYER 按玩家分文件，
- * 行格式：[时间] @维度 $玩家$ 操作 {[from]->[to,面], ...} #结果。
- * 请求日志（调试级，默认关闭）：记录服务端收到的原始请求 JSON 与最终状态码，
- * 行格式：[时间] {原始请求 JSON} #状态码。
+ * 链路服务端双日志（仅输出，不提供恢复功能）。
  */
 public final class CableChangeLog
 {
@@ -88,7 +84,7 @@ public final class CableChangeLog
     }
 
     /**
-     * v1.0.0：文件名净化。玩家名与配置项值都直接参与日志路径拼装，
+     * 文件名净化。玩家名与配置项值都直接参与日志路径拼装，
      * 剥离路径分隔符与控制字符，避免写出世界目录（路径穿越）。
      */
     private static String sanitizeForFileName(String raw)
@@ -122,7 +118,7 @@ public final class CableChangeLog
             Path path = root.resolve(sanitizeForFileName(fileName)).normalize();
             if (!path.startsWith(root))
             {
-                // v1.0.0：解析后越出世界目录的路径直接拒绝写入
+                /* 解析后越出世界目录的路径直接拒绝写入*/
                 VirtualRedstoneWire.LOGGER.warn("Refused to write cable server log outside world dir: {}", fileName);
                 return;
             }

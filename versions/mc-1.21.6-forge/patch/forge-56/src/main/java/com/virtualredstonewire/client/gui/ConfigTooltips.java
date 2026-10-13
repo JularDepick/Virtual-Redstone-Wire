@@ -12,10 +12,6 @@ import java.util.ArrayList;
 
 /**
  * 配置项悬浮提示组件：行渲染阶段只登记悬停的配置键；
- * 待列表渲染完成后统一绘制，避免提示被后续行覆盖。
- * 提示文本取 config.virtual_redstone_wire.<字段名>.tooltip，
- * 缺失翻译（取值与键路径全等）时不绘制，不回退显示原始键名。
- * 提示自悬停起显示固定时长后自动隐藏，移出列表后再次悬停可重新显示。
  */
 public final class ConfigTooltips
 {
@@ -29,7 +25,6 @@ public final class ConfigTooltips
     private String activeKey;
     private long activeStart;
 
-    /** 帧开始：清除本帧的悬停登记 */
     public void beginFrame()
     {
         frameKey = null;
@@ -62,9 +57,8 @@ public final class ConfigTooltips
 
         List<FormattedCharSequence> lines = font.split(text, MAX_WIDTH);
         /*
-         * 1.21.6 起 renderTooltip 收 List<ClientTooltipComponent>, 需逐行包装;
+         * renderTooltip 收 List<ClientTooltipComponent>, 需逐行包装;
          * 第 5 形参(定位器)不可传 null: 该方法无条件调用 positionTooltip, 传 null 在真正显示提示时抛 NPE,
-         * 故显式给 DefaultTooltipPositioner.INSTANCE, 与原四参重载内部的默认定位行为一致;
          * 第 6 形参(纹理)可传 null, TooltipRenderUtil.getBackgroundSprite 显式判空回退.
          */
         List<ClientTooltipComponent> components = new ArrayList<>();

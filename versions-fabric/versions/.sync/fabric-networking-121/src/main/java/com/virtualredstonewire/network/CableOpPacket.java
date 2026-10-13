@@ -18,15 +18,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * v0.3.0 操作请求（客户端 -> 服务端）。
- * 载荷为 minified JSON 文本（缩写键名），由通道序列化传输。
- * op 为 add/del/pull；add/del 携带批量链路列表；pull 携带追回起点版本号。
+ * 操作请求（客户端 -> 服务端）。
  */
 public class CableOpPacket implements CablePayload
 {
     /** 本载荷的类型（通道标识） */
     public static final CustomPacketPayload.Type<CableOpPacket> TYPE =
-        // 1.21: ResourceLocation 公开构造器已移除, 两参构造改用静态工厂 fromNamespaceAndPath
+        /* ResourceLocation 公开构造器已移除, 两参构造改用静态工厂 fromNamespaceAndPath*/
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(VirtualRedstoneWire.MOD_ID, "op"));
 
     /** 本载荷的编解码器：写入缓冲 / 从缓冲重建 */

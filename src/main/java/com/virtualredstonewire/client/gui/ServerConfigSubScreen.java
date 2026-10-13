@@ -23,13 +23,7 @@ import java.util.Map;
 
 /**
  * 服务端配置文件子页（virtual_redstone_wire-server.toml 条目）：
- * 两列无边框表格——第一列显示名（语言翻译，超长自动换行），
- * 第二列 CycleButton/EditBox；EditBox 无确定按钮，修改暂存，
- * 点击底部"完成"统一提交生效（布尔/枚举点击即生效）。
- * 非拥有者仅显示拒绝原因，不渲染修改控件。
- * v1.0.0：未连接时不发送请求（避免标题界面打开时 NPE）；请求带回执标识并在超时后有限重试；
- * 权限（allowed）与本次操作结果（success）分离，失败回执不再清空面板；
- * 服务端配置变更广播（sync）会刷新非暂存项的显示值。
+ * 未连接时不发送请求（避免标题界面打开时 NPE）；请求带回执标识并在超时后有限重试；
  */
 public class ServerConfigSubScreen extends Screen implements ServerConfigResponseTarget
 {
@@ -82,7 +76,6 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
         rebuild();
     }
 
-    /** v1.0.0：仅在存在服务器连接时发送请求 */
     private void sendGet()
     {
         Minecraft mc = Minecraft.getInstance();
@@ -102,7 +95,7 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
         requestTime = System.currentTimeMillis();
     }
 
-    /** v1.0.0：请求超时有限重试，避免一次丢包导致子页永久停留在"加载中" */
+    /** 请求超时有限重试，避免一次丢包导致子页永久停留在"加载中" */
     private void maybeRetryGet()
     {
         if (!requestPending) return;
@@ -126,7 +119,6 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
         this.minecraft.setScreen(this.parent);
     }
 
-    /** 黑色半透明背景 */
     @Override
     public void renderBackground(GuiGraphics guiGraphics)
     {
@@ -146,7 +138,7 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
                 String value = entry.getValue();
                 if (isHiddenKey(key))
                 {
-                    continue; // 文件名不允许在面板中配置（配置文件手动管理）
+                    continue; /* 文件名不允许在面板中配置（配置文件手动管理）*/
                 }
                 if (isBooleanKey(key))
                 {
@@ -221,7 +213,7 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
                 }
                 catch (NumberFormatException e)
                 {
-                    continue; // 非数字输入：跳过不提交
+                    continue; /* 非数字输入：跳过不提交*/
                 }
             }
             sendSet(key, value);
@@ -235,7 +227,7 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
     {
         if ("message.virtual_redstone_wire.config_range".equals(message))
         {
-            // v1.0.0：按服务端回执的出错键取范围（不再取 values 的第一个键）
+            /* 按服务端回执的出错键取范围（不再取 values 的第一个键）*/
             int[] range = errorKey == null ? null : NUMERIC_RANGES.get(errorKey);
             if (range != null)
             {
@@ -279,7 +271,7 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
     {
         if (sync)
         {
-            // v1.0.0：服务端配置变更广播：更新非暂存项；无暂存修改时重建行以反映新值
+            /* 服务端配置变更广播：更新非暂存项；无暂存修改时重建行以反映新值*/
             if (values != null)
             {
                 for (Map.Entry<String, String> e : values.entrySet())
@@ -293,7 +285,7 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
             }
             return;
         }
-        if (requestId != 0 && !sentRequestIds.contains(requestId)) return; // 非本次请求的回执
+        if (requestId != 0 && !sentRequestIds.contains(requestId)) return; /* 非本次请求的回执*/
         requestPending = false;
         this.allowed = allowed;
         this.lastSuccess = success;
@@ -310,8 +302,6 @@ public class ServerConfigSubScreen extends Screen implements ServerConfigRespons
             rebuild();
         }
     }
-
-    // ---------- 滚动条目 ----------
 
     private final class ConfigList extends ContainerObjectSelectionList<Row>
     {

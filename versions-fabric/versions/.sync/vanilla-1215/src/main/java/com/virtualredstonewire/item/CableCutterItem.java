@@ -14,7 +14,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-// 1.21.5 起提示行收集改为 Consumer 形式, 并新增 TooltipDisplay 形参
+/* 提示行收集改为 Consumer 形式, 并新增 TooltipDisplay 形参*/
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -52,14 +52,14 @@ public class CableCutterItem extends Item
 
         if (level.isClientSide)
         {
-            // v1.0.0：缓存内容不属于当前维度时（换维度守卫最长 1 tick 的窗口）不提交删除，
-            // 避免拿他维度缓存的坐标当成本维度的删除目标
+            /* 缓存内容不属于当前维度时（换维度守卫最长 1 tick 的窗口）不提交删除，*/
+            /* 避免拿他维度缓存的坐标当成本维度的删除目标*/
             if (!ClientCableCache.isCurrentFor(level))
             {
                 return InteractionResult.PASS;
             }
 
-            // v0.3.0：剪刀转换为删除该起点全部出链的单个 del 批量请求，加入任务队列
+            /* 剪刀转换为删除该起点全部出链的单个 del 批量请求，加入任务队列*/
             List<CableOpPacket.Link> batch = new ArrayList<>();
             for (CableLink link : ClientCableCache.getLinks())
             {
@@ -77,7 +77,7 @@ public class CableCutterItem extends Item
             }
             if (batch.size() > CableProtocol.BATCH_LIMIT)
             {
-                // v1.0.0：超批量不再静默返回（原实现无任何提示，玩家会以为已经切断）
+                /* 超批量不再静默返回（原实现无任何提示，玩家会以为已经切断）*/
                 if (ClientConfig.enableChatFeedback.get())
                 {
                     player.displayClientMessage(
@@ -90,8 +90,8 @@ public class CableCutterItem extends Item
             CableClientQueue.enqueue(
                 CableOpPacket.del(batch, level.dimension(), player.getName().getString()));
 
-            // v1.0.0：结果反馈改由服务端确认后的广播驱动（CableClientQueue 的批量汇总提示），
-            // 不再在发送前就提示"已切断"（服务端可能拒绝，届时提示会与事实相反）
+            /* 结果反馈改由服务端确认后的广播驱动（CableClientQueue 的批量汇总提示），*/
+            /* 不再在发送前就提示"已切断"（服务端可能拒绝，届时提示会与事实相反）*/
             return InteractionResult.SUCCESS;
         }
 
@@ -99,10 +99,8 @@ public class CableCutterItem extends Item
     }
 
     /*
-     * 1.21.5 适配: appendHoverText 形参换代。
+     * 适配: appendHoverText 形参换代。
      * 第二形参仍为 Item.TooltipContext, 新增 TooltipDisplay 形参,
-     * 提示行的收集由 List<Component> 改为 Consumer<Component>,
-     * 因此 TooltipLines 增补 Consumer 形式的重载。
      */
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context,

@@ -14,7 +14,7 @@ import net.minecraft.world.item.Item;
 import java.util.function.Function;
 
 /*
- * 1.21 适配: ResourceLocation 的公开构造器被移除,
+ * 适配: ResourceLocation 的公开构造器被移除,
  * 命名空间加路径两参构造改为静态工厂 ResourceLocation.fromNamespaceAndPath。
  */
 public class ModItems

@@ -13,13 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * v0.5.2 撤销/重做历史窗口页。
- * 手持放大镜时按 Ctrl+A 打开（打开即释放鼠标，可点击交互）；
- * 退出方式：面板右上角关闭按钮、ESC、再次 Ctrl+A。
- * 固定全屏面板、两列固定列宽、条目文本超出列宽自动换行；
- * 标题与表头水平居中，双列列表整体支持鼠标滚轮滚动。
- * 只读读取历史栈快照渲染，不修改历史。
- * 细节见 docs/v0.5.2-撤销与重做历史可视化机制与规范.md。
+ * 撤销/重做历史窗口页。
  */
 public class CableUndoRedoHistoryScreen extends Screen
 {
@@ -51,7 +45,7 @@ public class CableUndoRedoHistoryScreen extends Screen
         super(Component.translatable("screen.virtual_redstone_wire.history_title"));
     }
 
-    /** v1.0.0：关闭按钮命中框在 init 中确定，避免首帧渲染前命中框残留在 (0,0) */
+    /** 关闭按钮命中框在 init 中确定，避免首帧渲染前命中框残留在 (0,0) */
     @Override
     protected void init()
     {
@@ -70,9 +64,8 @@ public class CableUndoRedoHistoryScreen extends Screen
         int pw = Math.max(80, this.width - MARGIN * 2);
         int ph = Math.max(40, this.height - MARGIN * 2);
 
-        // 面板主体背景（直接绘制，避免依赖背景回调导致主体透明）
+        /* 面板主体背景（直接绘制，避免依赖背景回调导致主体透明）*/
         g.fill(px, py, px + pw, py + ph, BG_COLOR);
-        // 头部与边框
         g.fill(px, py, px + pw, py + HEADER_HEIGHT, HEADER_COLOR);
         g.drawCenteredString(this.font, this.title, px + pw / 2, py + 4, TITLE_COLOR);
         g.fill(px, py + HEADER_HEIGHT, px + pw, py + HEADER_HEIGHT + 1, DIVIDER_COLOR);
@@ -81,7 +74,6 @@ public class CableUndoRedoHistoryScreen extends Screen
         g.fill(px, py, px + 1, py + ph, BORDER_COLOR);
         g.fill(px + pw - 1, py, px + pw, py + ph, BORDER_COLOR);
 
-        // 右上角关闭按钮
         closeX = px + pw - CLOSE_SIZE - 4;
         closeY = py + 4;
         boolean hoveringClose = mouseX >= closeX && mouseX < closeX + CLOSE_SIZE
@@ -89,7 +81,7 @@ public class CableUndoRedoHistoryScreen extends Screen
         g.drawString(this.font, "X", closeX, closeY,
             hoveringClose ? CLOSE_HOVER_COLOR : CLOSE_COLOR);
 
-        // 两列固定列宽（面板内宽等分）
+        /* 两列固定列宽（面板内宽等分）*/
         int colW = Math.max(40, (pw - PADDING * 2 - COL_GAP) / 2);
         int colX1 = px + PADDING;
         int colX2 = colX1 + colW + COL_GAP;
@@ -104,7 +96,7 @@ public class CableUndoRedoHistoryScreen extends Screen
         List<List<String>> redoLines = wrapAll(
             buildLines(CableUndoRedoManager.getRedoSnapshot()), colW);
 
-        // 双列整体滚动：以较高一列为准计算滚动范围
+        /* 双列整体滚动：以较高一列为准计算滚动范围*/
         int viewH = Math.max(1, listBottom - listTop);
         int contentH = Math.max(rowCount(undoLines), rowCount(redoLines)) * LINE_HEIGHT;
         maxScroll = Math.max(0, contentH - viewH);
@@ -118,7 +110,7 @@ public class CableUndoRedoHistoryScreen extends Screen
             REDO_TITLE_COLOR, redoLines, emptyText);
     }
 
-    // 1.20.2 起 mouseScrolled 增加 scrollX 形参
+    /* mouseScrolled 增加 scrollX 形参*/
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY)
     {
@@ -189,7 +181,6 @@ public class CableUndoRedoHistoryScreen extends Screen
         g.disableScissor();
     }
 
-    /** 折行全部条目，返回每条目对应的多行结果 */
     private List<List<String>> wrapAll(List<String> entries, int maxWidth)
     {
         List<List<String>> result = new ArrayList<>();
@@ -200,7 +191,6 @@ public class CableUndoRedoHistoryScreen extends Screen
         return result;
     }
 
-    /** 统计折行后的总行数 */
     private static int rowCount(List<List<String>> wrapped)
     {
         int rows = 0;
@@ -248,7 +238,7 @@ public class CableUndoRedoHistoryScreen extends Screen
             String type = CableProtocol.OP_ADD.equals(p.op)
                 ? Component.translatable("message.virtual_redstone_wire.op_add").getString()
                 : Component.translatable("message.virtual_redstone_wire.op_del").getString();
-            // v1.0.0：条目所属维度与缓存维度不一致时在行尾标注，说明该条目为何不可回放
+            /* 条目所属维度与缓存维度不一致时在行尾标注，说明该条目为何不可回放*/
             String dimSuffix = p.dimension != null
                 && !p.dimension.equals(com.virtualredstonewire.client.ClientCableCache.getDimension())
                 ? " @" + p.dimension : "";

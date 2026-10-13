@@ -5,17 +5,15 @@ import java.util.Map;
 
 /*
  * 服务端配置：字段名、默认值与取值范围与 Forge 侧基线一一对应。
- * Forge 侧用 ForgeConfigSpec 描述并写 TOML；Fabric 侧改用同包自建的 ConfigSpec，
- * 因此平台无关的调用方（ServerConfig.maxLinkDistance.get() 这类）一行都不用改。
  */
 public class ServerConfig extends ConfigSpec
 {
     /** 操作日志文件分割模式（配置值序列化为小写 total/both/player） */
     public enum OperationLogSplit
     {
-        TOTAL,  // 全部玩家合并写入同一文件
-        BOTH,   // 同时写合并文件与按玩家分文件
-        PLAYER  // 仅按玩家名称分文件
+        TOTAL,  /* 全部玩家合并写入同一文件*/
+        BOTH,   /* 同时写合并文件与按玩家分文件*/
+        PLAYER  /* 仅按玩家名称分文件*/
     }
 
     public static final ServerConfig INSTANCE = new ServerConfig();
@@ -53,7 +51,7 @@ public class ServerConfig extends ConfigSpec
     }
 
     /**
-     * v1.0.0：把服务端广播来的配置值写入本进程的服务端配置（客户端用于渲染距离与本地预检）。
+     * 把服务端广播来的配置值写入本进程的服务端配置（客户端用于渲染距离与本地预检）。
      * 只改内存值，不写客户端本地文件。未知键、非法数值与越界值一律忽略。
      */
     public static void applyFromMap(Map<String, String> values)
@@ -88,7 +86,7 @@ public class ServerConfig extends ConfigSpec
                         break;
                     case "operationLogFile":
                     case "requestLogFile":
-                        // 文件名项不下发（面板不开放配置），忽略
+                        /* 文件名项不下发（面板不开放配置），忽略*/
                         break;
                     default:
                         break;
@@ -96,7 +94,7 @@ public class ServerConfig extends ConfigSpec
             }
             catch (RuntimeException ignored)
             {
-                // 单个键异常不影响其余键
+                /* 单个键异常不影响其余键*/
             }
         }
     }

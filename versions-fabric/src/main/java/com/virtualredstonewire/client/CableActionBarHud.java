@@ -9,19 +9,12 @@ import net.minecraft.network.chat.Component;
 
 /**
  * 快捷栏上方飘浮提示（放大镜信号强度等）。
- * 自定义渲染：贴近快捷栏、位于物品名称提示下方并与之间隔相接（不重叠）。
- * 显示时长 2 秒后自动消失。
- * Fabric 侧没有按原版叠加层细分的渲染事件, 改用 HudRenderCallback,
- * 它在整个 HUD 绘制完成后触发, 对本提示的层叠位置无影响。
  */
 public class CableActionBarHud
 {
     private static final long DURATION_MS = 2000;
     /**
      * 提示文本行顶部距屏幕底部的像素数（缩放后像素）。
-     * 原版物品名称高亮框下沿随模式变化：生存模式为 height-48，创造模式为 height-35；
-     * 快捷栏顶端为 height-22。本提示背景框取 [height-34, height-22)，
-     * 即紧贴快捷栏上方，且不与两种模式下的物品名称框重叠。
      */
     private static final int TEXT_TOP_FROM_BOTTOM = 32;
 
@@ -45,7 +38,7 @@ public class CableActionBarHud
 
     private static void render(GuiGraphics g)
     {
-        // 历史窗口页打开时不渲染本提示，避免遮挡窗口页
+        /* 历史窗口页打开时不渲染本提示，避免遮挡窗口页*/
         if (Minecraft.getInstance().screen instanceof CableUndoRedoHistoryScreen) return;
         if (text == null || System.currentTimeMillis() > expireAt)
         {

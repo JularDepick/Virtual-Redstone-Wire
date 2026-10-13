@@ -23,13 +23,11 @@ import java.util.Map;
 import java.util.UUID;
 
 /*
- * 1.21.2 适配: Entity/Player 的 sendSystemMessage 被移除(不是新增重载, 是彻底消失),
- * 聊天栏反馈改用 displayClientMessage(Component, boolean overlay), overlay 取 false
- * 表示进聊天栏而非快捷栏上方飘浮, 与原 sendSystemMessage 的落点一致。
+ * 适配: Entity/Player 的 sendSystemMessage 被移除(不是新增重载, 是彻底消失),
  */
 public class VirtualCableItem extends Item
 {
-    /** 起点选中态（v1.0.0：带所属维度，避免换维度后残留被渲染或误用） */
+    /** 起点选中态（带所属维度，避免换维度后残留被渲染或误用） */
     private record Selection(String dimension, BlockPos pos) {}
 
     private static final Map<UUID, Selection> SELECTED_INPUTS = new HashMap<>();
@@ -115,7 +113,7 @@ public class VirtualCableItem extends Item
                 return InteractionResult.PASS;
             }
 
-            // v0.3.0：本地 422 类预检（客户端先行校验，服务端兜底）
+            /* 本地 422 类预检（客户端先行校验，服务端兜底）*/
             double maxDist = ServerConfig.maxLinkDistance.get();
             if (Math.sqrt(sel.distSqr(clickedPos)) > maxDist)
             {
@@ -132,14 +130,14 @@ public class VirtualCableItem extends Item
                 return InteractionResult.PASS;
             }
 
-            // v1.0.0：缓存内容不属于当前维度时（换维度守卫最长 1 tick 的窗口）不提交操作，
-            // 避免用他维度缓存把 add 判成 del（或反之）
+            /* 缓存内容不属于当前维度时（换维度守卫最长 1 tick 的窗口）不提交操作，*/
+            /* 避免用他维度缓存把 add 判成 del（或反之）*/
             if (!ClientCableCache.isCurrentFor(level))
             {
                 return InteractionResult.PASS;
             }
 
-            // 意图转换：按本地缓存决定 add/del，加入任务队列（不对缓存执行操作）
+            /* 意图转换：按本地缓存决定 add/del，加入任务队列（不对缓存执行操作）*/
             boolean exists = ClientCableCache.hasLink(sel, clickedPos, clickedFace);
             CableOpPacket.Link link = new CableOpPacket.Link(
                 sel.getX(), sel.getY(), sel.getZ(),
@@ -155,7 +153,7 @@ public class VirtualCableItem extends Item
         return InteractionResult.PASS;
     }
 
-    // 1.20.5 起第二形参由 Level 改为 Item.TooltipContext（本模组提示走 TooltipLines, 不使用该上下文）
+    /* 第二形参由 Level 改为 Item.TooltipContext（本模组提示走 TooltipLines, 不使用该上下文）*/
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context,
                                  List<Component> tooltip, TooltipFlag flag)

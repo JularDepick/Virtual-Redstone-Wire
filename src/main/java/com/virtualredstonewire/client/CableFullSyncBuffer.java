@@ -6,11 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * v1.0.0 全量/追回响应分片缓冲（客户端）。
- * 服务端把较大的响应拆成多片（报文 ci 序号 / cc 总数），客户端按序累积，
+ * 全量/追回响应分片缓冲（客户端）。
  * 收齐后一次性交给缓存与历史逻辑，避免单包超过 FriendlyByteBuf.writeUtf 的 32767 字符上限。
- * 0 号分片总是重新开始一批；序号不连续（丢片）时整体丢弃并等待下一次全量兜底。
- * 换维度、登出与发起新的 pull 请求时由调用方 reset()，避免跨维度/跨请求拼接。
  */
 public final class CableFullSyncBuffer
 {
@@ -41,7 +38,7 @@ public final class CableFullSyncBuffer
         }
         if (chunkIndex != receivedChunks)
         {
-            // 丢片或乱序：整批作废（TCP 有序下不可达，属防御分支）
+            /* 丢片或乱序：整批作废（TCP 有序下不可达，属防御分支）*/
             reset();
             return null;
         }
@@ -64,7 +61,6 @@ public final class CableFullSyncBuffer
         expired = ex;
     }
 
-    /** 清空缓冲（换维度、登出、发起新 pull 时调用） */
     public static void reset()
     {
         changes = new ArrayList<>();

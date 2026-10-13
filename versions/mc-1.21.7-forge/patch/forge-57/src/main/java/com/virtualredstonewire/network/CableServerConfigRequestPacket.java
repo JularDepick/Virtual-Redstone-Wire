@@ -12,22 +12,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 服务端配置读取/修改请求（客户端 -> 服务端，二进制）。
- * action 为 get（不带 key，拉取全部配置值）或 set（带 key + value）。
- * 仅存档拥有者（单机/局域网主机玩家，或专用服务器 op 权限 4）可 set，
- * 修改后立即生效并落盘（ServerConfig.SPEC.save()）。
- * v1.0.0：请求携带自增 requestId，服务端在响应中回显，客户端据此丢弃非本次请求的回执；
- * 成功修改后服务端向全部在线玩家广播新配置（sync），使已连接客户端的渲染距离与本地预检即时更新。
- *
- * forge-48 层(面向 48.x/49.x, 即 1.20.2-1.20.4): handle 的上下文形参由
- * Supplier<NetworkEvent.Context> 改为 CustomPayloadEvent.Context; 因 consumerMainThread
- * 已在主线程执行, 去掉内层 enqueueWork 与 setPacketHandled 包装.
+ * handle 的上下文形参由
  */
 public class CableServerConfigRequestPacket
 {
     public static final String ACTION_GET = "get";
     public static final String ACTION_SET = "set";
 
-    /** v1.0.0：客户端请求标识自增源（同一连接内唯一即可） */
+    /** 客户端请求标识自增源（同一连接内唯一即可） */
     private static final AtomicInteger NEXT_ID = new AtomicInteger(1);
 
     private final String action;
@@ -112,7 +104,7 @@ public class CableServerConfigRequestPacket
         String error = apply(key, value);
         if (error != null)
         {
-            // 错误响应携带出错配置键与其当前值，供客户端按该键的范围参数本地化显示
+            /* 错误响应携带出错配置键与其当前值，供客户端按该键的范围参数本地化显示*/
             Map<String, String> single = new LinkedHashMap<>();
             single.put(key, currentValue(key));
             CableNetworkChannel.sendToPlayer(sender,
@@ -126,12 +118,11 @@ public class CableServerConfigRequestPacket
         CableNetworkChannel.sendToPlayer(sender,
             new CableServerConfigResponsePacket(true, null, single,
                 true, requestId, false, null));
-        // v1.0.0：向全部在线玩家广播新配置，使已连接客户端立即采用新值
+        /* 向全部在线玩家广播新配置，使已连接客户端立即采用新值*/
         CableNetworkChannel.sendToAllPlayers(
             new CableServerConfigResponsePacket(true, null, collect(), true, 0, true, null));
     }
 
-    /** 收集全部服务端配置项的当前值（键名 -> 字符串值） */
     private static Map<String, String> collect()
     {
         Map<String, String> m = new LinkedHashMap<>();

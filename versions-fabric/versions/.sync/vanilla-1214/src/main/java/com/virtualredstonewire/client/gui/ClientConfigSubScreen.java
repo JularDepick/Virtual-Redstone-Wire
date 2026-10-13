@@ -20,14 +20,7 @@ import java.util.List;
 
 /**
  * 客户端配置文件子页（virtual_redstone_wire-client.toml 条目）：
- * 两列无边框表格——第一列显示名（语言翻译，超长自动换行），
- * 第二列 CycleButton 开关 / EditBox 数值输入，修改即时生效。
- * v1.0.0：数值项不再每次按键都写盘（改为离开界面时统一保存），
- * 越界输入会把输入框文本回写为钳制后的值（不再"显示 5 实际 10"），
  * 并且上限调小时立即收缩撤销/重做双栈。
- *
- * 1.21.4 适配: AbstractSelectionList 的滚动条位置访问器由 getScrollbarPosition()
- * 改名为 scrollBarX(), 内层列表覆写的方法名随之更换, 返回值算法不变。
  */
 public class ClientConfigSubScreen extends Screen
 {
@@ -60,7 +53,7 @@ public class ClientConfigSubScreen extends Screen
     @Override
     public void onClose()
     {
-        // v1.0.0：数值项在离开界面时统一落盘（原先每次按键都同步写文件）
+        /* 数值项在离开界面时统一落盘（原先每次按键都同步写文件）*/
         if (configDirty)
         {
             configDirty = false;
@@ -101,14 +94,12 @@ public class ClientConfigSubScreen extends Screen
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, TITLE_Y, 0xFFFFFF);
         tooltips.render(guiGraphics, this.font, mouseX, mouseY);
-        // v1.0.0：越界输入把输入框文本回写为钳制后的值（在 responder 之外纠正，避免递归）
+        /* 越界输入把输入框文本回写为钳制后的值（在 responder 之外纠正，避免递归）*/
         for (ClientIntRow row : intRows)
         {
             row.clampDisplay();
         }
     }
-
-    // ---------- 滚动条目 ----------
 
     private final class ConfigList extends ContainerObjectSelectionList<Row>
     {
@@ -256,13 +247,13 @@ public class ClientConfigSubScreen extends Screen
                     configDirty = true;
                     if ("undoHistorySize".equals(key))
                     {
-                        // v1.0.0：上限调小时立即收缩双栈
+                        /* 上限调小时立即收缩双栈*/
                         CableUndoRedoManager.trimToLimit();
                     }
                 }
                 catch (NumberFormatException e)
                 {
-                    // 非法输入忽略，保持当前值
+                    /* 非法输入忽略，保持当前值*/
                 }
             });
             addWidget(box);
@@ -289,7 +280,7 @@ public class ClientConfigSubScreen extends Screen
             }
             catch (NumberFormatException ignored)
             {
-                // 非法输入交给 responder 处理
+                /* 非法输入交给 responder 处理*/
             }
         }
 

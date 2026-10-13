@@ -50,14 +50,14 @@ public class CableCutterItem extends Item
 
         if (level.isClientSide)
         {
-            // v1.0.0：缓存内容不属于当前维度时（换维度守卫最长 1 tick 的窗口）不提交删除，
-            // 避免拿他维度缓存的坐标当成本维度的删除目标
+            /* 缓存内容不属于当前维度时（换维度守卫最长 1 tick 的窗口）不提交删除，*/
+            /* 避免拿他维度缓存的坐标当成本维度的删除目标*/
             if (!ClientCableCache.isCurrentFor(level))
             {
                 return InteractionResult.PASS;
             }
 
-            // v0.3.0：剪刀转换为删除该起点全部出链的单个 del 批量请求，加入任务队列
+            /* 剪刀转换为删除该起点全部出链的单个 del 批量请求，加入任务队列*/
             List<CableOpPacket.Link> batch = new ArrayList<>();
             for (CableLink link : ClientCableCache.getLinks())
             {
@@ -75,7 +75,7 @@ public class CableCutterItem extends Item
             }
             if (batch.size() > CableProtocol.BATCH_LIMIT)
             {
-                // v1.0.0：超批量不再静默返回（原实现无任何提示，玩家会以为已经切断）
+                /* 超批量不再静默返回（原实现无任何提示，玩家会以为已经切断）*/
                 if (ClientConfig.enableChatFeedback.get())
                 {
                     player.sendSystemMessage(
@@ -88,8 +88,8 @@ public class CableCutterItem extends Item
             CableClientQueue.enqueue(
                 CableOpPacket.del(batch, level.dimension(), player.getName().getString()));
 
-            // v1.0.0：结果反馈改由服务端确认后的广播驱动（CableClientQueue 的批量汇总提示），
-            // 不再在发送前就提示"已切断"（服务端可能拒绝，届时提示会与事实相反）
+            /* 结果反馈改由服务端确认后的广播驱动（CableClientQueue 的批量汇总提示），*/
+            /* 不再在发送前就提示"已切断"（服务端可能拒绝，届时提示会与事实相反）*/
             return InteractionResult.SUCCESS;
         }
 
@@ -97,7 +97,7 @@ public class CableCutterItem extends Item
     }
 
     @Override
-    // 1.20.5 起第二形参由 Level 改为 Item.TooltipContext
+    /* 第二形参由 Level 改为 Item.TooltipContext*/
     public void appendHoverText(ItemStack stack, Item.TooltipContext context,
                                  List<Component> tooltip, TooltipFlag flag)
     {

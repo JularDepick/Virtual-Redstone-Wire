@@ -36,14 +36,14 @@ public class CableRenderer
     private static final float BEAM_THICKNESS = 0.02f;
     private static final float OUTLINE_EXPAND = 0.001f;
 
-    // Fixed color palette (not configurable):
-    // - unselected input outline / magnifier browsing color
+    /* Fixed color palette (not configurable):*/
+    /* - unselected input outline / magnifier browsing color*/
     private static final float[] COLOR_INPUT = hexToRgba("#64B5F6");
-    // - currently selected input block
+    /* - currently selected input block*/
     private static final float[] COLOR_INPUT_SELECTED = hexToRgba("#00BFFF");
-    // - output face outline
+    /* - output face outline*/
     private static final float[] COLOR_OUTPUT = hexToRgba("#FFFF63");
-    // - active link beam
+    /* - active link beam*/
     private static final float[] COLOR_LINE = hexToRgba("#FF0000");
 
     private static float[] hexToRgba(String hex)
@@ -76,7 +76,7 @@ public class CableRenderer
         ItemStack offHand = player.getOffhandItem();
         boolean holdingCable = mainHand.getItem() instanceof VirtualCableItem
             || offHand.getItem() instanceof VirtualCableItem;
-        // v1.0.0：线缆剪同样判定双手，与线缆/放大镜以及撤销快捷键的手持口径一致
+        /* 线缆剪同样判定双手，与线缆/放大镜以及撤销快捷键的手持口径一致*/
         boolean holdingCutter = mainHand.getItem() instanceof CableCutterItem
             || offHand.getItem() instanceof CableCutterItem;
         boolean holdingMagnifier = mainHand.getItem() instanceof CableMagnifierItem
@@ -84,7 +84,7 @@ public class CableRenderer
 
         if (!holdingCable && !holdingCutter && !holdingMagnifier) return;
 
-        // 1.20.5 起 RenderLevelStageEvent#getPoseStack 返回模型视图矩阵, 需自行构造姿态栈
+        /* RenderLevelStageEvent#getPoseStack 返回模型视图矩阵, 需自行构造姿态栈*/
         PoseStack poseStack = new PoseStack();
         poseStack.mulPose(event.getPoseStack());
         MultiBufferSource.BufferSource bufferSource =
@@ -106,15 +106,15 @@ public class CableRenderer
 
         var level = player.level();
 
-        // v1.0.0：缓存内容不属于当前维度时（换维度守卫最长 1 tick 的窗口）不渲染，
-        // 避免把其他维度的链路与选中框画到当前维度
+        /* 缓存内容不属于当前维度时（换维度守卫最长 1 tick 的窗口）不渲染，*/
+        /* 避免把其他维度的链路与选中框画到当前维度*/
         if (!ClientCableCache.isCurrentFor(level))
         {
             poseStack.popPose();
             return;
         }
 
-        // v1.0.0：同一方块每帧只描边一次（原实现按链路重复提交同一几何，枢纽方块会放大顶点量）
+        /* 同一方块每帧只描边一次（按链路重复提交同一几何会让枢纽方块的顶点量成倍放大）*/
         Set<BlockPos> outlined = new HashSet<>();
 
         for (CableLink link : ClientCableCache.getLinks())
@@ -161,8 +161,8 @@ public class CableRenderer
 
         if (selectedInput != null && !outlined.contains(selectedInput))
         {
-            // v1.0.0：选中起点尚未被上面的链路描边覆盖时才补画（含是否有链路的两种情况），
-            // 并补上渲染距离判断（原实现无条件绘制，远处选中框也会画出来）
+            /* 选中起点尚未被上面的链路描边覆盖时才补画（含是否有链路的两种情况），*/
+            /* 并做渲染距离判断，避免画出远处的选中框*/
             double sdx = selectedInput.getX() + 0.5 - cx;
             double sdy = selectedInput.getY() + 0.5 - cy;
             double sdz = selectedInput.getZ() + 0.5 - cz;
@@ -172,9 +172,8 @@ public class CableRenderer
             }
         }
 
-        // v1.0.0：只提交本模组自己使用的 debugQuads 批次；
-        // 原实现额外 endBatch(RenderType.LINES)（本模组不使用该类型，每次只会新建并丢弃一个空批次）
-        // 与无参 endBatch()（会把共享 buffer source 中其他模组尚未提交的几何一并刷出，影响绘制时序）
+        /* 只提交本模组自己使用的 debugQuads 批次：额外 endBatch(RenderType.LINES) 会新建并丢弃一个空批次，*/
+        /* 无参 endBatch() 会把共享 buffer source 中其他模组尚未提交的几何一并刷出，影响绘制时序*/
         bufferSource.endBatch(RenderType.debugQuads());
 
         poseStack.popPose();
@@ -200,7 +199,7 @@ public class CableRenderer
         }
         wasHoldingCable = holdingCable;
 
-        // v0.3.0：移除 20 tick 全量轮询，改由服务端增量广播与按需 pull 驱动
+        /* 无轮询：缓存更新由服务端增量广播与按需 pull 驱动*/
 
         if (holdingCable)
         {

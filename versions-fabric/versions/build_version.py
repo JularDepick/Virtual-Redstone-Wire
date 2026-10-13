@@ -6,7 +6,7 @@ build_version.py - 1.20.x 多版本适配产物生成脚本
   prework <目标标识>   生成该目标的工作副本, 不构建
   build <目标标识>     生成该目标的工作副本并调用 Gradle 构建
   jdk-build <JDK主版本> 依次构建清单中 jdk.version 首项等于该主版本的全部目标
-  copy                检查各个目标目录下的构建产物模组 jar, 全部复制到 release/ 下
+  copy                检查各个目标目录下的构建产物模组 jar, 只复制模组版本与 MOD_VERSION 一致的
 
 位置:
   本脚本与清单同处 versions/ 下, 本工程根是其所在目录的上一级, 即 versions-fabric/。
@@ -35,7 +35,8 @@ build_version.py - 1.20.x 多版本适配产物生成脚本
   仅支持 java 21 的构件在依赖解析阶段被拒.
 
   产物名为 VirtualRedstoneWire-v<模组版本>-<id>.jar, 其中模组版本取自 build.gradle, id 即
-  目标标识, 例如 VirtualRedstoneWire-v1.1.0-alpha-mc-1.20.1-fabric.jar.
+  目标标识, 例如 VirtualRedstoneWire-v1.1.0-alpha-mc-1.20.1-fabric.jar. 本脚本另在头部以
+  MOD_VERSION 宏声明同一版本号, 供 copy 只收集该版本的产物; 改模组版本号时两者必须一起改.
 
 工作副本:
   先把仓库根的 src/ 完整复制到 versions/<目标标识>/work/, 再按该目标目录下的
@@ -117,6 +118,9 @@ VERSIONS_ROOT = SCRIPT_DIR
 PROBE_ROOT = REPO / 'temp' / 'probes'
 # 交付物归集目录, 已在 .gitignore 中忽略
 RELEASE_ROOT = REPO / 'release'
+
+# 当前模组版本号: 必须与本工程根 build.gradle 的 version 字段一致, copy 只收集带该版本号的产物
+MOD_VERSION = '1.1.0-alpha'
 
 # 从仓库根复制到工作副本的内容: src/ 是功能性的源码目录, 整体复制; 其余是构建脚本模板与
 # Gradle wrapper
@@ -865,12 +869,16 @@ def command_jdk_build(args, manifest):
 
 
 def command_copy(manifest):
-    """检查各个目标目录下的构建产物模组 jar, 全部复制到 release/ 下
+    """检查各个目标目录下的构建产物模组 jar, 只把模组版本与 MOD_VERSION 一致的那些复制到 release/
 
     只扫描 versions/ 下的真实目标; 探针的工作副本落在 temp/probes/, 其产物不是交付物.
+    产物名里必须出现 "-v<MOD_VERSION>-": 早先版本构建留下的残留产物一律跳过并列出, 避免把
+    旧版本的 jar 混进发布产物.
     """
+    version_token = '-v%s-' % MOD_VERSION
     copied = []
     skipped = []
+    stale = []
     RELEASE_ROOT.mkdir(parents=True, exist_ok=True)
     for entry in manifest:
         identifier = target_id(entry)
@@ -880,15 +888,22 @@ def command_copy(manifest):
             print('  %s: 未找到构建产物, 跳过' % identifier)
             continue
         for jar in jars:
+            if version_token not in jar.name:
+                stale.append(jar.name)
+                print('  %s: 产物名不含 %s, 跳过: %s' % (identifier, version_token, jar.name))
+                continue
             dest = RELEASE_ROOT / jar.name
             shutil.copy2(jar, dest)
             copied.append(dest)
             print('  %s -> %s' % (jar.relative_to(REPO).as_posix(), dest.relative_to(REPO).as_posix()))
     if not copied:
-        raise SystemExit('未找到任何构建产物, 请先构建至少一个目标')
+        raise SystemExit('未找到模组版本为 %s 的构建产物, 请先按该版本构建至少一个目标'
+                         % MOD_VERSION)
     print('已复制 %d 个产物到 %s%s'
           % (len(copied), RELEASE_ROOT.relative_to(REPO).as_posix() + '/',
              ', 无产物的目标: %s' % ', '.join(skipped) if skipped else ''))
+    if stale:
+        print('  跳过 %d 个模组版本不符的残留产物: %s' % (len(stale), ', '.join(sorted(set(stale)))))
     return 0
 
 
@@ -914,7 +929,7 @@ def main():
     jdk_build = subparsers.add_parser('jdk-build', help='依次构建清单中 java 主版本匹配的全部目标')
     jdk_build.add_argument('jdk', type=int, help='JDK 主版本号, 例如 17')
     jdk_build.add_argument('--gradle-cmd', default='gradlew.bat', help='Gradle 命令, 默认 gradlew.bat')
-    subparsers.add_parser('copy', help='收集各目标目录下的产物模组 jar 到 release/')
+    subparsers.add_parser('copy', help='收集各目标目录下模组版本与 MOD_VERSION 一致的产物模组 jar 到 release/')
     args = parser.parse_args()
     if not args.command:
         parser.error('需要指定子命令: list / prework / build / jdk-build / copy')

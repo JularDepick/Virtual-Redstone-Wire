@@ -12,13 +12,6 @@ import java.util.Map;
 
 /*
  * Fabric 侧没有配置 API，这里自建一套最小配置设施：
- * 每种值都是一个带 get/set 的条目对象，由 ConfigSpec 统一负责分段、读取与写回。
- *
- * 条目对象刻意保持与 Forge 侧 ForgeConfigSpec 的取值对象同形（都是 get/set），
- * 这样平台无关的调用方（logs、command、data 等）无需任何改动即可编译。
- *
- * 文件格式与 Forge 侧一致：分段标题 + key = value，读取时忽略分段与注释，
- * 因此两种加载器写出的配置文件可以互相读懂。
  */
 public abstract class ConfigSpec
 {
@@ -104,7 +97,7 @@ public abstract class ConfigSpec
         }
         catch (IOException e)
         {
-            // 配置写盘失败不影响运行期的内存值
+            /* 配置写盘失败不影响运行期的内存值*/
         }
     }
 
@@ -209,7 +202,7 @@ public abstract class ConfigSpec
             }
             catch (NumberFormatException ignored)
             {
-                // 非法值保留原值
+                /* 非法值保留原值*/
             }
         }
 
@@ -220,7 +213,6 @@ public abstract class ConfigSpec
         }
     }
 
-    /** 布尔值条目 */
     public static final class BoolEntry extends Entry<Boolean>
     {
         public BoolEntry(String section, String key, boolean defaultValue)
@@ -287,7 +279,7 @@ public abstract class ConfigSpec
             }
             catch (IllegalArgumentException ignored)
             {
-                // 非法枚举名保留原值
+                /* 非法枚举名保留原值*/
             }
         }
 

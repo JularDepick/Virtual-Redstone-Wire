@@ -20,7 +20,6 @@ public class CableNetwork
 
     /**
      * 存储式信号：输出端 (out, side) -> 通道 -> 信号强度。
-     * 与 DBW 的 WireNetworkNode.inputs 对应：信号由事件主动写入存储，查询时纯读，
      * 不落盘（仅在内存中，存档加载后由事件/refreshSource 重建）。
      */
     private final Map<BlockPos, Map<Direction, Map<String, Integer>>> signals = new HashMap<>();
@@ -51,7 +50,7 @@ public class CableNetwork
             inputNode.removeOutgoing(to, toFace);
             outputNode.removeIncoming(from, toFace);
 
-            // v1.0.0：删链后按该输出面剩余输入重算（无输入时清零并触发邻居更新让灯熄灭）
+            /* 删链后按该输出面剩余输入重算*/
             refreshOutputFace(level, to, toFace);
             updateNeighbors(level, from);
 
@@ -76,7 +75,7 @@ public class CableNetwork
     }
 
     /**
-     * v0.3.0 元操作 add：创建单条链路。链路已存在或输出面非法返回 false，否则建链并刷新信号。
+     * 元操作 add：创建单条链路。链路已存在或输出面非法返回 false，否则建链并刷新信号。
      */
     public boolean addLink(BlockPos from, BlockPos to, Direction toFace, Level level)
     {
@@ -98,7 +97,7 @@ public class CableNetwork
     }
 
     /**
-     * v0.3.0 元操作 del：删除单条链路。链路不存在或输出面非法返回 false。
+     * 元操作 del：删除单条链路。链路不存在或输出面非法返回 false。
      */
     public boolean removeLink(BlockPos from, BlockPos to, Direction toFace, Level level)
     {
@@ -116,8 +115,8 @@ public class CableNetwork
         }
         if (level != null)
         {
-            // v1.0.0：按该输出面剩余输入重算存储信号（无输入时清零并触发邻居更新让灯熄灭）。
-            // 原实现无条件清零，会让同一输出面上仍连接的其他源一并失效且不自愈
+            /* 按该输出面剩余输入重算存储信号（无输入时清零并触发邻居更新让灯熄灭）。*/
+            /* 原实现无条件清零，会让同一输出面上仍连接的其他源一并失效且不自愈*/
             refreshOutputFace(level, to, toFace);
             updateNeighbors(level, from);
         }
@@ -133,7 +132,7 @@ public class CableNetwork
     }
 
     /**
-     * v1.0.0：按输出面 (to, toFace) 当前仍存在的输入源重算存储信号；
+     * 按输出面 (to, toFace) 当前仍存在的输入源重算存储信号；
      * 已无输入时清零。删链后调用，保证共享该输出面的其他源不被误清零。
      */
     private void refreshOutputFace(Level level, BlockPos to, Direction toFace)
@@ -151,7 +150,7 @@ public class CableNetwork
         }
     }
 
-    /** v1.0.0：仅在目标区块已加载时触发邻居更新，避免被远端坐标强制加载区块 */
+    /** 仅在目标区块已加载时触发邻居更新，避免被远端坐标强制加载区块 */
     private static void updateNeighbors(Level level, BlockPos pos)
     {
         if (level == null || pos == null || !level.isLoaded(pos)) return;
@@ -183,7 +182,7 @@ public class CableNetwork
                     removeNode(toPos);
                 }
             }
-            // v1.0.0：按该输出面剩余输入重算（原实现无条件清零，会误伤共享该面的其他源）
+            /* 按该输出面剩余输入重算*/
             refreshOutputFace(level, toPos, toFace);
             count++;
         }
@@ -225,8 +224,6 @@ public class CableNetwork
 
     /**
      * DBW 语义存储式信号查询：返回输出端方块 out 在 side 面上存储的网络信号
-     * （所有通道的最大值）。查询方为 out.relative(side)（该方块查询"out 朝我
-     * 发射的信号"时命中节点 (out, side)）。
      */
     public int getSignalAt(BlockPos out, Direction side)
     {
@@ -244,8 +241,6 @@ public class CableNetwork
 
     /**
      * 写入输出端 (out, side) 指定通道的存储信号；值有变化时返回 true，
-     * 并触发 out.relative(side) 的邻居更新（DBW WireNetworkSink.setInput 语义：
-     * 让红石灯等查询方立即重查信号）。
      */
     public boolean setChannelSignal(Level level, BlockPos out, Direction side,
                                     String channel, int signal)
@@ -253,7 +248,7 @@ public class CableNetwork
         if (out == null || side == null) return false;
         BlockPos key = out.immutable();
 
-        // 先只读检查旧值，避免 0→0 时创建空容器（轻微内存泄漏）
+        /* 先只读检查旧值，避免 0→0 时创建空容器（轻微内存泄漏）*/
         Map<Direction, Map<String, Integer>> sideSignals = signals.get(key);
         Integer old = null;
         if (sideSignals != null)
@@ -294,8 +289,6 @@ public class CableNetwork
 
     /**
      * DBW ShipWireNetworkManager.setSource 语义：
-     * 源方块 srcPos 的某个通道信号变化为 signal 时，遍历该源所有输出端
-     * （sink），逐个写入存储信号并触发邻居更新。
      */
     public void setSource(Level level, BlockPos srcPos, String channel, int signal)
     {
@@ -309,8 +302,6 @@ public class CableNetwork
 
     /**
      * 主动采集源方块当前真实信号并写入存储（世界加载后重建 / 建链后立即生效）：
-     * 与 DBW ServerEvents.onBlockUpdate 的两分支一致——
-     * 信号源方块取 6 方向 getSignal 最大值，非信号源取 getBestNeighborSignal。
      */
     public void refreshSource(Level level, BlockPos srcPos)
     {

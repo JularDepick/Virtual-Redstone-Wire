@@ -12,21 +12,13 @@ import net.minecraft.server.level.ServerPlayer;
 
 /**
  * 放大镜信息面板查询请求（客户端 -> 服务端）：
- * 服务端计算该方块当前的红石信号强度（level.getBestNeighborSignal，
- * 其内部 getSignal 经 mixin 覆写后同样计入虚拟链路信号），单播回
  * CableInfoResponsePacket。信号查询必须走服务端——链路信号存储在
- * 服务端 CableNetwork，且 getSignal 的 mixin 覆写是服务端语义。
- * v1.0.0：请求携带发起时的维度字符串，服务端校验与发送者当前维度一致，
- * 避免换维度瞬间按新维度坐标查询、把旧维度结果回填到新维度面板。
- *
- * Fabric 侧：本方法直接作为载荷接收器注册，运行在服务端主线程上，
- * 因此不再需要 Forge 那种 enqueueWork 回主线程的包装。
  */
 public class CableInfoRequestPacket implements CablePayload
 {
     /** 本载荷的类型（通道标识） */
     public static final CustomPacketPayload.Type<CableInfoRequestPacket> TYPE =
-        // 1.21: ResourceLocation 公开构造器已移除, 两参构造改用静态工厂 fromNamespaceAndPath
+        /* ResourceLocation 公开构造器已移除, 两参构造改用静态工厂 fromNamespaceAndPath*/
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(VirtualRedstoneWire.MOD_ID, "info_request"));
 
     /** 本载荷的编解码器：写入缓冲 / 从缓冲重建 */
@@ -101,7 +93,7 @@ public class CableInfoRequestPacket implements CablePayload
         ServerLevel level = sender.serverLevel();
         String currentDim = level.dimension().location().toString();
 
-        // v1.0.0：请求维度与发送者当前维度不一致（换维度瞬间的迟到请求）时按错误响应处理
+        /* 请求维度与发送者当前维度不一致（换维度瞬间的迟到请求）时按错误响应处理*/
         if (packet.dimension != null && !packet.dimension.equals(currentDim))
         {
             CableNetworkChannel.sendToPlayer(sender,
@@ -113,7 +105,7 @@ public class CableInfoRequestPacket implements CablePayload
 
         if (!level.isLoaded(packet.pos))
         {
-            // 目标区块未加载，无法计算信号：返回错误响应（客户端飘浮提示原因）
+            /* 目标区块未加载，无法计算信号：返回错误响应（客户端飘浮提示原因）*/
             CableNetworkChannel.sendToPlayer(sender,
                 new CableInfoResponsePacket(packet.pos,
                     "message.virtual_redstone_wire.query_not_loaded", packet.actionBar,

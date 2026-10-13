@@ -11,19 +11,12 @@ import net.minecraft.resources.ResourceLocation;
 
 /**
  * 协议版本握手（服务端 -> 客户端）。
- *
- * Forge 侧由 SimpleChannel 在建立通道时自带版本校验，两端协议不一致会被直接拒绝；
- * Fabric 侧没有这层机制，因此显式补上：服务端在玩家加入时下发自己的协议版本，
- * 客户端比对不一致就断开连接。
- *
- * 只做服务端到客户端一个方向即可覆盖危险情形：协议不一致的客户端不会继续按
- * 不兼容的报文格式解析链路数据。
  */
 public class ProtocolHandshakePacket implements CablePayload
 {
     /** 本载荷的类型（通道标识） */
     public static final CustomPacketPayload.Type<ProtocolHandshakePacket> TYPE =
-        // 1.21: ResourceLocation 公开构造器已移除, 两参构造改用静态工厂 fromNamespaceAndPath
+        /* ResourceLocation 公开构造器已移除, 两参构造改用静态工厂 fromNamespaceAndPath*/
         new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(VirtualRedstoneWire.MOD_ID, "handshake"));
 
     /** 本载荷的编解码器：写入缓冲 / 从缓冲重建 */
@@ -59,8 +52,8 @@ public class ProtocolHandshakePacket implements CablePayload
     {
         if (!CableProtocol.PROTOCOL_VERSION.equals(packet.protocolVersion))
         {
-            // 载荷只会在已进入游戏时收到，连接必然存在；
-            // 1.20.5 起 Minecraft#getConnection 返回的是客户端包监听器，再取一层才是底层连接
+            /* 载荷只会在已进入游戏时收到，连接必然存在；*/
+            /* Minecraft#getConnection 返回的是客户端包监听器，再取一层才是底层连接*/
             Connection connection = context.client().getConnection().getConnection();
             connection.disconnect(Component.translatable(
                 "message.virtual_redstone_wire.protocol_mismatch",

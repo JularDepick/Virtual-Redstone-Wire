@@ -18,7 +18,6 @@ public class ClientSetup
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event)
     {
-        // Client-side initialization
     }
 
     /** 注册撤销/重做按键（可在 Controls 设置中修改绑定） */

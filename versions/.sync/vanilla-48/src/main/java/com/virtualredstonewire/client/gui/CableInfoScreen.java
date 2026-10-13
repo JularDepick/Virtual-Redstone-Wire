@@ -29,7 +29,7 @@ public class CableInfoScreen extends Screen
     private final List<Integer> outEntryLines = new ArrayList<>();
     private final List<Integer> inEntryLines = new ArrayList<>();
     private int signalLineIndex = -1;
-    private int signal = -1; // -1 = 等待服务端返回
+    private int signal = -1; /* -1 = 等待服务端返回*/
     private int panelWidth;
     private int panelLeft;
     private int panelTop;
@@ -37,7 +37,7 @@ public class CableInfoScreen extends Screen
     private double scrollOffset;
     private int maxScroll;
 
-    // v1.0.0：折行布局缓存（行内容变化时置脏重建，避免长坐标行被水平裁剪）
+    /* 折行布局缓存（行内容变化时置脏重建，避免长坐标行被水平裁剪）*/
     private List<List<FormattedCharSequence>> wrappedRows = new ArrayList<>();
     private List<Integer> wrappedSourceLine = new ArrayList<>();
     private boolean[] sourceIsOut = new boolean[0];
@@ -118,9 +118,9 @@ public class CableInfoScreen extends Screen
 
         activeScreen = this;
 
-        // 请求服务端查询该方块当前的红石信号强度（含虚拟链路信号）。
-        // v1.0.0：面板查询走强制通道（force=true），否则命中放大镜交互节流时不会发出请求，
-        // 面板会永久停在"等待服务端返回"。
+        /* 请求服务端查询该方块当前的红石信号强度（含虚拟链路信号）。*/
+        /* 面板查询走强制通道（force=true），否则命中放大镜交互节流时不会发出请求，*/
+        /* 面板会永久停在"等待服务端返回"。*/
         String dimension = Minecraft.getInstance().level == null ? null
             : Minecraft.getInstance().level.dimension().location().toString();
         CableMagnifierItem.tryStartQuery(queryPos, dimension, true);
@@ -159,7 +159,7 @@ public class CableInfoScreen extends Screen
     }
 
     /**
-     * v1.0.0：原版 Minecraft.setScreen 只调用 removed() 不调用 onClose()，
+     * 原版 Minecraft.setScreen 只调用 removed() 不调用 onClose()，
      * 断线/死亡/程序化换屏时静态引用会残留（有界泄漏）并让响应写进不可见面板。
      */
     @Override
@@ -191,7 +191,7 @@ public class CableInfoScreen extends Screen
         layoutDirty = true;
     }
 
-    /** v1.0.0：按当前面板宽度折行，长坐标行不再被 scissor 水平裁掉 */
+    /** 按当前面板宽度折行，长坐标行不再被 scissor 水平裁掉 */
     private void rebuildLayout()
     {
         wrappedRows = new ArrayList<>();
@@ -281,7 +281,7 @@ public class CableInfoScreen extends Screen
         graphics.fill(panelLeft + panelWidth - 1, panelTop, panelLeft + panelWidth, panelBottom, 0xFF666666);
     }
 
-    // 1.20.2 起 mouseScrolled 增加 scrollX 形参
+    /* mouseScrolled 增加 scrollX 形参*/
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY)
     {
@@ -307,7 +307,7 @@ public class CableInfoScreen extends Screen
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    /** v1.0.0：面板高度取正并留出最小可用高度，避免极端缩放下 scissor 参数倒置 */
+    /** 面板高度取正并留出最小可用高度，避免极端缩放下 scissor 参数倒置 */
     private int panelHeight()
     {
         return Math.max(20, Math.min(Math.max(20, height - 10), Math.max(60, height / 2)));

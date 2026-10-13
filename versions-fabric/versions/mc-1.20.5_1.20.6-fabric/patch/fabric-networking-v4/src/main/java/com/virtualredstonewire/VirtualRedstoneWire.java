@@ -21,15 +21,15 @@ public class VirtualRedstoneWire implements ModInitializer
     @Override
     public void onInitialize()
     {
-        // Fabric 侧没有加载器代管的配置系统, 由模组自行从配置目录读取
+        /* Fabric 侧没有加载器代管的配置系统, 由模组自行从配置目录读取*/
         ServerConfig.INSTANCE.load(FabricLoader.getInstance().getConfigDir());
 
         ModItems.registerItemGroups();
         VRedTestCommand.register();
         ServerEventHandler.register();
-        // 1.20.5 起自定义载荷必须先注册类型与编解码器，且两侧都要注册，故放在通用入口最前
+        /* 自定义载荷必须先注册类型与编解码器，且两侧都要注册，故放在通用入口最前*/
         CableNetworkChannel.registerPayloads();
-        // 只注册服务端接收器；客户端接收器由客户端入口注册，避免专用服务端触碰客户端网络类
+        /* 只注册服务端接收器；客户端接收器由客户端入口注册，避免专用服务端触碰客户端网络类*/
         CableNetworkChannel.registerServer();
 
         LOGGER.info("Virtual Redstone Wire initialized");

@@ -34,7 +34,7 @@ public class CableMagnifierItem extends Item
 
     /**
      * 尝试发起信号查询：同一维度同方块在节流期内返回 false；不同方块或不同维度始终放行并记录。
-     * v1.0.0：节流键加入所属维度，避免换维度后同坐标被误判为重复查询；
+     * 节流键加入所属维度，避免换维度后同坐标被误判为重复查询；
      * force 为 true 时跳过节流（信息面板自身的查询必须发出，否则面板会永久停在等待态）。
      */
     public static boolean tryStartQuery(BlockPos pos, String dimension, boolean force)
@@ -74,15 +74,15 @@ public class CableMagnifierItem extends Item
         {
             if (player.isCrouching())
             {
-                // 下蹲 + 右键：查看链路信息面板（面板内查询走强制通道，不受交互节流影响）。
-                // v1.0.0：经 DistExecutor 进入客户端分支，避免物品类在专用服务器解析客户端 GUI 类
+                /* 下蹲 + 右键：查看链路信息面板（面板内查询走强制通道，不受交互节流影响）。*/
+                /* 经 DistExecutor 进入客户端分支，避免物品类在专用服务器解析客户端 GUI 类*/
                 net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(
                     net.minecraftforge.api.distmarker.Dist.CLIENT,
                     () -> () -> CableInfoScreenOpener.open(context.getClickedPos()));
                 return InteractionResult.SUCCESS;
             }
 
-            // 未下蹲 + 右键：快捷栏上方飘浮提示目标方块的红石信号强度（同维度同方块 1 秒节流）
+            /* 未下蹲 + 右键：快捷栏上方飘浮提示目标方块的红石信号强度（同维度同方块 1 秒节流）*/
             if (tryStartQuery(context.getClickedPos(),
                 level.dimension().location().toString(), false))
             {
@@ -97,7 +97,7 @@ public class CableMagnifierItem extends Item
     }
 
     @Override
-    // 1.20.5 起第二形参由 Level 改为 Item.TooltipContext
+    /* 第二形参由 Level 改为 Item.TooltipContext*/
     public void appendHoverText(ItemStack stack, Item.TooltipContext context,
                                  TooltipDisplay display, Consumer<Component> tooltipAdder, TooltipFlag flag)
     {

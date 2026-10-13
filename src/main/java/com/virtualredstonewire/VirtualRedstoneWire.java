@@ -41,8 +41,8 @@ public class VirtualRedstoneWire
                 modContainer.addConfig(new ModConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC,
                     modContainer, MOD_ID + "-client.toml"));
                 ClientSetup.registerConfigScreen(modContainer);
-                // v1.0.0：ClientSetup 已由类级 @Mod.EventBusSubscriber(MOD bus) 自动注册，
-                // 此处不再重复 addListener（原实现会让 onClientSetup 被调用两次）
+                /* ClientSetup 已由类级 @Mod.EventBusSubscriber(MOD bus) 自动注册，*/
+                /* 此处不得再 addListener（否则 onClientSetup 会被调用两次）*/
             });
 
         CableNetworkChannel.register();

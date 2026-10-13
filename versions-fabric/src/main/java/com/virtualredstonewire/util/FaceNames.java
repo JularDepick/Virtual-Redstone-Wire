@@ -5,8 +5,6 @@ import net.minecraft.network.chat.Component;
 
 /**
  * 输出面名称的本地化显示工具。
- * 语言键为 {@code screen.virtual_redstone_wire.face.<name>}（north/south/east/west/up/down）；
- * 键缺失时回退为原版面名，不回退显示原始键名。
  */
 public final class FaceNames
 {

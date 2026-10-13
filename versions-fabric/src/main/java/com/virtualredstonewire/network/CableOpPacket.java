@@ -16,9 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * v0.3.0 操作请求（客户端 -> 服务端）。
- * 载荷为 minified JSON 文本（缩写键名），由通道序列化传输。
- * op 为 add/del/pull；add/del 携带批量链路列表；pull 携带追回起点版本号。
+ * 操作请求（客户端 -> 服务端）。
  */
 public class CableOpPacket implements CablePayload
 {

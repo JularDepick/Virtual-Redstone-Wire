@@ -25,23 +25,13 @@ import java.util.Deque;
 import java.util.List;
 
 /**
- * v0.5.0 客户端撤销/重做管理器。
- * 双栈（撤销栈 A / 重做栈 B）仅存客户端内存，退出游戏清空，无持久化。
- * 撤销/重做请求复用 CableOpPacket 通道（Origin 区分来源），成功/失败判定由
- * CableClientQueue 回调（onOpConfirmed/onOpRejected），失败按类型分流：
- * 同 tick 相背放回原栈可重试，状态型失败从历史移除（均不触发追回）。
- *
- * 1.21.2 适配: Entity/Player 的 sendSystemMessage 被移除,
- * 本类一处聊天栏反馈改用 displayClientMessage(Component, false)。
+ * 客户端撤销/重做管理器。
  * 空栈提示后进入 3 秒冷却期（撤销/重做共用），冷却期内静默忽略。
- * 全部提示（空栈/成功/失败）受 undoRedoFeedback 配置控制。
- * v1.0.0：增量追回响应不再清空全部历史，改为 invalidateByState() 按缓存状态定向失效；
- * 状态型失败在服务端附带其他客户端并发操作摘要时细分提示。
- * 实现细节见 docs/v0.5.0-客户端撤销与重做机制-实现方案.md。
+ * 增量追回响应不清空全部历史，由 invalidateByState() 按缓存状态定向失效；
  */
 public final class CableUndoRedoManager
 {
-    // 原版按键没有修饰键概念，这里注册的是裸键，按住 Ctrl 的语义在 onClientTick 内判定
+    /* 原版按键没有修饰键概念，这里注册的是裸键，按住 Ctrl 的语义在 onClientTick 内判定*/
     public static final KeyMapping UNDO_KEY = new KeyMapping(
         "key.virtual_redstone_wire.undo",
         InputConstants.Type.KEYSYM,
@@ -79,17 +69,16 @@ public final class CableUndoRedoManager
     {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
-        // 无论是否手持都先消费点击：避免未手持时的按键事件在 KeyMapping 内部积压，
-        // 待手持工具后 consumeClick 一次性逐个返还导致大量异常撤销/重做
+        /* 无论是否手持都先消费点击：避免未手持时的按键事件在 KeyMapping 内部积压，*/
+        /* 待手持工具后 consumeClick 一次性逐个返还导致大量异常撤销/重做*/
         boolean undoPressed = UNDO_KEY.consumeClick();
         boolean redoPressed = REDO_KEY.consumeClick();
         boolean historyPressed = HISTORY_KEY.consumeClick();
-        // 按住 Ctrl 的语义：原版按键不含修饰键，这里显式判定。
-        // 三个点击已先消费，因此未按 Ctrl 时不动作，也不会在按键对象内积压
+        /* 按住 Ctrl 的语义：三个点击已先消费，未按 Ctrl 时不动作，也不会在按键对象内积压*/
         if (!Screen.hasControlDown()) return;
         Minecraft mc = Minecraft.getInstance();
-        // 手持放大镜时 Ctrl+A 打开历史窗口页（打开即释放鼠标，退出由窗口页的按钮/ESC/Ctrl+A 处理）
-        // 同一时刻仅响应一个本模组快捷键：打开窗口页后本 tick 不再处理撤销/重做
+        /* 手持放大镜时 Ctrl+A 打开历史窗口页（打开即释放鼠标，退出由窗口页的按钮/ESC/Ctrl+A 处理）*/
+        /* 同一时刻仅响应一个本模组快捷键：打开窗口页后本 tick 不再处理撤销/重做*/
         if (historyPressed && isHoldingMagnifier(player) && mc.screen == null)
         {
             mc.setScreen(new CableUndoRedoHistoryScreen());
@@ -137,8 +126,8 @@ public final class CableUndoRedoManager
         CableOpPacket p = UNDO_STACK.pop();
         if (!isCurrentDimension(p))
         {
-            // v1.0.0：条目属于其他维度：不回放（回放会把该维度坐标写成当前维度），
-            // 按维度不符专用提示（原提示"状态已变化"误导原因）
+            /* 条目属于其他维度：不回放（回放会把该维度坐标写成当前维度），*/
+            /* 按维度不符专用提示（原提示"状态已变化"误导原因）*/
             sendMessage(mc, "message.virtual_redstone_wire.undo_failed_dimension", 0xFF5555);
             return;
         }
@@ -158,8 +147,8 @@ public final class CableUndoRedoManager
         CableOpPacket p = REDO_STACK.pop();
         if (!isCurrentDimension(p))
         {
-            // v1.0.0：条目属于其他维度：不回放（回放会把该维度坐标写成当前维度），
-            // 按维度不符专用提示（原提示"状态已变化"误导原因）
+            /* 条目属于其他维度：不回放（回放会把该维度坐标写成当前维度），*/
+            /* 按维度不符专用提示（原提示"状态已变化"误导原因）*/
             sendMessage(mc, "message.virtual_redstone_wire.redo_failed_dimension", 0xFF5555);
             return;
         }
@@ -228,8 +217,8 @@ public final class CableUndoRedoManager
         }
         else
         {
-            // 状态型失败：assoc 已从原栈弹出，不压回即完成从历史移除；
-            // v1.0.0：服务端附带其他客户端并发操作摘要且触及该链路时，提示并发修改而非泛化的状态变化
+            /* 状态型失败：assoc 已从原栈弹出，不压回即完成从历史移除；*/
+            /* 服务端附带其他客户端并发操作摘要且触及该链路时，提示并发修改而非泛化的状态变化*/
             if (msg != null && CableMsgPacket.touches(msg.lastOp, assoc.links))
             {
                 sendMessage(mc, origin == CableClientQueue.Origin.UNDO
@@ -251,14 +240,12 @@ public final class CableUndoRedoManager
     {
         UNDO_STACK.clear();
         REDO_STACK.clear();
-        // v1.0.0：联动取消排队中的撤销/重做请求，避免其成功后被回写进清空后的新历史
+        /* 联动取消排队中的撤销/重做请求，避免其成功后被回写进清空后的新历史*/
         CableClientQueue.onHistoryCleared();
     }
 
     /**
-     * v1.0.0 定向失效：按缓存当前状态校验双栈，仅移除前提已失效的条目，
-     * 用于增量追回与并发失败路径（替代"追回响应到达即清空全部历史"）。
-     * 两栈待执行动作相反：撤销栈执行抵消请求，重做栈重新执行原请求，故前提判据相反。
+     * 定向失效：按缓存当前状态校验双栈，仅移除前提已失效的条目，
      */
     public static void invalidateByState()
     {
@@ -274,7 +261,7 @@ public final class CableUndoRedoManager
     private static boolean isStateValid(CableOpPacket p, boolean undoAction)
     {
         if (p == null || p.links.isEmpty()) return false;
-        // v1.0.0：条目所属维度与缓存维度不一致时，缓存状态对该条目无意义，直接判为失效
+        /* 条目所属维度与缓存维度不一致时，缓存状态对该条目无意义，直接判为失效*/
         if (ClientCableCache.getDimension() == null
             || !ClientCableCache.getDimension().equals(p.dimension)) return false;
         boolean expectExists = CableProtocol.OP_ADD.equals(p.op) == undoAction;
@@ -285,7 +272,7 @@ public final class CableUndoRedoManager
         return true;
     }
 
-    /** v1.0.0：条目所属维度是否与客户端当前维度一致（跨维度条目一律不回放） */
+    /** 条目所属维度是否与客户端当前维度一致（跨维度条目一律不回放） */
     private static boolean isCurrentDimension(CableOpPacket p)
     {
         Minecraft mc = Minecraft.getInstance();
@@ -317,7 +304,7 @@ public final class CableUndoRedoManager
     }
 
     /**
-     * v1.0.0：配置上限被调小时立即收缩双栈。
+     * 配置上限被调小时立即收缩双栈。
      * 原先只在下次入栈时收缩，导致"显示上限"与"实际栈长"短期不一致。
      */
     public static void trimToLimit()
@@ -347,7 +334,7 @@ public final class CableUndoRedoManager
     private static void sendMessage(Minecraft mc, String langKey, int color, Object... args)
     {
         if (!ClientConfig.undoRedoFeedback.get()) return;
-        // 历史窗口页打开期间不弹聊天栏提示（撤销/重做结果在窗口页内实时可见）
+        /* 历史窗口页打开期间不弹聊天栏提示（撤销/重做结果在窗口页内实时可见）*/
         if (isHistoryScreenOpen()) return;
         if (mc.player != null)
         {
