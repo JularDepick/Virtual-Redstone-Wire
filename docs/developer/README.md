@@ -4,8 +4,8 @@
 
 | 命令 | 说明 |
 |:---:|:---:|
-| `build.bat` | 构建基线产物到 `build/libs/` |
-| `gradlew build` | 构建基线产物到 `build/libs/` |
+| `build.bat` | 构建基线产物, 产物输出到构建产物目录 |
+| `gradlew build` | 构建基线产物, 产物输出到构建产物目录 |
 | `gradlew runClient` | 启动 Minecraft 客户端 |
 | `gradlew runServer` | 启动 Minecraft 服务端 |
 | `gradlew clean` | 清理构建产物 |
@@ -19,7 +19,7 @@
 | `python versions/build_version.py list` | 列出全部适配目标 |
 | `python versions/build_version.py prework <目标标识>` | 生成该目标的工作副本 |
 | `python versions/build_version.py build <目标标识>` | 构建该目标 |
-| `python versions/build_version.py copy` | 收集各目标的构建产物到 `release/` |
+| `python versions/build_version.py copy` | 收集各目标的构建产物到发布产物目录 |
 
 ## 开发者文档清单
 

@@ -23,7 +23,7 @@ A Minecraft mod for long-distance redstone signal transmission that does not rel
 
 | Item | Requirement |
 |:---:|:---:|
-| Minecraft | 1.20.x |
+| Minecraft | 1.20 - 1.21.8 |
 | Mod loader | Forge |
 
 > For the mapping between Minecraft game versions and Forge versions, see [Supported Versions](#supported-versions)
@@ -148,6 +148,15 @@ Fabric baseline version:
 | 1.20.1 | 0.16.x | mc-1.20.1-fabric |
 
 
+# Language Support
+
+The languages currently supported by the mod are:
+- Simplified Chinese
+- English
+
+> The mod language follows the game language automatically.
+
+
 # Development Build Environment
 
 ## Baseline Version
@@ -170,6 +179,15 @@ Fabric baseline version:
 | 1.20.4 | Java 17 | 8.14.3 | Forge 49.2.8 |
 | 1.20.5 | Not supported | Not supported | Not supported |
 | 1.20.6 | Java 21 | 8.14.3 | Forge 50.2.0 |
+| 1.21 | Java 21 | 8.14.3 | Forge 51.0.33 |
+| 1.21.1 | Java 21 | 8.14.3 | Forge 51.0.33 |
+| 1.21.2 | Not supported | Not supported | Not supported |
+| 1.21.3 | Java 21 | 8.14.3 | Forge 53.1.0 |
+| 1.21.4 | Java 21 | 8.14.3 | Forge 54.1.0 |
+| 1.21.5 | Java 21 | 8.14.3 | Forge 55.1.0 |
+| 1.21.6 | Java 21 | 8.14.3 | Forge 56.0.0 |
+| 1.21.7 | Java 21 | 8.14.3 | Forge 57.0.3 |
+| 1.21.8 | Java 21 | 8.14.3 | Forge 58.1.0 |
 
 ## Build Scripts
 
@@ -178,8 +196,8 @@ Fabric baseline version:
 | `python versions/build_version.py list` | List every adaptation target together with the environment versions it needs |
 | `python versions/build_version.py prework mc-1.20.2-forge` | Generate the working copy of that target |
 | `python versions/build_version.py build mc-1.20.2-forge` | Generate and build that target; the artifact stays in that target's working copy |
-| `python versions/build_version.py copy` | Check the built mod jars under each version directory and copy them all into release/ |
-| `cd versions-fabric && gradlew.bat build` | Build the Fabric baseline artifact; it lands in that project's own build/libs/ |
+| `python versions/build_version.py copy` | Check the built mod jars under each target directory and collect them all into the release artifact directory |
+| `cd versions-fabric && gradlew.bat build` | Build the Fabric baseline artifact; it lands in that project's own build output directory |
 
 Artifact naming rules:
 - File name: `VirtualRedstoneWire-v<mod version>-mc-<start MC version>_<end MC version>-<mod loader name>.jar`
@@ -211,6 +229,7 @@ See the [COPYRIGHT file](./COPYRIGHT)
 
 - A good item texture asset plan is still missing
 - Support for more versions is still missing; proposals and PRs are welcome
+- Support for more languages is still missing; proposals and PRs are welcome
 
 
 # Related Links

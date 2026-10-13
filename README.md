@@ -11,7 +11,7 @@
 
 </div>
 
-为红石信号远程传递实现的Minecraft模组，不依赖实体红石方块，支持一对一、一对多、多对一连接。
+为红石信号远程传递实现的Minecraft模组, 不依赖实体红石方块, 支持一对一, 一对多, 多对一连接
 
 ---
 
@@ -23,7 +23,7 @@
 
 | 项 | 要求 |
 |:---:|:---:|
-| Minecraft | 1.20.x |
+| Minecraft | 1.20 - 1.21.8 |
 | 模组加载器 | Forge |
 
 > Minecraft游戏版本与Forge版本对照表见[支持的版本](#支持的版本)
@@ -56,7 +56,7 @@
 
 ## 撤销与重做
 
-- 主手或副手持有任一本模组物品时，按 `Ctrl+Z` 撤销、`Ctrl+Y` 重做 (可更改按键绑定)
+- 主手或副手持有任一本模组物品时, 按 `Ctrl+Z` 撤销, `Ctrl+Y` 重做 (可更改按键绑定)
 - 操作历史仅保存在客户端内存,退出游戏清空
 - 线缆剪批量删除的链路可整体撤销或重做
 
@@ -69,7 +69,7 @@
 - 虚拟线缆传输的是 0-15 的红石信号强度
 - 输入端方块检测其所在位置的红石信号
 - 输入端的红石变化会实时反映到输出端
-- 支持一对多广播、多对一合并取最大值
+- 支持一对多广播, 多对一合并取最大值
 - 链路信号单向传播
 - 信号从输出方块的指定面发出,方向精确
 
@@ -154,7 +154,7 @@ Fabric 侧基线版本:
 - 简体中文
 - English
 
-> 模组语言随游戏语言自动变更。
+> 模组语言随游戏语言自动变更
 
 
 # 开发构建环境
@@ -179,6 +179,15 @@ Fabric 侧基线版本:
 | 1.20.4 | Java 17 | 8.14.3 | Forge 49.2.8 |
 | 1.20.5 | 不支持 | 不支持 | 不支持 |
 | 1.20.6 | Java 21 | 8.14.3 | Forge 50.2.0 |
+| 1.21 | Java 21 | 8.14.3 | Forge 51.0.33 |
+| 1.21.1 | Java 21 | 8.14.3 | Forge 51.0.33 |
+| 1.21.2 | 不支持 | 不支持 | 不支持 |
+| 1.21.3 | Java 21 | 8.14.3 | Forge 53.1.0 |
+| 1.21.4 | Java 21 | 8.14.3 | Forge 54.1.0 |
+| 1.21.5 | Java 21 | 8.14.3 | Forge 55.1.0 |
+| 1.21.6 | Java 21 | 8.14.3 | Forge 56.0.0 |
+| 1.21.7 | Java 21 | 8.14.3 | Forge 57.0.3 |
+| 1.21.8 | Java 21 | 8.14.3 | Forge 58.1.0 |
 
 ## 构建脚本
 
@@ -187,8 +196,8 @@ Fabric 侧基线版本:
 | `python versions/build_version.py list` | 列出全部适配目标与所需环境版本 |
 | `python versions/build_version.py prework mc-1.20.2-forge` | 生成该目标的工作副本 |
 | `python versions/build_version.py build mc-1.20.2-forge` | 生成并构建该目标, 产物留在该目标的工作副本 |
-| `python versions/build_version.py copy` | 检查各版本目录下的构建产物模组 jar, 全部复制到 release/ |
-| `cd versions-fabric && gradlew.bat build` | 构建 Fabric 侧基线产物, 产物在该工程自己的 build/libs/ |
+| `python versions/build_version.py copy` | 检查各目标的构建产物模组 jar, 全部收集到发布产物目录 |
+| `cd versions-fabric && gradlew.bat build` | 构建 Fabric 侧基线产物, 产物落在该工程自己的构建产物目录 |
 
 构建产物规范:
 - 文件名称: `VirtualRedstoneWire-v<模组版本>-mc-<起始MC版本>_<终止MC版本>-<模组加载器名称>.jar`
@@ -206,7 +215,7 @@ Fabric 侧基线版本:
 
 # 许可证
 
-本项目基于 [MIT 许可证](./LICENSE) 开源。
+本项目基于 [MIT 许可证](./LICENSE) 开源
 
 
 # 版权信息
@@ -225,5 +234,5 @@ Copyright (c) 2026 JularDepick
 
 # 相关链接
 
-- CurseForge模组链接：https://www.curseforge.com/minecraft/mc-mods/virtual-redstone-wire
-- Modrinth模组链接：https://modrinth.com/mod/virtual-redstone-wire
+- CurseForge模组链接: https://www.curseforge.com/minecraft/mc-mods/virtual-redstone-wire
+- Modrinth模组链接: https://modrinth.com/mod/virtual-redstone-wire
