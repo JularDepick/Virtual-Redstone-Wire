@@ -28,6 +28,8 @@ JAR_PREFIX = 'VirtualRedstoneWire-'
 JAR_SUFFIX = '.jar'
 # release_path 与 runtimes_path 已迁至 .env, 配置文件只保留空字段名
 ENV_KEYS = ('RELEASE_PATH', 'RUNTIMES_PATH')
+# 两个 path 的取值顺序: .env 优先, 配置文件次之, 两者都缺则拒绝
+PATH_KEYS = {'RELEASE_PATH': 'release_path', 'RUNTIMES_PATH': 'runtimes_path'}
 WITHMAP_FLAG = '--withmap'
 # 编辑距离归一化后的相似度阈值, 低于该值的匹配判为失败并列入待人工确认
 SIMILARITY_THRESHOLD = 0.50
@@ -38,9 +40,9 @@ def log(msg):
 
 
 def load_env(path):
-    """读取 .env; 缺失或键缺失都视为失败"""
+    """读取 .env; 文件缺失不视为失败, 键缺失只记录警告"""
     if not path.is_file():
-        raise FileNotFoundError('.env 缺失: %s(可参考 .env.example)' % path)
+        return {}, 'missing'
     values = {}
     for line in path.read_text(encoding='utf-8').splitlines():
         line = line.strip()
@@ -50,10 +52,27 @@ def load_env(path):
             continue
         key, _, value = line.partition('=')
         values[key.strip()] = value.strip()
-    missing = [key for key in ENV_KEYS if not values.get(key)]
-    if missing:
-        raise ValueError('.env 缺少有效配置: %s' % ', '.join(missing))
-    return values
+    return values, 'ok'
+
+
+def resolve_paths(env, config):
+    """按 .env 优先, 配置文件次之的顺序解析两个 path
+
+    返回 (paths 字典, 来源字典, 缺失键列表)
+    """
+    paths, sources, missing = {}, {}, []
+    for env_key, cfg_key in PATH_KEYS.items():
+        env_value = env.get(env_key, '')
+        cfg_value = config.get(cfg_key, '') or ''
+        if env_value:
+            paths[env_key] = env_value
+            sources[env_key] = '.env'
+        elif cfg_value:
+            paths[env_key] = cfg_value
+            sources[env_key] = 'runtime.config.json'
+        else:
+            missing.append(env_key)
+    return paths, sources, missing
 
 
 def load_json(path):
@@ -278,15 +297,22 @@ def main():
     config = load_json(CONFIG)
 
     log('读取环境变量文件 ' + ENV_FILE.as_posix())
-    try:
-        env = load_env(ENV_FILE)
-    except (OSError, ValueError) as exc:
-        print('环境变量读取失败: %s' % exc)
+    env, env_state = load_env(ENV_FILE)
+    if env_state == 'missing':
+        log('  .env 不存在, 两个 path 回退到 runtime.config.json')
+    else:
+        for key in ENV_KEYS:
+            log('  %s = %s' % (key, env[key] if env.get(key) else '(空, 回退配置文件)'))
+
+    paths, sources, missing_keys = resolve_paths(env, config)
+    if missing_keys:
+        print('两个 path 均无有效值: %s' % ', '.join(missing_keys))
+        print('请在 .env 或 runtime.config.json 中提供')
         return 1
     for key in ENV_KEYS:
-        log('  %s = %s' % (key, env[key]))
-    release_path = env['RELEASE_PATH']
-    runtimes_path = env['RUNTIMES_PATH']
+        log('  %s 取自 %s: %s' % (key, sources[key], paths[key]))
+    release_path = paths['RELEASE_PATH']
+    runtimes_path = paths['RUNTIMES_PATH']
 
     failures = []
 
