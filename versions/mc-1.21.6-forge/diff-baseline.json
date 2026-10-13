@@ -1,5 +1,5 @@
 {
-    "id": "mc-1.21.6_1.21.7-forge",
+    "id": "mc-1.21.6-forge",
     "diff": {
         "del": [
             "./work/src/main/java/com/virtualredstonewire/network/CableInfoRequestPacket.java",
