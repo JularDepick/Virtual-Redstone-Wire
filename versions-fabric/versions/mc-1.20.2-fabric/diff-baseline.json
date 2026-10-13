@@ -1,0 +1,39 @@
+{
+    "id": "mc-1.20.2-fabric",
+    "diff": {
+        "del": [
+            "./work/src/main/java/com/virtualredstonewire/data/CableNetworkSavedData.java",
+            "./work/src/main/java/com/virtualredstonewire/client/gui/CableInfoScreen.java",
+            "./work/src/main/java/com/virtualredstonewire/client/gui/CableUndoRedoHistoryScreen.java",
+            "./work/src/main/java/com/virtualredstonewire/client/gui/ClientConfigScreen.java",
+            "./work/src/main/java/com/virtualredstonewire/client/gui/ClientConfigSubScreen.java",
+            "./work/src/main/java/com/virtualredstonewire/client/gui/ServerConfigSubScreen.java"
+        ],
+        "add": [
+            {
+                "from": "../.sync/vanilla-1202/src/main/java/com/virtualredstonewire/data/CableNetworkSavedData.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/data"
+            },
+            {
+                "from": "../.sync/vanilla-1202/src/main/java/com/virtualredstonewire/client/gui/CableInfoScreen.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
+            },
+            {
+                "from": "../.sync/vanilla-1202/src/main/java/com/virtualredstonewire/client/gui/CableUndoRedoHistoryScreen.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
+            },
+            {
+                "from": "../.sync/vanilla-1202/src/main/java/com/virtualredstonewire/client/gui/ClientConfigScreen.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
+            },
+            {
+                "from": "../.sync/vanilla-1202/src/main/java/com/virtualredstonewire/client/gui/ClientConfigSubScreen.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
+            },
+            {
+                "from": "../.sync/vanilla-1202/src/main/java/com/virtualredstonewire/client/gui/ServerConfigSubScreen.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
+            }
+        ]
+    }
+}

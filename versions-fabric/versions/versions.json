@@ -3,19 +3,336 @@
         "id": "mc-1.20.1-fabric",
         "tag": "baseline",
         "mc": {
-            "version": ["1.20.1"],
+            "version": [
+                "1.20.1"
+            ],
             "pack-format": 15
         },
         "mod-loader": {
             "name": "fabric",
-            "version": ["0.16.14", "0.16.x"],
-            "api": ["0.92.12+1.20.1"]
+            "version": [
+                "0.16.14",
+                "0.16.x"
+            ],
+            "api": [
+                "0.92.12+1.20.1"
+            ]
         },
         "gradle": {
-            "version": ["8.14.3"]
+            "version": [
+                "8.14.3"
+            ]
         },
         "jdk": {
-            "version": ["17"]
+            "version": [
+                "17"
+            ]
+        }
+    },
+    {
+        "id": "mc-1.20_1.20.1-fabric",
+        "tag": "compat",
+        "mc": {
+            "version": [
+                "1.20",
+                "1.20.1"
+            ],
+            "pack-format": 15
+        },
+        "mod-loader": {
+            "name": "fabric",
+            "version": [
+                "0.16.14",
+                "0.16.x"
+            ],
+            "api": [
+                "0.83.0+1.20"
+            ]
+        },
+        "gradle": {
+            "version": [
+                "8.14.3"
+            ]
+        },
+        "jdk": {
+            "version": [
+                "17"
+            ]
+        }
+    },
+    {
+        "id": "mc-1.20.2-fabric",
+        "tag": "compat",
+        "mc": {
+            "version": [
+                "1.20.2"
+            ],
+            "pack-format": 18
+        },
+        "mod-loader": {
+            "name": "fabric",
+            "version": [
+                "0.16.14",
+                "0.16.x"
+            ],
+            "api": [
+                "0.91.6+1.20.2"
+            ]
+        },
+        "gradle": {
+            "version": [
+                "8.14.3"
+            ]
+        },
+        "jdk": {
+            "version": [
+                "17"
+            ]
+        }
+    },
+    {
+        "id": "mc-1.20.3_1.20.4-fabric",
+        "tag": "compat",
+        "mc": {
+            "version": [
+                "1.20.3",
+                "1.20.4"
+            ],
+            "pack-format": 22
+        },
+        "mod-loader": {
+            "name": "fabric",
+            "version": [
+                "0.16.14",
+                "0.16.x"
+            ],
+            "api": [
+                "0.91.1+1.20.3"
+            ]
+        },
+        "gradle": {
+            "version": [
+                "8.14.3"
+            ]
+        },
+        "jdk": {
+            "version": [
+                "17"
+            ]
+        }
+    },
+    {
+        "id": "mc-1.20.5_1.20.6-fabric",
+        "tag": "compat",
+        "mc": {
+            "version": [
+                "1.20.5",
+                "1.20.6"
+            ],
+            "pack-format": 32
+        },
+        "mod-loader": {
+            "name": "fabric",
+            "version": [
+                "0.16.14",
+                "0.16.x"
+            ],
+            "api": [
+                "0.97.8+1.20.5"
+            ]
+        },
+        "gradle": {
+            "version": [
+                "8.14.3"
+            ]
+        },
+        "jdk": {
+            "version": [
+                "21"
+            ]
+        }
+    },
+    {
+        "id": "mc-1.21_1.21.1-fabric",
+        "tag": "compat",
+        "mc": {
+            "version": [
+                "1.21",
+                "1.21.1"
+            ],
+            "pack-format": 34
+        },
+        "mod-loader": {
+            "name": "fabric",
+            "version": [
+                "0.16.14",
+                "0.16.x"
+            ],
+            "api": [
+                "0.101.2+1.21"
+            ]
+        },
+        "gradle": {
+            "version": [
+                "8.14.3"
+            ]
+        },
+        "jdk": {
+            "version": [
+                "21"
+            ]
+        }
+    },
+    {
+        "id": "mc-1.21.2_1.21.3-fabric",
+        "tag": "compat",
+        "mc": {
+            "version": [
+                "1.21.2",
+                "1.21.3"
+            ],
+            "pack-format": 42
+        },
+        "mod-loader": {
+            "name": "fabric",
+            "version": [
+                "0.16.14",
+                "0.16.x"
+            ],
+            "api": [
+                "0.106.1+1.21.2"
+            ]
+        },
+        "gradle": {
+            "version": [
+                "8.14.3"
+            ]
+        },
+        "jdk": {
+            "version": [
+                "21"
+            ]
+        }
+    },
+    {
+        "id": "mc-1.21.4-fabric",
+        "tag": "compat",
+        "mc": {
+            "version": [
+                "1.21.4"
+            ],
+            "pack-format": 46
+        },
+        "mod-loader": {
+            "name": "fabric",
+            "version": [
+                "0.16.14",
+                "0.16.x"
+            ],
+            "api": [
+                "0.107.0+1.21.4"
+            ]
+        },
+        "gradle": {
+            "version": [
+                "8.14.3"
+            ]
+        },
+        "jdk": {
+            "version": [
+                "21"
+            ]
+        }
+    },
+    {
+        "id": "mc-1.21.5-fabric",
+        "tag": "compat",
+        "mc": {
+            "version": [
+                "1.21.5"
+            ],
+            "pack-format": 55
+        },
+        "mod-loader": {
+            "name": "fabric",
+            "version": [
+                "0.16.14",
+                "0.16.x"
+            ],
+            "api": [
+                "0.114.1+1.21.5"
+            ]
+        },
+        "gradle": {
+            "version": [
+                "8.14.3"
+            ]
+        },
+        "jdk": {
+            "version": [
+                "21"
+            ]
+        }
+    },
+    {
+        "id": "mc-1.21.6-fabric",
+        "tag": "compat",
+        "mc": {
+            "version": [
+                "1.21.6"
+            ],
+            "pack-format": 63
+        },
+        "mod-loader": {
+            "name": "fabric",
+            "version": [
+                "0.16.14",
+                "0.16.x"
+            ],
+            "api": [
+                "0.128.2+1.21.6"
+            ]
+        },
+        "gradle": {
+            "version": [
+                "8.14.3"
+            ]
+        },
+        "jdk": {
+            "version": [
+                "21"
+            ]
+        }
+    },
+    {
+        "id": "mc-1.21.7_1.21.8-fabric",
+        "tag": "compat",
+        "mc": {
+            "version": [
+                "1.21.7",
+                "1.21.8"
+            ],
+            "pack-format": 64
+        },
+        "mod-loader": {
+            "name": "fabric",
+            "version": [
+                "0.16.14",
+                "0.16.x"
+            ],
+            "api": [
+                "0.128.2+1.21.7"
+            ]
+        },
+        "gradle": {
+            "version": [
+                "8.14.3"
+            ]
+        },
+        "jdk": {
+            "version": [
+                "21"
+            ]
         }
     }
 ]

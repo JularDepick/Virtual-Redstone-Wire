@@ -25,9 +25,14 @@ build_version.py - 1.20.x 多版本适配产物生成脚本
     gradle.version      首项为该目标使用的 Gradle 版本
     jdk.version         首项为该目标要求的 java 主版本, 构建前与当前 java 比对
   fabric.mod.json 的依赖声明由数组推出: minecraft 取 mc.version 全部元素的并集, 加载器取
-  mod-loader.version 全部元素的并集, 并把 x 写法转成 Fabric 谓词(如 47.x -> >=47 <48, 多元素用 || 相连).
+  mod-loader.version 全部元素的并集, 并把 x 写法转成 Fabric 谓词(如 47.x -> >=47 <48, 多元素用 || 相连);
+  java 取 jdk.version 首项, 写成 >=<主版本>.
   pack.mcmeta 只改基线文件里的 pack_format 值, 取值来自该目标 mc 块的 pack-format 字段,
   其余内容保持基线原样.
+  build.gradle 的 java 级别注入两处: toolchain 的 JavaLanguageVersion 与编译任务的
+  options.release. 两者必须一致, 因为 options.release 同时决定字节码级别与 Gradle 为
+  compileClasspath 选择的 JVM 目标兼容性, 只改 toolchain 会让 1.21.2 起原版依赖链里
+  仅支持 java 21 的构件在依赖解析阶段被拒.
 
   产物名为 VirtualRedstoneWire-v<模组版本>-<id>.jar, 其中模组版本取自 build.gradle, id 即
   目标标识, 例如 VirtualRedstoneWire-v1.0.0-mc-1.20.1-fabric.jar.
@@ -488,11 +493,18 @@ def inject_build_gradle(work, entry, log):
                     'fabricApiVersion(Fabric API 版本)')
     text = sub_once(text, r"JavaLanguageVersion\.of\(\d+\)", "JavaLanguageVersion.of(%d)" % build_jdk(entry),
                     'java toolchain(该目标的 java 主版本)')
+    # options.release 决定编译产物的字节码级别, 也决定 Gradle 为 compileClasspath 选择的
+    # JVM 目标兼容性; 它必须与该目标的 java 主版本一致, 否则 1.21.2 起原版依赖链里的
+    # jtracy 等仅支持 21 的构件会在依赖解析阶段被拒(报"looking for a library compatible
+    # with JVM runtime version 17"), 编译根本走不到源码阶段
+    text = sub_once(text, r"options\.release = \d+", "options.release = %d" % build_jdk(entry),
+                    'options.release(该目标的 java 主版本)')
     text = sub_once(text, r"archiveFileName = \"[^\"]*\"",
                     'archiveFileName = "${archivesBaseName}-v${project.version}-%s.jar"' % target_id(entry),
                     'archiveFileName(产物名后缀为目标标识)')
     path.write_text(text, encoding='utf-8')
-    log.append('注入 build.gradle: 编译对准 %s / %s-%s / Fabric API %s / Java %d / 产物名后缀 %s'
+    log.append('注入 build.gradle: 编译对准 %s / %s-%s / Fabric API %s / Java %d (toolchain 与 release) '
+               '/ 产物名后缀 %s'
                % (mc_version, loader_name(entry), loader_version, api_version, build_jdk(entry),
                   target_id(entry)))
 
@@ -540,6 +552,9 @@ def write_fabric_mod_json(work, entry, log):
 
     minecraft 取 mc.version 全部元素的并集, 加载器取 mod-loader.version 全部元素的并集,
     因此"用某个版本编译, 声明覆盖一段范围"与基线同一文件兼容.
+    java 取该目标 jdk.version 首项: 基线写死的 >=17 对 1.21.x 与 1.20.5/1.20.6 这类
+    要求 java 21 的目标不正确, 会让加载器在 java 17 上先按声明放行再抛类版本错误,
+    因此这里随该目标要求的 java 主版本注入下界.
     """
     path = work / 'src' / 'main' / 'resources' / 'fabric.mod.json'
     if not path.exists():
@@ -548,11 +563,13 @@ def write_fabric_mod_json(work, entry, log):
     depends = data.setdefault('depends', {})
     minecraft_range = fabric_range(entry, 'mc')
     loader_range = fabric_range(entry, 'mod-loader')
+    java_range = '>=%d' % build_jdk(entry)
     depends['minecraft'] = minecraft_range
     depends['fabricloader'] = loader_range
+    depends['java'] = java_range
     path.write_text(json.dumps(data, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
-    log.append('写入 fabric.mod.json 依赖: minecraft %s / fabricloader %s'
-               % (minecraft_range, loader_range))
+    log.append('写入 fabric.mod.json 依赖: minecraft %s / fabricloader %s / java %s'
+               % (minecraft_range, loader_range, java_range))
 
 
 def pack_format(entry):

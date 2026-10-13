@@ -137,8 +137,8 @@ Minecraft 1.20.1 is the baseline version, and the other compatible versions are 
 | 1.21.3 | 53.1.x | mc-1.21.3-forge |
 | 1.21.4 | 54.1.x | mc-1.21.4-forge |
 | 1.21.5 | 55.1.x | mc-1.21.5-forge |
-| 1.21.6 | 56.0.x | mc-1.21.6_1.21.7-forge |
-| 1.21.7 | 56.0.x | mc-1.21.6_1.21.7-forge |
+| 1.21.6 | 56.0.x | mc-1.21.6-forge |
+| 1.21.7 | 57.0.x | mc-1.21.7-forge |
 | 1.21.8 | 58.1.x | mc-1.21.8-forge |
 
 Fabric baseline version:

@@ -60,6 +60,20 @@ Forge 侧用 `KeyModifier.CONTROL` 表达"按住 Ctrl",控制菜单会自动渲�
 Fabric 侧的原版按键没有修饰键概念,因此注册裸键并在 tick 处理内用 `Screen.hasControlDown()` 判定;语言文件里三个快捷键的显示文案相应加上"按住 Ctrl"
 两侧文案**有意不同**:Forge 侧再加提示是冗余
 
+### 3.4 语言级别的作用范围
+
+两侧对清单里 `jdk.version` 的解释不同: Forge 侧该字段既决定编译工具链也抬高字节码目标, Fabric 侧的生成脚本另外从该字段注入 `build.gradle` 的 `options.release` 与 `fabric.mod.json` 的 `java` 谓词(写作 `>=<主版本>`);两侧最终结果已一致, 实测产物字节码可证:
+
+| 产物 | 清单声明 jdk | 实际 class major |
+|:---:|:---:|:---:|
+| Fabric 侧 jdk 17 的目标 | 17 | 61 (Java 17) |
+| Fabric 侧 jdk 21 的目标 | 21 | 65 (Java 21) |
+| Forge 侧 jdk 21 的目标 | 21 | 65 (Java 21) |
+
+因此 Fabric 侧 jdk 21 的目标产出 Java 21 字节码, 其 `fabric.mod.json` 里 `java` 谓词写 `>=21`, 与产物一致;Forge 侧同一字段同样会抬高字节码目标
+
+两侧都不会出错: Java 21 的运行时能加载 Java 17 的字节码, 反之不行, 故 jdk 21 的目标必须同时抬高字节码目标与 `java` 谓词的下界,此处记录以免日后被当作缺陷
+
 ## 四,需要实测确认的项
 
 | 项 | 说明 |

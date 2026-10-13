@@ -119,7 +119,25 @@ Forge 侧在逐维度保存事件里写回,Fabric 侧改为逐 tick 让存档载
 | 网络往返 | 各报文类型的收发均正常 |
 | 创造模式标签页 | 三个物品出现在红石标签页 |
 
-## 五,维护要求
+## 五,各兼容目标的版本特有项
+
+除基线外, 每个 Fabric 兼容目标都在某一处 API 换代上做过改动,实测时按目标逐项确认, 这些是各目标与基线唯一不同的地方:
+
+| 目标 | 改了什么 | 实测项与判定标准 |
+|:---:|:---|:---|
+| `mc-1.20_1.20.1-fabric` | 无源码改动, 仅编译对准 1.20 | 在 1.20 与 1.20.1 上各跑一遍通用项, 确认同一份产物两者都可用 |
+| `mc-1.20.2-fabric` | 存档载体改用 `SavedData$Factory`; 界面的 `mouseScrolled` 与 `renderBackground` 形参换代 | 建链后退出重进, 链路仍在; 列表页鼠标滚轮可滚动; 配置子页背景正常绘制 |
+| `mc-1.20.3_1.20.4-fabric` | 列表构造器六参并五参; 几何字段 `x1` 改用 `getRight()` | 三个配置界面的列表能正常显示与滚动; 滚动条位置正确 |
+| `mc-1.20.5_1.20.6-fabric` | 网络改用原版 `CustomPacketPayload` 体系; 存档载体与物品提示换代 | 联机状态下建链删链与放大镜查询全部往返正常; 存档读写正常; 物品提示文本正常显示 |
+| `mc-1.21_1.21.1-fabric` | 顶点 API 换代: `VertexConsumer` 的 `vertex(...)` 与 `color(...)` 改名 `addVertex(...)` 与 `setColor(...)`, 显式收尾 `endVertex()` 取消; 物品标识改用 `ResourceLocation.fromNamespaceAndPath` | 手持物品时三要素齐全且遮挡关系与 Forge 侧一致(几何数据未改, 只换方法名, 逐面确认无顶点错位); 三个物品仍出现在红石标签页 |
+| `mc-1.21.2_1.21.3-fabric` | `Entity` 与 `Player` 的 `sendSystemMessage` 被移除, 聊天栏反馈改用 `displayClientMessage(Component, false)`; `Level.updateNeighborsAtExceptFromFacing` 新增第四形参 `Orientation` | 建链删链与拒绝等反馈仍落在聊天栏(不掉进快捷栏上方飘浮); 拨动拉杆与放置红石块时输出端立即响应(注入点形参写错时 Mixin 在加载期拒绝, 表现为该钩子整体失效) |
+| `mc-1.21.4-fabric` | 配置界面的滚动条位置访问器由 `getScrollbarPosition()` 改名 `scrollBarX()` | 三个配置界面的滚动条仍紧邻屏幕右边界, 列表可正常滚动 |
+| `mc-1.21.5-fabric` | `SavedData` 改 Codec 驱动(三参 `computeIfAbsent` 与 `SavedData$Factory` 消失, 改用 `SavedDataType`); 物品提示形参换代(新增 `TooltipDisplay`, 收集器由 `List<Component>` 改为 `Consumer<Component>`) | 1.21.4 及以前写下的存档在 1.21.5 仍能读出链路(磁盘文件名不变); 三个物品的提示文本与 Forge 侧一致 |
+| `mc-1.21.6-fabric` | `GuiGraphics.renderTooltip` 只保留收 `List<ClientTooltipComponent>` 的形式(定位器形参不可传 null); `ServerPlayer.serverLevel()` 改名 `level()` | 悬停配置项行 3 秒内正常显示提示且不抛 NPE; 建链删链, 放大镜查询与服务端配置读写全部往返正常 |
+| `mc-1.21.7_1.21.8-fabric` | 与 `mc-1.21.6-fabric` 同层, 无额外源码改动, 仅编译对准 1.21.7 且资源包格式号取 64 | 在 1.21.7 与 1.21.8 上各跑一遍通用项, 确认同一份产物两者都可用 |
+
+## 六,维护要求
 
 - 本清单与 `Fabric侧移植差异.md` 配套:差异文档列出"哪里不同",本清单列出"怎么验证不同处仍然正确"
 - 新增差异时,必须同时在本清单补对应验证项
+- **Mixin 注入点必须逐版本用 javap 确认**: 注入目标以字符串给出, 形参表与目标方法签名不符时编译照样通过, 只在游戏加载期被 Mixin 拒绝, 属**编译期不可见断点**; 因此每换一个 MC 目标都要在对应版本的构件上 javap 出该方法的真实签名再定形参, 不能只看编译是否通过;1.21.2 起 `Level.updateNeighborsAtExceptFromFacing` 由三参变四参(新增 `Orientation`, 且旧三参重载被移除而非并存), 即该断点的实例

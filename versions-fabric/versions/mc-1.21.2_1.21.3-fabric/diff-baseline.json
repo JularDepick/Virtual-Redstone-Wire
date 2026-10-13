@@ -1,0 +1,141 @@
+{
+    "id": "mc-1.21.2_1.21.3-fabric",
+    "diff": {
+        "del": [
+            "./work/src/main/java/com/virtualredstonewire//VirtualRedstoneWire.java",
+            "./work/src/main/java/com/virtualredstonewire/client/CableClientQueue.java",
+            "./work/src/main/java/com/virtualredstonewire/client/CableUndoRedoManager.java",
+            "./work/src/main/java/com/virtualredstonewire/client/gui/CableInfoScreen.java",
+            "./work/src/main/java/com/virtualredstonewire/client/gui/CableUndoRedoHistoryScreen.java",
+            "./work/src/main/java/com/virtualredstonewire/client/gui/ClientConfigScreen.java",
+            "./work/src/main/java/com/virtualredstonewire/client/gui/ClientConfigSubScreen.java",
+            "./work/src/main/java/com/virtualredstonewire/client/gui/ServerConfigSubScreen.java",
+            "./work/src/main/java/com/virtualredstonewire/client/render/CableRenderer.java",
+            "./work/src/main/java/com/virtualredstonewire/data/CableNetworkSavedData.java",
+            "./work/src/main/java/com/virtualredstonewire/item/CableCutterItem.java",
+            "./work/src/main/java/com/virtualredstonewire/item/CableMagnifierItem.java",
+            "./work/src/main/java/com/virtualredstonewire/item/VirtualCableItem.java",
+            "./work/src/main/java/com/virtualredstonewire/mixin/MixinLevel.java",
+            "./work/src/main/java/com/virtualredstonewire/network/CableInfoRequestPacket.java",
+            "./work/src/main/java/com/virtualredstonewire/network/CableInfoResponsePacket.java",
+            "./work/src/main/java/com/virtualredstonewire/network/CableMsgPacket.java",
+            "./work/src/main/java/com/virtualredstonewire/network/CableNetworkChannel.java",
+            "./work/src/main/java/com/virtualredstonewire/network/CableOpPacket.java",
+            "./work/src/main/java/com/virtualredstonewire/network/CablePayload.java",
+            "./work/src/main/java/com/virtualredstonewire/network/CableServerConfigRequestPacket.java",
+            "./work/src/main/java/com/virtualredstonewire/network/CableServerConfigResponsePacket.java",
+            "./work/src/main/java/com/virtualredstonewire/network/ProtocolHandshakePacket.java",
+            "./work/src/main/java/com/virtualredstonewire/registry/ModItems.java"
+        ],
+        "add": [
+            {
+                "from": "../.sync/vanilla-1202/src/main/java/com/virtualredstonewire/client/gui/CableInfoScreen.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
+            },
+            {
+                "from": "../.sync/vanilla-1202/src/main/java/com/virtualredstonewire/client/gui/CableUndoRedoHistoryScreen.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
+            },
+            {
+                "from": "../.sync/vanilla-1203/src/main/java/com/virtualredstonewire/client/gui/ClientConfigScreen.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
+            },
+            {
+                "from": "../.sync/vanilla-1203/src/main/java/com/virtualredstonewire/client/gui/ClientConfigSubScreen.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
+            },
+            {
+                "from": "../.sync/vanilla-1203/src/main/java/com/virtualredstonewire/client/gui/ServerConfigSubScreen.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
+            },
+            {
+                "from": "../.sync/vanilla-1205/src/main/java/com/virtualredstonewire/data/CableNetworkSavedData.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/data"
+            },
+            {
+                "from": "../.sync/vanilla-1205/src/main/java/com/virtualredstonewire/item/VirtualCableItem.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/item"
+            },
+            {
+                "from": "../.sync/vanilla-1205/src/main/java/com/virtualredstonewire/item/CableCutterItem.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/item"
+            },
+            {
+                "from": "../.sync/vanilla-1205/src/main/java/com/virtualredstonewire/item/CableMagnifierItem.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/item"
+            },
+            {
+                "from": "../.sync/fabric-networking-121/src/main/java/com/virtualredstonewire//VirtualRedstoneWire.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/"
+            },
+            {
+                "from": "../.sync/fabric-networking-121/src/main/java/com/virtualredstonewire/network/CablePayload.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/network"
+            },
+            {
+                "from": "../.sync/fabric-networking-121/src/main/java/com/virtualredstonewire/network/CableNetworkChannel.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/network"
+            },
+            {
+                "from": "../.sync/fabric-networking-121/src/main/java/com/virtualredstonewire/network/CableOpPacket.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/network"
+            },
+            {
+                "from": "../.sync/fabric-networking-121/src/main/java/com/virtualredstonewire/network/CableMsgPacket.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/network"
+            },
+            {
+                "from": "../.sync/fabric-networking-121/src/main/java/com/virtualredstonewire/network/CableInfoRequestPacket.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/network"
+            },
+            {
+                "from": "../.sync/fabric-networking-121/src/main/java/com/virtualredstonewire/network/CableInfoResponsePacket.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/network"
+            },
+            {
+                "from": "../.sync/fabric-networking-121/src/main/java/com/virtualredstonewire/network/CableServerConfigRequestPacket.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/network"
+            },
+            {
+                "from": "../.sync/fabric-networking-121/src/main/java/com/virtualredstonewire/network/CableServerConfigResponsePacket.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/network"
+            },
+            {
+                "from": "../.sync/fabric-networking-121/src/main/java/com/virtualredstonewire/network/ProtocolHandshakePacket.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/network"
+            },
+            {
+                "from": "../.sync/vanilla-121/src/main/java/com/virtualredstonewire/client/render/CableRenderer.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/render"
+            },
+            {
+                "from": "../.sync/vanilla-121/src/main/java/com/virtualredstonewire/registry/ModItems.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/registry"
+            },
+            {
+                "from": "../.sync/vanilla-1212/src/main/java/com/virtualredstonewire/mixin/MixinLevel.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/mixin"
+            },
+            {
+                "from": "../.sync/vanilla-1212/src/main/java/com/virtualredstonewire/client/CableClientQueue.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client"
+            },
+            {
+                "from": "../.sync/vanilla-1212/src/main/java/com/virtualredstonewire/client/CableUndoRedoManager.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client"
+            },
+            {
+                "from": "../.sync/vanilla-1212/src/main/java/com/virtualredstonewire/client/gui/ServerConfigSubScreen.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/client/gui"
+            },
+            {
+                "from": "../.sync/vanilla-1212/src/main/java/com/virtualredstonewire/item/VirtualCableItem.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/item"
+            },
+            {
+                "from": "../.sync/vanilla-1212/src/main/java/com/virtualredstonewire/item/CableCutterItem.java",
+                "to": "./work/src/main/java/com/virtualredstonewire/item"
+            }
+        ]
+    }
+}

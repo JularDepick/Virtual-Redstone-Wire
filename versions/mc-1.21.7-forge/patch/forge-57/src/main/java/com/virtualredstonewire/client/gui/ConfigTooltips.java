@@ -3,6 +3,7 @@ package com.virtualredstonewire.client.gui;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 
@@ -60,12 +61,18 @@ public final class ConfigTooltips
         if (keyPath.equals(text.getString())) return;
 
         List<FormattedCharSequence> lines = font.split(text, MAX_WIDTH);
-        // 1.21.6 起 renderTooltip 收 List<ClientTooltipComponent>, 需逐行包装
+        /*
+         * 1.21.6 起 renderTooltip 收 List<ClientTooltipComponent>, 需逐行包装;
+         * 第 5 形参(定位器)不可传 null: 该方法无条件调用 positionTooltip, 传 null 在真正显示提示时抛 NPE,
+         * 故显式给 DefaultTooltipPositioner.INSTANCE, 与原四参重载内部的默认定位行为一致;
+         * 第 6 形参(纹理)可传 null, TooltipRenderUtil.getBackgroundSprite 显式判空回退.
+         */
         List<ClientTooltipComponent> components = new ArrayList<>();
         for (FormattedCharSequence line : lines)
         {
             components.add(ClientTooltipComponent.create(line));
         }
-        guiGraphics.renderTooltip(font, components, mouseX, mouseY, null, null);
+        guiGraphics.renderTooltip(font, components, mouseX, mouseY,
+            DefaultTooltipPositioner.INSTANCE, null);
     }
 }
