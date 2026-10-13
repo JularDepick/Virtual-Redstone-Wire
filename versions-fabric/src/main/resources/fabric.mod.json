@@ -7,7 +7,7 @@
     "authors": [
         "JularDepick"
     ],
-    "license": "MIT",
+    "license": "Apache-2.0",
     "icon": "virtual_redstone_wire.png",
     "environment": "*",
     "entrypoints": {

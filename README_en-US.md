@@ -4,7 +4,7 @@
 
 [![Version](https://img.shields.io/badge/Version-1.0.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v1.0.0)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
+[![License](https://img.shields.io/badge/License-Apache--2.0-blue)](./LICENSE)
 
 [English]
 | [[简体中文]](./README.md)
@@ -215,7 +215,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 # License
 
-This project is open source under the [MIT License](./LICENSE).
+This project is open source under the [Apache-2.0 License](./LICENSE).
 
 
 # Copyright

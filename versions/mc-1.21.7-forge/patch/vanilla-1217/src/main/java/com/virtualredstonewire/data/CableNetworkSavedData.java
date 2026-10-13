@@ -37,11 +37,21 @@ import java.util.List;
 public class CableNetworkSavedData extends SavedData
 {
     /**
+     * 存档文件名固定取 DATA_NAME, 不随版本变化。
+     * 1.21.5 起原版改版, SavedDataType 的 id 直接决定磁盘文件名(<id>.dat);
+     * 而 1.20.x 至 1.21.4 的文件名来自传给 computeIfAbsent 的字符串, 即同一常量。
+     * 故此处必须复用该常量, 否则同一份存档换版本打开会找不到链路数据。
+     * 声明位置提到 TYPE 之前, 因为静态字段初始化器只能按简单名引用其前声明的静态字段。
+     */
+    private static final String DATA_NAME = VirtualRedstoneWire.MOD_ID + "_network";
+
+    /**
      * 1.21.5 起 SavedData 改为 Codec 驱动, 不再有 save 方法可供覆写, 序列化由 SavedDataType 承担。
      * 这里用 xmap 把本类原有的手写 NBT 读写原样包成 Codec, 使存档字节格式与向后兼容读取逻辑完全不变。
+     * 首参即存档文件名, 固定取 DATA_NAME, 不随版本变化。
      */
     public static final SavedDataType<CableNetworkSavedData> TYPE = new SavedDataType<>(
-        "virtual_redstone_wire",
+        DATA_NAME,
         () -> new CableNetworkSavedData(new CableNetwork()),
         CompoundTag.CODEC.xmap(CableNetworkSavedData::fromTag, CableNetworkSavedData::toTag),
         DataFixTypes.LEVEL);
@@ -55,8 +65,6 @@ public class CableNetworkSavedData extends SavedData
     {
         return data.save(new CompoundTag());
     }
-
-    private static final String DATA_NAME = VirtualRedstoneWire.MOD_ID + "_network";
 
     /** 存档键: 新格式为字符串列表(分块), 旧格式为单个字符串 */
     private static final String KEY_CHUNKS = "network";

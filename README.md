@@ -4,7 +4,7 @@
 
 [![Version](https://img.shields.io/badge/Version-1.0.0-red)](https://github.com/JularDepick/Virtual-Redstone-Wire/releases/tag/v1.0.0)
 [![Copyright](https://img.shields.io/badge/Copyright-JularDepick-0066AA)](./COPYRIGHT)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
+[![License](https://img.shields.io/badge/License-Apache--2.0-blue)](./LICENSE)
 
 [简体中文]
 | [[English]](./README_en-US.md)
@@ -215,7 +215,7 @@ Fabric 侧基线版本:
 
 # 许可证
 
-本项目基于 [MIT 许可证](./LICENSE) 开源
+本项目基于 [Apache-2.0 许可证](./LICENSE) 开源
 
 
 # 版权信息
