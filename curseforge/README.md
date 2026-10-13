@@ -1,178 +1,217 @@
 # Virtual Redstone Wire
 
 [English]
-| [简体中文](#虚拟红石线缆)
+| [[简体中文](#虚拟红石线缆)]
 
 A Minecraft mod for long-distance redstone signal transmission that does not rely on physical redstone blocks, supporting one-to-one, one-to-many, and many-to-one connections.
 
 ---
 
-## What does it do
+![![](https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/intro/intro_cover.png)](https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/intro/intro_video.gif)
 
-Virtual Redstone Wire lets you transmit redstone signals between blocks wirelessly. Create a one-way link from an input block to an output block, and the redstone power at the input is mirrored to the output instantly. No cables, no physical redstone dust, no block entities.
+# Mod Usage
 
----
+## Prerequisites
 
-## Features
-
-- **Wireless redstone links** - link blocks up to 256 blocks apart (configurable, 1-1024)
-- **One-way directional links** - signal exits from the clicked face of the output block; a redstone lamp placed on the output block lights up directly
-- **Signal strength preserved** - transmits 0-15 signal strength, not just on/off
-- **One-to-many broadcast** - one input can feed multiple outputs
-- **Many-to-one merge** - multiple inputs can feed one output (highest signal wins)
-- **Works after building** - place the signal source, flip a lever, or remove a source at any time; links refresh in real time
-- **Zero space occupation** - no block entities, fully vanilla-compatible world
-- **Cable Magnifier** - highlights all links while held (blue input, yellow output, red path); right-click a block to show its redstone signal strength and position above the hotbar, or sneak-right-click a block to inspect its links
-- **Cable Cutter** - removes all outgoing links of an input block at once
-- **Undo / Redo and operation history** - press Ctrl+Z / Ctrl+Y to undo or redo recent link operations; while holding the Cable Magnifier, press Ctrl+A to review the undo/redo history on a dedicated screen
-
----
-
-## Items
-
-| Item | Crafting |
+| Item | Requirement |
 |:---:|:---:|
-| Virtual Cable | Redstone + Iron Ingot |
-| Cable Cutter | Iron Ingot + Stick x2 |
-| Cable Magnifier | Redstone + Glass Pane + Stick |
+| Minecraft | 1.20 - 1.21.8 |
+| Mod loader | Forge / Fabric |
+| Prerequisite mod | Fabric API is required on the Fabric side; the Forge side needs no other mod dependencies |
+| Artifact | Download the artifact that matches your Minecraft version; each file name declares the range it supports |
 
----
+> For the mapping between Minecraft game versions and mod loader versions, see [Supported Versions](#supported-versions)
 
-## Usage
+## Mod Items
 
-### Virtual Cable
+### Cable
 
-- Hold a **Virtual Cable** and right-click an input block to select it
+- Item ID: `virtual_redstone_wire:virtual_cable`
+- Crafting: 1 Redstone + 1 Iron Ingot
+- Usage:
+  - Right-click the block you want as the input to select it, then right-click the block you want as the output to create a one-way redstone link
 
-  <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/11.png" alt="Right-click an input block with Virtual Cable to select it" />
+    <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/11.png" alt="Right-click an input block with the Cable to select it" />
 
-- Right-click an output block to create the one-way link (right-click the same block again to cancel)
+    <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/12.png" alt="Right-click an output block to create a one-way link" />
 
-  <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/12.png" alt="Right-click an output block to create a one-way link" />
-
-- Power the input block with any redstone source; the output block delivers the signal from the clicked face
+  - Right-click the block currently selected as the input to deselect it
+  - One input can be linked to several outputs, and one output can accept several inputs
+  - Power the input block with any redstone source; the output block delivers the signal through the chosen face
 
 ### Cable Cutter
 
-- Right-click an input block to remove all links originating from it (only affects links where the block is the input/source)
+- Item ID: `virtual_redstone_wire:cable_cutter`
+- Crafting: 2 Sticks + 1 Iron Ingot
+- Usage: Right-click an input block to cut every link leaving it (only links where that block is the input are affected)
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/21.png" alt="Using the Cable Cutter on an input block to remove all links originating from it" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/21.png" alt="Using the Cable Cutter on an input block to cut every link leaving it" />
 
 - Afterwards, that input block has no outgoing links
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/22.png" alt="Cable Cutter after removing all outgoing links from the input block" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/22.png" alt="Cable Cutter after cutting every outgoing link of the input block" />
 
 ### Cable Magnifier
 
-- While held: all links are highlighted (blue input, yellow output, red path)
+- Item ID: `virtual_redstone_wire:cable_magnifier`
+- Crafting: 1 Stick + 1 Glass Pane + 1 Redstone
+- Usage:
+  - While held, highlights every link around you: blue for the input, yellow for the output, red for the link path
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/31.png" alt="Cable Magnifier highlighting all links with blue input, yellow output, and red path" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/31.png" alt="Cable Magnifier highlighting every link with a blue input, a yellow output and a red link path" />
 
-- Right-click a block: show its redstone signal strength and position above the hotbar
+  - Right-click a block to read its coordinates and its redstone signal strength
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/32.png" alt="Right-click a block with the Cable Magnifier to show its redstone signal strength and position above the hotbar" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/32.png" alt="Right-click a block with the Cable Magnifier to read its coordinates and redstone signal strength" />
 
-- Sneak-right-click a block: open its link information panel
+  - Sneak-right-click a block to open its link info panel
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/33.png" alt="Sneak-right-click a block with the Cable Magnifier to open the link information panel" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/33.png" alt="Sneak-right-click a block with the Cable Magnifier to open its link info panel" />
 
-### Undo & Redo
+## Undo and Redo
 
-- While holding a **Virtual Cable**, **Cable Cutter**, or **Cable Magnifier**, press `Ctrl+Z` to undo and `Ctrl+Y` to redo the most recent successful link operation (keybinds can be changed in the Controls settings)
-- Undo cancels the latest operation: a created link is removed, a removed link is restored; redo re-executes it
-- History is client-side memory only (shared limit 20 by default, adjustable 10-100 in the Mods menu client config) and clears on game exit
+- While holding any mod item in the main hand or the off hand, press `Ctrl+Z` to undo and `Ctrl+Y` to redo; both keybinds can be changed
+- Operation history is kept in client memory only and is cleared when you leave the game
+- Links removed in a batch by the Cable Cutter are undone or redone as a whole
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/41.png" alt="Undo or redo a link creation with Ctrl+Z / Ctrl+Y while holding a mod item" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/41.png" alt="Undo or redo a link operation with Ctrl+Z / Ctrl+Y while holding a mod item" />
 
-- While holding the **Cable Magnifier**, press `Ctrl+A` to open the operation history screen
+## Operation History
+
+- While holding the Cable Magnifier, press `Ctrl+A` to open the operation history screen; the keybind can be changed
 - The screen lists the operations you can currently undo or redo in two columns (operation type and endpoint coordinates); scroll with the mouse wheel when the list overflows
 - Press `Ctrl+Z` / `Ctrl+Y` inside the screen to undo/redo directly, with results refreshing in real time and chat feedback suppressed while it is open
 - Close it with the button at the panel's top-right corner, `ESC`, or `Ctrl+A` again
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/42.png" alt="Operation history screen listing undoable and redoable link operations" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/42.png" alt="Operation history screen listing the operations that can be undone or redone" />
+
+## Redstone Behavior
+
+- Virtual cables carry a redstone signal strength from 0 to 15
+- An input block reports the redstone signal at its own position
+- Redstone changes at the input show up at the output in real time
+- One-to-many broadcast and many-to-one merging are both supported, and the output side takes the highest incoming signal
+- A signal always travels along a link in one direction
+- The signal leaves the output block through the chosen face, so its direction is exact
+
+# Mod Configuration
+
+## Client
+
+- Config file: `config/virtual_redstone_wire-client.toml`
+
+| Option | Default | Range | Meaning |
+|:---:|:---:|:---:|:---:|
+| `enableChatFeedback` | `false` | `true` / `false` | Whether link operation results are reported in the chat |
+| `undoHistorySize` | `20` | `10` - `100` | Maximum number of entries kept in the undo stack and in the redo stack |
+| `undoRedoFeedback` | `true` | `true` / `false` | Whether undo and redo notifications are shown |
+
+## Server
+
+- Config file: `<world save>/serverconfig/virtual_redstone_wire-server.toml`
+
+| Option | Default | Range | Meaning |
+|:---:|:---:|:---:|:---:|
+| `maxLinkDistance` | `256` | `1` - `1024` | Maximum distance allowed for a single link, in blocks |
+| `magnifierRenderDistance` | `512` | `64` - `1024` | Maximum distance at which links are highlighted while you hold the Cable Magnifier, in blocks |
+| `networkChangeLogSize` | `200` | `200` - `1000` | Capacity of the recent-change table used for incremental sync |
+| `operationLogEnabled` | `true` | `true` / `false` | Whether every add or remove operation that was applied or rejected is recorded |
+| `operationLogSplit` | `total` | `total` / `both` / `player` | How the operation log is split into files: one combined file, the combined file together with per-player files, or per-player files only |
+| `operationLogFile` | `Virtual_Redstone_Wire-Operations.log` | Custom file name | File name of the operation log; with per-player files the player name is appended to the base name |
+| `requestLogEnabled` | `false` | `true` / `false` | Whether every received request is recorded verbatim together with its final status code; debug level |
+| `requestLogFile` | `Virtual_Redstone_Wire-Requests.log` | Custom file name | File name of the request log |
+
+# Mod Data
+
+## Link Data
+
+| World dimension | Data file |
+|:---:|:---:|
+| Overworld | `<world save>/data/virtual_redstone_wire_network.dat` |
+| Nether | `<world save>/DIM-1/data/virtual_redstone_wire_network.dat` |
+| End | `<world save>/DIM1/data/virtual_redstone_wire_network.dat` |
+
+## Log Data
+
+- Operation log: `<world save>/Virtual_Redstone_Wire-Operations.log` and `<world save>/Virtual_Redstone_Wire-Operations_<player name>.log`
+- Request log: `<world save>/Virtual_Redstone_Wire-Requests.log`
+
+# Supported Versions
+
+`mc-1.20.1-forge` and `mc-1.20.1-fabric` are the 1.20.1 baseline artifacts of the two sides; the other compatible versions are listed below:
+
+## Forge
+
+| Minecraft | Java | Forge version | Mod file name suffix |
+|:---:|:---:|:---:|:---:|
+| `1.20` | `17` | `46.x` | `mc-1.20_1.20.1-forge` |
+| **`1.20.1`** | **`17`** | **`47.x`** | **`mc-1.20.1-forge`** |
+| `1.20.1` | `17` | `47.x` | `mc-1.20_1.20.1-forge` |
+| `1.20.2` | `17` | `48.x` | `mc-1.20.2-forge` |
+| `1.20.3` | `17` | `49.0.x` | `mc-1.20.3_1.20.4-forge` |
+| `1.20.4` | `17` | `49.2.x` | `mc-1.20.3_1.20.4-forge` |
+| `1.20.6` | `21` | `50.2.x` | `mc-1.20.6-forge` |
+| `1.21` | `21` | `51.0.x` | `mc-1.21_1.21.1-forge` |
+| `1.21.1` | `21` | `51.0.x` | `mc-1.21_1.21.1-forge` |
+| `1.21.3` | `21` | `53.1.x` | `mc-1.21.3-forge` |
+| `1.21.4` | `21` | `54.1.x` | `mc-1.21.4-forge` |
+| `1.21.5` | `21` | `55.1.x` | `mc-1.21.5-forge` |
+| `1.21.6` | `21` | `56.0.x` | `mc-1.21.6-forge` |
+| `1.21.7` | `21` | `57.0.x` | `mc-1.21.7-forge` |
+| `1.21.8` | `21` | `58.1.x` | `mc-1.21.8-forge` |
+
+> Forge does not support Minecraft 1.20.5 and 1.21.2
+
+## Fabric
+
+| Minecraft | Java | Fabric version | Fabric API version | Mod file name suffix |
+|:---:|:---:|:---:|:---:|:---:|
+| `1.20` | `17` | `0.16.x` | `0.83.0+1.20` | `mc-1.20_1.20.1-fabric` |
+| **`1.20.1`** | **`17`** | **`0.16.x`** | **`0.92.12+1.20.1`** | **`mc-1.20.1-fabric`** |
+| `1.20.1` | `17` | `0.16.x` | `0.83.0+1.20` | `mc-1.20_1.20.1-fabric` |
+| `1.20.2` | `17` | `0.16.x` | `0.91.6+1.20.2` | `mc-1.20.2-fabric` |
+| `1.20.3` | `17` | `0.16.x` | `0.91.1+1.20.3` | `mc-1.20.3_1.20.4-fabric` |
+| `1.20.4` | `17` | `0.16.x` | `0.91.1+1.20.3` | `mc-1.20.3_1.20.4-fabric` |
+| `1.20.5` | `21` | `0.16.x` | `0.97.8+1.20.5` | `mc-1.20.5_1.20.6-fabric` |
+| `1.20.6` | `21` | `0.16.x` | `0.97.8+1.20.5` | `mc-1.20.5_1.20.6-fabric` |
+| `1.21` | `21` | `0.16.x` | `0.101.2+1.21` | `mc-1.21_1.21.1-fabric` |
+| `1.21.1` | `21` | `0.16.x` | `0.101.2+1.21` | `mc-1.21_1.21.1-fabric` |
+| `1.21.2` | `21` | `0.16.x` | `0.106.1+1.21.2` | `mc-1.21.2_1.21.3-fabric` |
+| `1.21.3` | `21` | `0.16.x` | `0.106.1+1.21.2` | `mc-1.21.2_1.21.3-fabric` |
+| `1.21.4` | `21` | `0.16.x` | `0.107.0+1.21.4` | `mc-1.21.4-fabric` |
+| `1.21.5` | `21` | `0.16.x` | `0.114.1+1.21.5` | `mc-1.21.5-fabric` |
+| `1.21.6` | `21` | `0.16.x` | `0.128.2+1.21.6` | `mc-1.21.6-fabric` |
+| `1.21.7` | `21` | `0.16.x` | `0.128.2+1.21.7` | `mc-1.21.7_1.21.8-fabric` |
+| `1.21.8` | `21` | `0.16.x` | `0.128.2+1.21.7` | `mc-1.21.7_1.21.8-fabric` |
+
+> This mod does not plan to support the NeoForge mod loader for now; you can load this mod on NeoForge through a bridge mod. Or you can [open a new issue](https://github.com/JularDepick/Virtual-Redstone-Wire/issues/new) to request support.
+
+> This mod does not plan to support 26.x game versions for now. But you can [open a new issue](https://github.com/JularDepick/Virtual-Redstone-Wire/issues/new) to request support.
+
+# Language Support
+
+The languages currently supported by the mod are:
+- Simplified Chinese
+- English
+
+> The mod language follows the game language automatically.
+
+# Notes
+
+> Chat feedback is disabled by default and can be enabled in the client config
+
+> Right-click actions trigger once when the button is pressed; holding the button down does not repeat them (release and press again to trigger again). They do not trigger when no block is targeted, and the left button triggers nothing
+
+> This mod is inspired by Drive-By-Wire cable logic and works in a vanilla world; apart from Fabric API on the Fabric side, it has no other mod dependencies
+
+> **For version ranges this mod does not yet cover, or to report issues and request features, visit the GitHub repository**: [https://github.com/JularDepick/Virtual-Redstone-Wire](https://github.com/JularDepick/Virtual-Redstone-Wire)
 
 ---
-
-## Requirements
-
-- Minecraft 1.20 - 1.21.8
-- Forge or Fabric
-- Fabric API is required on the Fabric side; the Forge side needs no other mod dependencies
-- Download the artifact that matches your Minecraft version; each file name declares the range it supports
-
----
-
-## Configuration
-
-### How to configure
-
-- Start the game (or server) once to generate the config files
-- Open the config file with a text editor:
-  - Server config: `<world folder>/serverconfig/virtual_redstone_wire-server.toml` (edit on the machine running the server)
-  - Client config: `config/virtual_redstone_wire-client.toml`
-- Change the values and save the file
-- Restart the game or server for the changes to take effect
-
-Example (server, `<world folder>/serverconfig/virtual_redstone_wire-server.toml`):
-
-```toml
-maxLinkDistance = 512
-```
-
-### Server options
-
-- `maxLinkDistance` - maximum link distance in blocks (default 256, range 1-1024)
-- `magnifierRenderDistance` - render distance for link visualization (default 512, range 64-1024)
-- `networkChangeLogSize` - capacity of the recent change table for incremental sync (default 200, range 200-1000)
-- `operationLogEnabled` - log every applied/rejected add/del operation to a per-world text file (default true)
-- `operationLogSplit` - operation log split mode: total (one shared file), both (shared + per-player), player (per-player only) (default total)
-- `operationLogFile` - operation log file name; with player/both split the base name gets a `_<player>` suffix (default Virtual_Redstone_Wire-Operations.log)
-- `requestLogEnabled` - log every received request (raw JSON) with its final status code, debug level (default false)
-- `requestLogFile` - request log file name (default Virtual_Redstone_Wire-Requests.log)
-- Server options can be viewed and changed in-game from the Mods menu (Config); owner-only
-
-### Client options
-
-- `enableChatFeedback` - chat feedback for operations (default false)
-- `undoHistorySize` - undo/redo history stack size limit (default 20, range 10-100)
-- `undoRedoFeedback` - undo/redo feedback messages (default true)
-- Client options can be changed in-game from the Mods menu (Config), taking effect immediately
-
----
-
-## Language Support
-
-This mod is fully translated into:
-
-- **简体中文** (Simplified Chinese)
-- **English**
-
-The in-game text (item tooltips, information panel, chat feedback, etc.) follows your Minecraft language setting automatically. No mod configuration is required.
-
-### How to switch language
-
-- Open the game and go to **Options -> Language**
-- Select **简体中文 (China)** or **English (US)**
-- Confirm; the mod text switches immediately
-
-The language setting is **client-side**: each player chooses their own language, and the server needs no configuration.
-
----
-
-## Notes
-
-- Chat feedback is disabled by default and can be enabled in the client config
-- Right-click actions trigger once when the button is pressed; holding the button down does not repeat them (release and press again to trigger again). They do not trigger when no block is targeted, and the left button triggers nothing
-- This mod is inspired by Drive-By-Wire cable logic and works in a vanilla world; apart from Fabric API on the Fabric side, it has no other mod dependencies
-- **For version ranges this mod does not yet cover, or to report issues and request features, visit the GitHub repository**: [https://github.com/JularDepick/Virtual-Redstone-Wire](https://github.com/JularDepick/Virtual-Redstone-Wire)
-
----
-
 
 # 虚拟红石线缆
 
-[English](#virtual-redstone-wire)
-| [简体中文]
+[简体中文]
+| [[English](#virtual-redstone-wire)]
 
 用于红石信号远程传递的 Minecraft 模组，不依赖实体红石方块，支持一对一、一对多、多对一连接。
 
@@ -180,161 +219,199 @@ The language setting is **client-side**: each player chooses their own language,
 
 ![![](https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/intro/intro_cover.png)](https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/intro/intro_video.gif)
 
-## 功能简介
+# 模组使用
 
-虚拟红石线缆可让您在方块之间无线传输红石信号。在输入端方块与输出端方块之间创建单向链路后，输入端的红石能量会即时反映到输出端。无需线缆、无需实体红石粉、无需方块实体。
+## 前置要求
 
----
-
-## 特性
-
-- **无线红石链路** - 方块间最远可链接 256 格（可配置，范围 1-1024）
-- **单向定向链路** - 信号从输出方块的指定面射出；放在输出端方块本体上的红石灯可直接点亮
-- **保留信号强度** - 传输 0-15 级信号强度，而非简单的开关
-- **一对多广播** - 一个输入端可连接多个输出端
-- **多对一合并** - 多个输入端可连接一个输出端（取最大信号）
-- **建链后仍可调整** - 随时放置信号源、拨动拉杆或移除信号源，链路实时刷新
-- **零空间占用** - 不使用方块实体，完全兼容原版世界
-- **线缆放大镜** - 手持时高亮全部链路（蓝框输入、黄框输出、红线路径）；右键方块在快捷栏上方显示其红石信号强度与坐标，潜行右键方块查看链路信息
-- **线缆剪** - 一次移除输入端方块的全部出链
-- **撤销/重做与操作历史** - 按 Ctrl+Z / Ctrl+Y 撤销或重做最近的链路操作；手持放大镜时按 Ctrl+A 在窗口页查看可撤销/可重做的操作历史
-
----
-
-## 物品
-
-| 物品 | 合成 |
+| 项 | 要求 |
 |:---:|:---:|
-| 虚拟线缆 | 红石 + 铁锭 |
-| 线缆剪 | 铁锭 + 木棍 x2 |
-| 线缆放大镜 | 红石 + 玻璃板 + 木棍 |
+| Minecraft | 1.20 - 1.21.8 |
+| 模组加载器 | Forge / Fabric |
+| 前置模组 | Fabric 需要 Fabric API; Forge 侧无其他模组依赖 |
+| 产物选择 | 请下载与你的 Minecraft 版本匹配的产物, 每个文件名已声明其支持区间 |
 
----
+> Minecraft游戏版本与模组加载器版本对照表见[支持的版本](#支持的版本)
 
-## 使用方法
+## 模组物品
 
-### 虚拟线缆
+### 线缆
 
-- 手持**虚拟线缆**右键输入端方块以选中
+- 物品ID: `virtual_redstone_wire:virtual_cable`
+- 合成: 1红石 + 1铁锭
+- 使用:
+  - 手持物品右键选中输入端方块后,再次右键选中输出端方块以创建单向红石链路
 
-  <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/11.png" alt="手持虚拟线缆右键输入端方块以选中" />
+    <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/11.png" alt="手持线缆右键输入端方块以选中" />
 
-- 右键输出端方块创建单向链路（再次右键同一方块可取消选中）
+    <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/12.png" alt="右键输出端方块创建单向链路" />
 
-  <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/12.png" alt="右键输出端方块创建单向链路" />
-
-- 用任意红石源为输入端方块供能，输出端方块将从指定面射出信号
+  - 手持物品右键选中输入端方块后,再次右键取消选中
+  - 输入端可连接多个输出端,输出端可接收多个输入端
+  - 用任意红石源为输入端方块供能, 输出端方块将从指定面射出信号
 
 ### 线缆剪
 
-- 右键输入端方块，移除以其为起点的全部链路（仅作用于该方块作为输入端/起点的链路）
+- 物品ID: `virtual_redstone_wire:cable_cutter`
+- 合成: 2木棍 + 1铁锭
+- 使用: 右键输入端方块切断其全部出链 (仅作用于该方块作为输入端的链路)
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/21.png" alt="线缆剪使用：右键输入端方块，移除以其为起点的全部链路" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/21.png" alt="线缆剪使用：右键输入端方块，切断其全部出链" />
 
-- 使用后，该输入端方块不再有出链
+- 使用后, 该输入端方块不再有出链
 
 <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/22.png" alt="线缆剪使用后，输入端方块的全部出链被移除" />
 
 ### 线缆放大镜
 
-- 手持时：高亮全部链路（蓝框输入、黄框输出、红线路径）
+- 物品ID: `virtual_redstone_wire:cable_magnifier`
+- 合成: 1木棍 + 1玻璃板 + 1红石
+- 使用:
+  - 手持时高亮显示全部链路(输入端蓝色,输出端黄色,链路红色)
 
 <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/31.png" alt="手持线缆放大镜高亮全部链路，蓝框为输入，黄框为输出，红线为路径" />
 
-- 右键方块：在快捷栏上方显示其红石信号强度与坐标
+  - 手持物品右键方块查看其坐标和红石信号强度
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/32.png" alt="手持线缆放大镜右键方块，在快捷栏上方显示红石信号强度与坐标" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/32.png" alt="手持线缆放大镜右键方块，查看其坐标和红石信号强度" />
 
-- 潜行右键方块：打开其链路信息面板
+  - 手持物品潜行右键方块打开其链路信息面板
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/33.png" alt="手持线缆放大镜潜行右键方块，打开链路信息面板" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/33.png" alt="手持线缆放大镜潜行右键方块，打开其链路信息面板" />
 
-### 撤销与重做
+## 撤销与重做
 
-- 手持**线缆**、**线缆剪**或**放大镜**时，按 `Ctrl+Z` 撤销、`Ctrl+Y` 重做最近一次成功的链路操作（可在游戏 Controls 设置中修改按键绑定）
-- 撤销会取消最近一次操作：创建的链路被移除，被移除的链路恢复；重做会重新执行它
-- 历史仅保存在客户端内存（双栈共用上限默认 20，可在 Mods 菜单客户端配置调整，范围 10-100），退出游戏清空
+- 主手或副手持有任一本模组物品时, 按 `Ctrl+Z` 撤销, `Ctrl+Y` 重做 (可更改按键绑定)
+- 操作历史仅保存在客户端内存,退出游戏清空
+- 线缆剪批量删除的链路可整体撤销或重做
 
-<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/41.png" alt="手持模组物品按 Ctrl+Z/Y 撤销或重做链路创建" />
+<img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/41.png" alt="手持模组物品按 Ctrl+Z/Y 撤销或重做链路操作" />
 
-- 手持**放大镜**时按 `Ctrl+A` 打开操作历史窗口页
-- 窗口页分两列列出当前可撤销与可重做的操作（操作类型与起终点坐标），列表超出时可用鼠标滚轮滚动查看
-- 窗口页内可直接按 `Ctrl+Z` / `Ctrl+Y` 撤销或重做，结果实时刷新，且窗口页打开期间不弹出聊天栏提示
-- 退出方式：面板右上角关闭按钮、`ESC`、再次按 `Ctrl+A`
+## 查看操作历史
+
+- 手持放大镜时按 `Ctrl+A` 打开操作历史窗口页(可更改按键绑定)
+- 窗口页分两列列出当前可撤销与可重做的操作(操作类型与起终点坐标), 列表超出时可用鼠标滚轮滚动查看
+- 窗口页内可直接按 `Ctrl+Z` / `Ctrl+Y` 撤销或重做, 结果实时刷新, 且窗口页打开期间不弹出聊天栏提示
+- 退出方式: 面板右上角关闭按钮、`ESC`、再次按 `Ctrl+A`
 
 <img src="https://raw.githubusercontent.com/JularDepick/Virtual-Redstone-Wire/main/curseforge/42.png" alt="操作历史窗口页列出可撤销与可重做的链路操作" />
 
----
+## 红石行为
 
-## 环境要求
+- 虚拟线缆传输的是 0-15 的红石信号强度
+- 输入端方块检测其所在位置的红石信号
+- 输入端的红石变化会实时反映到输出端
+- 支持一对多广播, 多对一合并取最大值
+- 链路信号单向传播
+- 信号从输出方块的指定面发出,方向精确
 
-- Minecraft 1.20 - 1.21.8
-- Forge 或 Fabric
-- Fabric 需要 Fabric API; Forge 侧无其他模组依赖
-- 请下载与你的 Minecraft 版本匹配的产物, 每个文件名已声明其支持区间
+# 模组配置
 
----
+## 客户端
 
-## 配置
+- 配置文件: `config/virtual_redstone_wire-client.toml`
 
-### 配置方法
+| 配置项 | 默认值 | 取值范围 | 含义 |
+|:---:|:---:|:---:|:---:|
+| `enableChatFeedback` | `false` | `true` / `false` | 是否在聊天栏显示链路操作的结果反馈 |
+| `undoHistorySize` | `20` | `10` - `100` | 撤销栈与重做栈各自的条数上限 |
+| `undoRedoFeedback` | `true` | `true` / `false` | 是否显示撤销与重做的各类提示 |
 
-- 先启动一次游戏（或服务器）以生成配置文件
-- 用文本编辑器打开配置文件：
-  - 服务端配置：`<世界文件夹>/serverconfig/virtual_redstone_wire-server.toml`（请在运行服务器的机器上修改）
-  - 客户端配置：`config/virtual_redstone_wire-client.toml`
-- 修改数值并保存
-- 重启游戏或服务器后生效
+## 服务端
 
-示例（服务端，`<世界文件夹>/serverconfig/virtual_redstone_wire-server.toml`）：
+- 配置文件: `<世界存档>/serverconfig/virtual_redstone_wire-server.toml`
 
-```toml
-maxLinkDistance = 512
-```
+| 配置项 | 默认值 | 取值范围 | 含义 |
+|:---:|:---:|:---:|:---:|
+| `maxLinkDistance` | `256` | `1` - `1024` | 单条链路允许的最大距离, 单位为方块 |
+| `magnifierRenderDistance` | `512` | `64` - `1024` | 手持放大镜时链路高亮渲染的最大距离, 单位为方块 |
+| `networkChangeLogSize` | `200` | `200` - `1000` | 增量同步所用的近期变更表容量 |
+| `operationLogEnabled` | `true` | `true` / `false` | 是否记录每一条已生效或被拒绝的增删操作 |
+| `operationLogSplit` | `total` | `total` / `both` / `player` | 操作日志的文件分割方式, 依次为合并写入, 合并与按玩家分文件同时写, 仅按玩家分文件 |
+| `operationLogFile` | `Virtual_Redstone_Wire-Operations.log` | 自定义文件名 | 操作日志的文件名, 按玩家分文件时在文件名主体后追加玩家名称 |
+| `requestLogEnabled` | `false` | `true` / `false` | 是否记录收到的每一条请求原文与最终结果码, 属调试级 |
+| `requestLogFile` | `Virtual_Redstone_Wire-Requests.log` | 自定义文件名 | 请求日志的文件名 |
 
-### 服务端选项
+# 模组数据
 
-- `maxLinkDistance` - 最大链路距离（默认 256，范围 1-1024）
-- `magnifierRenderDistance` - 链路可视化渲染距离（默认 512，范围 64-1024）
-- `networkChangeLogSize` - 增量同步近期变更表容量（默认 200，范围 200-1000）
-- `operationLogEnabled` - 操作日志：add/del 执行/拒绝记录（默认开启）
-- `operationLogSplit` - 操作日志分割：total 合并同一文件 / both 合并+按玩家 / player 仅按玩家分文件（默认 total）
-- `operationLogFile` - 操作日志文件名（默认 Virtual_Redstone_Wire-Operations.log；player/both 分割时主名后缀 `_<玩家名>`）
-- `requestLogEnabled` - 请求日志：记录每次收到的原始请求与最终状态码，调试级（默认关闭）
-- `requestLogFile` - 请求日志文件名（默认 Virtual_Redstone_Wire-Requests.log）
-- 服务端选项可在游戏内 Mods 菜单（Config）查看与修改，仅存档拥有者可改
+## 链路数据
 
-### 客户端选项
+| 世界维度 | 数据文件 |
+|:---:|:---:|
+| 主世界 | `<世界存档>/data/virtual_redstone_wire_network.dat` |
+| 下界 | `<世界存档>/DIM-1/data/virtual_redstone_wire_network.dat` |
+| 末地 | `<世界存档>/DIM1/data/virtual_redstone_wire_network.dat` |
 
-- `enableChatFeedback` - 操作聊天反馈（默认关闭）
-- `undoHistorySize` - 撤销/重做历史上限（默认 20，范围 10-100）
-- `undoRedoFeedback` - 撤销/重做提示（默认开启）
-- 客户端选项可在游戏内 Mods 菜单（Config）修改，即时生效
+## 日志数据
 
----
+- 操作日志: `<世界存档>/Virtual_Redstone_Wire-Operations.log` 和 `<世界存档>/Virtual_Redstone_Wire-Operations_<玩家名称>.log`
+- 请求日志: `<世界存档>/Virtual_Redstone_Wire-Requests.log`
 
-## 语言支持
+# 支持的版本
 
-本模组内置完整翻译：
+`mc-1.20.1-forge` 与 `mc-1.20.1-fabric` 是两侧的 1.20.1 基线产物,其余兼容版本如下:
 
-- **简体中文**
-- **英文**
+## Forge
 
-游戏内文本（物品提示、信息面板、聊天反馈等）会跟随您的 Minecraft 语言设置自动切换，无需任何模组配置。
+| Minecraft | Java | Forge版本 | 模组文件名称后缀 |
+|:---:|:---:|:---:|:---:|
+| `1.20` | `17` | `46.x` | `mc-1.20_1.20.1-forge` |
+| **`1.20.1`** | **`17`** | **`47.x`** | **`mc-1.20.1-forge`** |
+| `1.20.1` | `17` | `47.x` | `mc-1.20_1.20.1-forge` |
+| `1.20.2` | `17` | `48.x` | `mc-1.20.2-forge` |
+| `1.20.3` | `17` | `49.0.x` | `mc-1.20.3_1.20.4-forge` |
+| `1.20.4` | `17` | `49.2.x` | `mc-1.20.3_1.20.4-forge` |
+| `1.20.6` | `21` | `50.2.x` | `mc-1.20.6-forge` |
+| `1.21` | `21` | `51.0.x` | `mc-1.21_1.21.1-forge` |
+| `1.21.1` | `21` | `51.0.x` | `mc-1.21_1.21.1-forge` |
+| `1.21.3` | `21` | `53.1.x` | `mc-1.21.3-forge` |
+| `1.21.4` | `21` | `54.1.x` | `mc-1.21.4-forge` |
+| `1.21.5` | `21` | `55.1.x` | `mc-1.21.5-forge` |
+| `1.21.6` | `21` | `56.0.x` | `mc-1.21.6-forge` |
+| `1.21.7` | `21` | `57.0.x` | `mc-1.21.7-forge` |
+| `1.21.8` | `21` | `58.1.x` | `mc-1.21.8-forge` |
 
-### 切换方法
+> Forge 不支持 1.20.5 和 1.21.2 两个游戏版本
 
-- 进入游戏后打开 **选项 -> 语言**
-- 选择 **简体中文** 或 **English (US)**
-- 确认后模组文本立即切换
+## Fabric
 
-语言设置为**客户端级**：每位玩家可自选语言，服务端无需任何配置。
+| Minecraft | Java | Fabric版本 | Fabric API 版本 | 模组文件名称后缀 |
+|:---:|:---:|:---:|:---:|:---:|
+| `1.20` | `17` | `0.16.x` | `0.83.0+1.20` | `mc-1.20_1.20.1-fabric` |
+| **`1.20.1`** | **`17`** | **`0.16.x`** | **`0.92.12+1.20.1`** | **`mc-1.20.1-fabric`** |
+| `1.20.1` | `17` | `0.16.x` | `0.83.0+1.20` | `mc-1.20_1.20.1-fabric` |
+| `1.20.2` | `17` | `0.16.x` | `0.91.6+1.20.2` | `mc-1.20.2-fabric` |
+| `1.20.3` | `17` | `0.16.x` | `0.91.1+1.20.3` | `mc-1.20.3_1.20.4-fabric` |
+| `1.20.4` | `17` | `0.16.x` | `0.91.1+1.20.3` | `mc-1.20.3_1.20.4-fabric` |
+| `1.20.5` | `21` | `0.16.x` | `0.97.8+1.20.5` | `mc-1.20.5_1.20.6-fabric` |
+| `1.20.6` | `21` | `0.16.x` | `0.97.8+1.20.5` | `mc-1.20.5_1.20.6-fabric` |
+| `1.21` | `21` | `0.16.x` | `0.101.2+1.21` | `mc-1.21_1.21.1-fabric` |
+| `1.21.1` | `21` | `0.16.x` | `0.101.2+1.21` | `mc-1.21_1.21.1-fabric` |
+| `1.21.2` | `21` | `0.16.x` | `0.106.1+1.21.2` | `mc-1.21.2_1.21.3-fabric` |
+| `1.21.3` | `21` | `0.16.x` | `0.106.1+1.21.2` | `mc-1.21.2_1.21.3-fabric` |
+| `1.21.4` | `21` | `0.16.x` | `0.107.0+1.21.4` | `mc-1.21.4-fabric` |
+| `1.21.5` | `21` | `0.16.x` | `0.114.1+1.21.5` | `mc-1.21.5-fabric` |
+| `1.21.6` | `21` | `0.16.x` | `0.128.2+1.21.6` | `mc-1.21.6-fabric` |
+| `1.21.7` | `21` | `0.16.x` | `0.128.2+1.21.7` | `mc-1.21.7_1.21.8-fabric` |
+| `1.21.8` | `21` | `0.16.x` | `0.128.2+1.21.7` | `mc-1.21.7_1.21.8-fabric` |
 
----
+> 本模组暂不考虑兼容 NeoForge 模组加载器,玩家可以通过桥接模组在 NeoForge上加载本模组。或者你可以 [新建Issue](https://github.com/JularDepick/Virtual-Redstone-Wire/issues/new) 请求适配。
 
-## 附注
+> 本模组暂不考虑支持 26.x 游戏版本。但是你可以 [新建Issue](https://github.com/JularDepick/Virtual-Redstone-Wire/issues/new) 请求适配。
 
-- 聊天反馈默认关闭，可在客户端配置中启用
-- 右键操作在按下时触发一次，按住不放不会重复触发（松开后可再次触发）；未瞄准方块时不触发；左键不触发任何操作
-- 本模组受 Drive-By-Wire 线缆逻辑启发，可在原版世界使用；除 Fabric 侧需要 Fabric API 外无其他模组依赖
-- **如需本模组尚未覆盖的版本区间, 反馈问题或建议功能, 请前往 GitHub 仓库**: [https://github.com/JularDepick/Virtual-Redstone-Wire](https://github.com/JularDepick/Virtual-Redstone-Wire)
+# 多语言支持
+
+当前模组支持的语言有:
+- 简体中文
+- English
+
+> 模组语言随游戏语言自动变更
+
+# 附注
+
+> 聊天反馈默认关闭, 可在客户端配置中启用
+
+> 右键操作在按下时触发一次, 按住不放不会重复触发（松开后可再次触发）; 未瞄准方块时不触发; 左键不触发任何操作
+
+> 本模组受 Drive-By-Wire 线缆逻辑启发, 可在原版世界使用; 除 Fabric 侧需要 Fabric API 外无其他模组依赖
+
+> **如需本模组尚未覆盖的版本区间, 反馈问题或建议功能, 请前往 GitHub 仓库**: [https://github.com/JularDepick/Virtual-Redstone-Wire](https://github.com/JularDepick/Virtual-Redstone-Wire)

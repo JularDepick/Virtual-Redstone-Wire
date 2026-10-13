@@ -42,9 +42,10 @@ AGENTS*.md
 v*-*.md
 
 # developer's addtion
-version.index.md
+#alpha-runtime/
 
 # other
+.env
 release*/
 reference/
 temp/

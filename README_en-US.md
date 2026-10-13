@@ -125,47 +125,47 @@ While holding the Cable Magnifier, press `Ctrl+A` to open the operation history 
 
 ## Forge
 
-| Minecraft | Forge version | Mod file name suffix |
-|:---:|:---:|:---:|
-| `1.20` | `46.x` | `mc-1.20_1.20.1-forge` |
-| **`1.20.1`** | **`47.x`** | **`mc-1.20.1-forge`** |
-| `1.20.1` | `47.x` | `mc-1.20_1.20.1-forge` |
-| `1.20.2` | `48.x` | `mc-1.20.2-forge` |
-| `1.20.3` | `49.0.x` | `mc-1.20.3_1.20.4-forge` |
-| `1.20.4` | `49.2.x` | `mc-1.20.3_1.20.4-forge` |
-| `1.20.6` | `50.2.x` | `mc-1.20.6-forge` |
-| `1.21` | `51.0.x` | `mc-1.21_1.21.1-forge` |
-| `1.21.1` | `51.0.x` | `mc-1.21_1.21.1-forge` |
-| `1.21.3` | `53.1.x` | `mc-1.21.3-forge` |
-| `1.21.4` | `54.1.x` | `mc-1.21.4-forge` |
-| `1.21.5` | `55.1.x` | `mc-1.21.5-forge` |
-| `1.21.6` | `56.0.x` | `mc-1.21.6-forge` |
-| `1.21.7` | `57.0.x` | `mc-1.21.7-forge` |
-| `1.21.8` | `58.1.x` | `mc-1.21.8-forge` |
+| Minecraft | Java | Forge version | Mod file name suffix |
+|:---:|:---:|:---:|:---:|
+| `1.20` | `17` | `46.x` | `mc-1.20_1.20.1-forge` |
+| **`1.20.1`** | **`17`** | **`47.x`** | **`mc-1.20.1-forge`** |
+| `1.20.1` | `17` | `47.x` | `mc-1.20_1.20.1-forge` |
+| `1.20.2` | `17` | `48.x` | `mc-1.20.2-forge` |
+| `1.20.3` | `17` | `49.0.x` | `mc-1.20.3_1.20.4-forge` |
+| `1.20.4` | `17` | `49.2.x` | `mc-1.20.3_1.20.4-forge` |
+| `1.20.6` | `21` | `50.2.x` | `mc-1.20.6-forge` |
+| `1.21` | `21` | `51.0.x` | `mc-1.21_1.21.1-forge` |
+| `1.21.1` | `21` | `51.0.x` | `mc-1.21_1.21.1-forge` |
+| `1.21.3` | `21` | `53.1.x` | `mc-1.21.3-forge` |
+| `1.21.4` | `21` | `54.1.x` | `mc-1.21.4-forge` |
+| `1.21.5` | `21` | `55.1.x` | `mc-1.21.5-forge` |
+| `1.21.6` | `21` | `56.0.x` | `mc-1.21.6-forge` |
+| `1.21.7` | `21` | `57.0.x` | `mc-1.21.7-forge` |
+| `1.21.8` | `21` | `58.1.x` | `mc-1.21.8-forge` |
 
 > Forge does not support Minecraft 1.20.5 and 1.21.2
 
 ## Fabric
 
-| Minecraft | Fabric version | Fabric API version | Mod file name suffix |
-|:---:|:---:|:---:|:---:|
-| `1.20` | `0.16.x` | `0.83.0+1.20` | `mc-1.20_1.20.1-fabric` |
-| **`1.20.1`** | **`0.16.x`** | **`0.92.12+1.20.1`** | **`mc-1.20.1-fabric`** |
-| `1.20.1` | `0.16.x` | `0.83.0+1.20` | `mc-1.20_1.20.1-fabric` |
-| `1.20.2` | `0.16.x` | `0.91.6+1.20.2` | `mc-1.20.2-fabric` |
-| `1.20.3` | `0.16.x` | `0.91.1+1.20.3` | `mc-1.20.3_1.20.4-fabric` |
-| `1.20.4` | `0.16.x` | `0.91.1+1.20.3` | `mc-1.20.3_1.20.4-fabric` |
-| `1.20.5` | `0.16.x` | `0.97.8+1.20.5` | `mc-1.20.5_1.20.6-fabric` |
-| `1.20.6` | `0.16.x` | `0.97.8+1.20.5` | `mc-1.20.5_1.20.6-fabric` |
-| `1.21` | `0.16.x` | `0.101.2+1.21` | `mc-1.21_1.21.1-fabric` |
-| `1.21.1` | `0.16.x` | `0.101.2+1.21` | `mc-1.21_1.21.1-fabric` |
-| `1.21.2` | `0.16.x` | `0.106.1+1.21.2` | `mc-1.21.2_1.21.3-fabric` |
-| `1.21.3` | `0.16.x` | `0.106.1+1.21.2` | `mc-1.21.2_1.21.3-fabric` |
-| `1.21.4` | `0.16.x` | `0.107.0+1.21.4` | `mc-1.21.4-fabric` |
-| `1.21.5` | `0.16.x` | `0.114.1+1.21.5` | `mc-1.21.5-fabric` |
-| `1.21.6` | `0.16.x` | `0.128.2+1.21.6` | `mc-1.21.6-fabric` |
-| `1.21.7` | `0.16.x` | `0.128.2+1.21.7` | `mc-1.21.7_1.21.8-fabric` |
-| `1.21.8` | `0.16.x` | `0.128.2+1.21.7` | `mc-1.21.7_1.21.8-fabric` |
+| Minecraft | Java | Fabric version | Fabric API version | Mod file name suffix |
+|:---:|:---:|:---:|:---:|:---:|
+| `1.20` | `17` | `0.16.x` | `0.83.0+1.20` | `mc-1.20_1.20.1-fabric` |
+| **`1.20.1`** | **`17`** | **`0.16.x`** | **`0.92.12+1.20.1`** | **`mc-1.20.1-fabric`** |
+| `1.20.1` | `17` | `0.16.x` | `0.83.0+1.20` | `mc-1.20_1.20.1-fabric` |
+| `1.20.2` | `17` | `0.16.x` | `0.91.6+1.20.2` | `mc-1.20.2-fabric` |
+| `1.20.3` | `17` | `0.16.x` | `0.91.1+1.20.3` | `mc-1.20.3_1.20.4-fabric` |
+| `1.20.4` | `17` | `0.16.x` | `0.91.1+1.20.3` | `mc-1.20.3_1.20.4-fabric` |
+| `1.20.5` | `21` | `0.16.x` | `0.97.8+1.20.5` | `mc-1.20.5_1.20.6-fabric` |
+| `1.20.6` | `21` | `0.16.x` | `0.97.8+1.20.5` | `mc-1.20.5_1.20.6-fabric` |
+| `1.21` | `21` | `0.16.x` | `0.101.2+1.21` | `mc-1.21_1.21.1-fabric` |
+| `1.21.1` | `21` | `0.16.x` | `0.101.2+1.21` | `mc-1.21_1.21.1-fabric` |
+| `1.21.2` | `21` | `0.16.x` | `0.106.1+1.21.2` | `mc-1.21.2_1.21.3-fabric` |
+| `1.21.3` | `21` | `0.16.x` | `0.106.1+1.21.2` | `mc-1.21.2_1.21.3-fabric` |
+| `1.21.4` | `21` | `0.16.x` | `0.107.0+1.21.4` | `mc-1.21.4-fabric` |
+| `1.21.5` | `21` | `0.16.x` | `0.114.1+1.21.5` | `mc-1.21.5-fabric` |
+| `1.21.6` | `21` | `0.16.x` | `0.128.2+1.21.6` | `mc-1.21.6-fabric` |
+| `1.21.7` | `21` | `0.16.x` | `0.128.2+1.21.7` | `mc-1.21.7_1.21.8-fabric` |
+| `1.21.8` | `21` | `0.16.x` | `0.128.2+1.21.7` | `mc-1.21.7_1.21.8-fabric` |
 
 > This mod does not plan to support the NeoForge mod loader for now; you can load this mod on NeoForge through a bridge mod. Or you can [open a new issue](https://github.com/JularDepick/Virtual-Redstone-Wire/issues/new) to request support.
 
@@ -199,6 +199,8 @@ The environments of the compatible versions are listed in [versions/versions.jso
 ## Build Scripts
 
 ```bash
+# Build the Forge baseline artifact
+gradlew.bat build
 # List every Forge-side adaptation target together with the environment versions it needs
 python versions/build_version.py list
 # Generate the working copy of that Forge target
@@ -211,7 +213,7 @@ python versions/build_version.py jdk-build 21
 python versions/build_version.py copy
 
 # Build the Fabric baseline artifact; it lands in that project's own build output directory
-cd versions-fabric && gradlew.bat build
+cd versions-fabric && gradlew.bat build && cd ../
 # List every Fabric-side adaptation target together with the environment versions it needs
 python versions-fabric/versions/build_version.py list
 # Generate the working copy of that Fabric target
